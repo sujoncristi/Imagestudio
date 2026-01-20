@@ -86,7 +86,6 @@ export default function App() {
     if (activeProject && activeProject.historyIndex < activeProject.history.length - 1) {
       const idx = activeProject.historyIndex + 1;
       const next = activeProject.history[idx];
-      // Fix: metadata: meta was causing a "Cannot find name 'meta'" error. Use next.metadata instead.
       updateActiveProject({
         ...activeProject,
         url: next.url,
@@ -209,7 +208,6 @@ export default function App() {
     if (!activeProject) return;
     startTask('Gemini Expert Analysis...');
     try {
-      // Fix: Convert blob URL to base64 before passing to Gemini API
       const response = await fetch(activeProject.url);
       const blob = await response.blob();
       const base64 = await new Promise<string>((resolve, reject) => {
@@ -400,6 +398,14 @@ export default function App() {
                     <div className="absolute top-8 left-8 bg-white text-black px-6 py-2 rounded-full font-black text-xs uppercase tracking-[0.2em] animate-pulse">Original View</div>
                   )}
 
+                  {/* Resolution Badge Overlay */}
+                  <div className="absolute top-6 right-6 px-4 py-1.5 bg-black/40 ios-blur border border-white/10 rounded-full pointer-events-none z-10 flex items-center gap-2 animate-in fade-in duration-500">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#34c759] shadow-[0_0_8px_#34c759]"></div>
+                    <span className="text-[10px] font-black text-white/90 uppercase tracking-widest">
+                      {activeProject.metadata.width} × {activeProject.metadata.height}
+                    </span>
+                  </div>
+
                   {activeTool === ToolType.CROP && (
                     <div className="absolute inset-0 pointer-events-none border-2 border-[#007aff]/40 grid grid-cols-3 grid-rows-3 opacity-40">
                       {[...Array(8)].map((_, i) => <div key={i} className="border border-white/10" />)}
@@ -472,7 +478,7 @@ export default function App() {
                 </div>
                 <div className="flex items-center gap-3 mb-8">
                   <div className="w-12 h-12 bg-[#007aff] rounded-2xl flex items-center justify-center shadow-lg shadow-[#007aff]/30">
-                     <SparklesIcon className="text-white w-6 h-6" />
+                     <span className="text-white">AI</span>
                   </div>
                   <h3 className="text-2xl font-black uppercase tracking-tighter">AI Expert Analysis</h3>
                 </div>
