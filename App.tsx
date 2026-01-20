@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ToolType, ImageMetadata, HistoryItem, ProjectImage } from './types.ts';
 import Uploader from './components/Uploader.tsx';
 import ToolBar from './components/ToolBar.tsx';
-import { XIcon, DownloadIcon, UndoIcon, RedoIcon, SparklesIcon, ZoomInIcon, ZoomOutIcon, InfoIcon, MirrorIcon, BWIcon, PixelIcon, ConvertIcon, AdjustmentsIcon, EyeIcon } from './components/Icons.tsx';
+import { XIcon, DownloadIcon, UndoIcon, RedoIcon, SparklesIcon, ZoomInIcon, ZoomOutIcon, InfoIcon, MirrorIcon, BWIcon, PixelIcon, ConvertIcon, AdjustmentsIcon, EyeIcon, ResetIcon } from './components/Icons.tsx';
 import * as imageService from './services/imageService.ts';
 import * as geminiService from './services/geminiService.ts';
 
@@ -92,6 +92,21 @@ export default function App() {
         metadata: next.metadata,
         historyIndex: idx
       });
+    }
+  };
+
+  const handleResetToOriginal = () => {
+    if (activeProject && activeProject.history.length > 0) {
+      const original = activeProject.history[0];
+      updateActiveProject({
+        ...activeProject,
+        url: original.url,
+        metadata: original.metadata,
+        historyIndex: 0
+      });
+      setZoom(1);
+      setPanOffset({ x: 0, y: 0 });
+      setActiveTool(null);
     }
   };
 
@@ -305,13 +320,19 @@ export default function App() {
         
         {activeProject && (
           <div className="flex items-center gap-3">
-            <button onMouseDown={() => setIsComparing(true)} onMouseUp={() => setIsComparing(false)} onMouseLeave={() => setIsComparing(false)} className="w-11 h-11 rounded-full flex items-center justify-center bg-white/5 border border-white/10 text-white/60 hover:text-white transition-all active:scale-90"><EyeIcon className="w-5 h-5" /></button>
-            <button onClick={() => setShowDetails(!showDetails)} className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${showDetails ? 'bg-[#007aff] text-white shadow-lg' : 'bg-white/5 border border-white/10 text-white/60'}`}><InfoIcon className="w-5 h-5" /></button>
+            <button title="Hold to compare" onMouseDown={() => setIsComparing(true)} onMouseUp={() => setIsComparing(false)} onMouseLeave={() => setIsComparing(false)} className="w-11 h-11 rounded-full flex items-center justify-center bg-white/5 border border-white/10 text-white/60 hover:text-white transition-all active:scale-90"><EyeIcon className="w-5 h-5" /></button>
+            <button title="Technical Specs" onClick={() => setShowDetails(!showDetails)} className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${showDetails ? 'bg-[#007aff] text-white shadow-lg' : 'bg-white/5 border border-white/10 text-white/60'}`}><InfoIcon className="w-5 h-5" /></button>
             <div className="w-px h-6 bg-white/10 mx-1" />
-            <button disabled={activeProject.historyIndex <= 0} onClick={handleUndo} className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${activeProject.historyIndex > 0 ? 'bg-white/10 text-[#007aff]' : 'text-white/20'}`}><UndoIcon className="w-5 h-5" /></button>
-            <button disabled={activeProject.historyIndex >= activeProject.history.length - 1} onClick={handleRedo} className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${activeProject.historyIndex < activeProject.history.length - 1 ? 'bg-white/10 text-[#007aff]' : 'text-white/20'}`}><RedoIcon className="w-5 h-5" /></button>
+            
+            {/* New Reset to Original Button */}
+            <button title="Reset to Original" onClick={handleResetToOriginal} className="w-11 h-11 rounded-full flex items-center justify-center bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all active:scale-90">
+              <ResetIcon className="w-5 h-5" />
+            </button>
+            
+            <button title="Undo" disabled={activeProject.historyIndex <= 0} onClick={handleUndo} className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${activeProject.historyIndex > 0 ? 'bg-white/10 text-[#007aff]' : 'text-white/20'}`}><UndoIcon className="w-5 h-5" /></button>
+            <button title="Redo" disabled={activeProject.historyIndex >= activeProject.history.length - 1} onClick={handleRedo} className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${activeProject.historyIndex < activeProject.history.length - 1 ? 'bg-white/10 text-[#007aff]' : 'text-white/20'}`}><RedoIcon className="w-5 h-5" /></button>
             <div className="w-px h-6 bg-white/10 mx-1" />
-            <button onClick={handleReset} className="w-11 h-11 rounded-full bg-[#ff3b30]/20 border border-[#ff3b30]/30 text-[#ff3b30] flex items-center justify-center active:scale-90 transition-transform"><XIcon className="w-5 h-5" /></button>
+            <button title="Close Project" onClick={handleReset} className="w-11 h-11 rounded-full bg-[#ff3b30]/20 border border-[#ff3b30]/30 text-[#ff3b30] flex items-center justify-center active:scale-90 transition-transform"><XIcon className="w-5 h-5" /></button>
           </div>
         )}
       </header>
@@ -377,14 +398,14 @@ export default function App() {
 
             {/* Preview Area */}
             <div className="relative group">
-              <div className="bg-[#1c1c1e]/60 p-3 rounded-[3.5rem] border border-white/10 shadow-2xl flex flex-col items-center overflow-hidden">
+              <div className="bg-[#1c1c1e]/60 p-1 rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col items-center overflow-hidden">
                 <div 
                   ref={previewRef}
                   onMouseDown={onMouseDown}
                   onMouseMove={onMouseMove}
                   onMouseUp={onMouseUp}
                   onMouseLeave={onMouseUp}
-                  className={`relative w-full aspect-auto max-h-[65vh] overflow-hidden rounded-[3rem] bg-black/40 flex items-center justify-center border border-white/5 transition-all duration-300 ${zoom > 1 ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`}
+                  className={`relative w-full aspect-auto min-h-[40vh] max-h-[75vh] overflow-hidden rounded-[2rem] bg-black/40 flex items-center justify-center border border-white/5 transition-all duration-300 ${zoom > 1 ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`}
                 >
                   <img 
                     src={isComparing ? activeProject.history[0].url : activeProject.url} 
@@ -395,7 +416,7 @@ export default function App() {
                   />
                   
                   {isComparing && (
-                    <div className="absolute top-8 left-8 bg-white text-black px-6 py-2 rounded-full font-black text-xs uppercase tracking-[0.2em] animate-pulse">Original View</div>
+                    <div className="absolute top-8 left-8 bg-white text-black px-6 py-2 rounded-full font-black text-xs uppercase tracking-[0.2em] animate-pulse shadow-xl">Original View</div>
                   )}
 
                   {/* Resolution Badge Overlay */}
@@ -478,7 +499,7 @@ export default function App() {
                 </div>
                 <div className="flex items-center gap-3 mb-8">
                   <div className="w-12 h-12 bg-[#007aff] rounded-2xl flex items-center justify-center shadow-lg shadow-[#007aff]/30">
-                     <span className="text-white">AI</span>
+                     <SparklesIcon className="text-white w-6 h-6" />
                   </div>
                   <h3 className="text-2xl font-black uppercase tracking-tighter">AI Expert Analysis</h3>
                 </div>
