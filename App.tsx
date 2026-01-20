@@ -223,7 +223,7 @@ export default function App() {
     projects.forEach((proj, idx) => {
       const link = document.createElement('a');
       link.href = proj.url;
-      link.download = `imagestudio-${idx}-${proj.metadata.name}`;
+      link.download = `imagerize-${idx}-${proj.metadata.name}`;
       link.click();
     });
     setTimeout(() => endTask(), 1000);
@@ -291,7 +291,7 @@ export default function App() {
           <div className="w-10 h-10 bg-gradient-to-br from-[#007aff] to-[#5856d6] rounded-xl flex items-center justify-center shadow-lg shadow-[#007aff]/20">
              <SparklesIcon className="text-white w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-black tracking-tighter bg-gradient-to-r from-white to-[#8e8e93] bg-clip-text text-transparent">ImageStudio</h1>
+          <h1 className="text-2xl font-black tracking-tighter bg-gradient-to-r from-white to-[#8e8e93] bg-clip-text text-transparent">Imagerize</h1>
         </div>
         
         {activeProject && (
@@ -416,7 +416,7 @@ export default function App() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <a href={activeProject.url} download={`imagestudio-${activeProject.metadata.name}`} className="flex items-center gap-3 bg-white text-black px-10 py-4 rounded-full font-black shadow-xl hover:scale-105 active:scale-95 transition-all uppercase text-xs tracking-widest">
+                    <a href={activeProject.url} download={`imagerize-${activeProject.metadata.name}`} className="flex items-center gap-3 bg-white text-black px-10 py-4 rounded-full font-black shadow-xl hover:scale-105 active:scale-95 transition-all uppercase text-xs tracking-widest">
                       <DownloadIcon className="w-5 h-5" />
                       Export
                     </a>
@@ -598,7 +598,7 @@ export default function App() {
                <span className="text-[10px] font-bold text-white/60 tracking-wider">classicalsujon@gmail.com</span>
             </div>
           </div>
-          <p className="text-[9px] font-bold text-white/10 mt-4 tracking-widest">© 2025 IMAGESTUDIO • ALL RIGHTS RESERVED</p>
+          <p className="text-[9px] font-bold text-white/10 mt-4 tracking-widest">© 2025 IMAGERIZE • ALL RIGHTS RESERVED</p>
         </div>
       </footer>
 
