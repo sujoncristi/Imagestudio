@@ -1,0 +1,14 @@
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[headers]]
+  for = "/*.tsx"
+  [headers.values]
+    Content-Type = "application/javascript"
+
+[[headers]]
+  for = "/*.ts"
+  [headers.values]
+    Content-Type = "application/javascript"
