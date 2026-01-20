@@ -1,0 +1,7 @@
+{
+  "name": "ImageStudio iOS",
+  "description": "A high-end image processing suite with an elegant iOS aesthetic, featuring AI-powered image analysis and advanced editing tools.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
