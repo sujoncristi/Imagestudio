@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ToolType, ImageMetadata, HistoryItem, ProjectImage } from './types.ts';
 import Uploader from './components/Uploader.tsx';
 import ToolBar from './components/ToolBar.tsx';
-import { XIcon, DownloadIcon, UndoIcon, RedoIcon, SparklesIcon, ZoomInIcon, ZoomOutIcon, InfoIcon, MirrorIcon, BWIcon, PixelIcon, ConvertIcon, AdjustmentsIcon, EyeIcon, ResetIcon, RotateIcon, BorderIcon } from './components/Icons.tsx';
+import { XIcon, DownloadIcon, UndoIcon, RedoIcon, SparklesIcon, ZoomInIcon, ZoomOutIcon, InfoIcon, MirrorIcon, BWIcon, PixelIcon, ConvertIcon, AdjustmentsIcon, EyeIcon, ResetIcon, RotateIcon, BorderIcon, FilterIcon } from './components/Icons.tsx';
 import * as imageService from './services/imageService.ts';
 import * as geminiService from './services/geminiService.ts';
 
@@ -42,12 +41,15 @@ export default function App() {
   const [hue, setHue] = useState(0);
 
   // Filter state
-  const [customFilterStr, setCustomFilterStr] = useState('blur(1px) contrast(1.1)');
-  const [isCustomFilterMode, setIsCustomFilterMode] = useState(false);
+  const [customFilterInput, setCustomFilterInput] = useState('');
+  const [showCustomFilterInput, setShowCustomFilterInput] = useState(false);
 
   // Border state
   const [borderColor, setBorderColor] = useState('#ffffff');
   const [borderWidth, setBorderWidth] = useState(5);
+
+  // Reordering state
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
   const activeProject = projects[activeIndex] || null;
 
@@ -212,7 +214,6 @@ export default function App() {
       const blob = await (await fetch(url)).blob();
       addToHistory(url, { ...activeProject.metadata, width: finalImg.width, height: finalImg.height, size: blob.size, format: blob.type });
       setActiveTool(null);
-      setIsCustomFilterMode(false);
     } catch (e) {
       console.error(e);
     } finally {
@@ -311,6 +312,45 @@ export default function App() {
     applyTool((img) => imageService.addBorder(img, borderColor, borderWidth, targetFormat), 'Frame Applied');
   };
 
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIdx(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIdx === null || draggedIdx === targetIndex) {
+      setDraggedIdx(null);
+      return;
+    }
+
+    const newProjects = [...projects];
+    const draggedItem = newProjects[draggedIdx];
+    
+    newProjects.splice(draggedIdx, 1);
+    newProjects.splice(targetIndex, 0, draggedItem);
+
+    let newActiveIndex = activeIndex;
+    if (draggedIdx === activeIndex) {
+      newActiveIndex = targetIndex;
+    } else {
+      if (draggedIdx < activeIndex && targetIndex >= activeIndex) {
+        newActiveIndex = activeIndex - 1;
+      } else if (draggedIdx > activeIndex && targetIndex <= activeIndex) {
+        newActiveIndex = activeIndex + 1;
+      }
+    }
+
+    setProjects(newProjects);
+    setActiveIndex(newActiveIndex);
+    setDraggedIdx(null);
+  };
+
   const borderPresets = [
     { name: 'White', color: '#ffffff' },
     { name: 'Black', color: '#000000' },
@@ -326,9 +366,43 @@ export default function App() {
     { name: 'Gray', color: '#8e8e93' }
   ];
 
+  const lookPresets = [
+    { name: 'Vivid', f: 'brightness(1.1) saturate(1.6)' },
+    { name: 'Dramatic', f: 'contrast(1.5) brightness(0.9)' },
+    { name: 'Mono', f: 'grayscale(100%)' },
+    { name: 'Sepia', f: 'sepia(100%)' },
+    { name: 'Chrome', f: 'contrast(1.2) saturate(1.4) brightness(1.1)' },
+    { name: 'Fade', f: 'brightness(1.1) contrast(0.8) saturate(0.6)' },
+    { name: 'Noir', f: 'grayscale(100%) contrast(1.8) brightness(0.7)' },
+    { name: 'Process', f: 'contrast(1.2) saturate(1.2) hue-rotate(-15deg)' },
+    { name: 'Transfer', f: 'sepia(0.2) contrast(1.1) brightness(1.1) hue-rotate(10deg)' },
+    { name: 'Instant', f: 'sepia(0.4) saturate(1.3) contrast(0.9)' },
+    { name: 'Arctic', f: 'hue-rotate(30deg) saturate(1.2)' },
+    { name: 'Solar', f: 'sepia(40%) saturate(1.5)' },
+    { name: 'Lush', f: 'saturate(2) contrast(1.1)' },
+    { name: 'Antique', f: 'sepia(0.8) contrast(0.8) brightness(1.2)' },
+    { name: 'Retro', f: 'sepia(0.3) hue-rotate(-10deg) contrast(1.1) saturate(1.4)' },
+    { name: 'Cool', f: 'hue-rotate(15deg) saturate(1.1) brightness(1.05)' },
+    { name: 'Warm', f: 'sepia(0.2) saturate(1.5) brightness(1.05)' },
+    { name: 'High Key', f: 'brightness(1.5) contrast(0.8)' },
+    { name: 'Low Key', f: 'brightness(0.6) contrast(1.4)' },
+    { name: 'Bloom', f: 'blur(0.4px) brightness(1.1) contrast(1.1)' },
+    { name: 'Cyber', f: 'hue-rotate(280deg) saturate(2) brightness(1.2)' },
+    { name: 'Ethereal', f: 'blur(1px) brightness(1.2) contrast(0.9) saturate(0.8)' },
+    { name: 'Acid', f: 'hue-rotate(90deg) invert(0.2) contrast(1.5)' },
+    { name: 'Velvet', f: 'contrast(1.4) saturate(0.5) sepia(0.2)' },
+    { name: 'Frost', f: 'hue-rotate(190deg) brightness(1.1) saturate(0.4)' },
+    { name: 'Golden', f: 'sepia(0.5) saturate(1.8) brightness(1.1) contrast(1.1)' },
+    { name: 'Ocean', f: 'hue-rotate(200deg) saturate(1.5) brightness(0.9)' },
+    { name: 'Forest', f: 'hue-rotate(100deg) saturate(1.2) contrast(1.1)' },
+    { name: 'Midnight', f: 'brightness(0.5) contrast(1.6) hue-rotate(240deg) saturate(0.8)' },
+    { name: 'Ghost', f: 'grayscale(100%) brightness(1.8) contrast(0.5) blur(2px)' },
+    { name: 'Cinematic', f: 'contrast(1.3) saturate(1.2) brightness(0.9) sepia(0.1)' },
+    { name: 'Blueprint', f: 'grayscale(100%) invert(1) sepia(1) hue-rotate(200deg) saturate(5)' }
+  ];
+
   return (
     <div className="min-h-screen bg-[#000000] text-[#ffffff] pb-48 overflow-x-hidden transition-colors duration-500 flex flex-col">
-      {/* Global Processing Loader */}
       {processing && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300"></div>
@@ -407,7 +481,6 @@ export default function App() {
           </div>
         ) : (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
-            {/* Batch Strip */}
             <div className="flex items-center gap-4 overflow-x-auto pb-6 no-scrollbar px-1">
                <button onClick={batchExport} className="w-24 h-24 bg-[#34c759]/10 border border-[#34c759]/20 text-[#34c759] rounded-3xl flex-shrink-0 flex flex-col items-center justify-center shadow-lg active:scale-95 transition-all group hover:bg-[#34c759]/20">
                 <DownloadIcon className="w-7 h-7 mb-2" />
@@ -416,10 +489,14 @@ export default function App() {
               {projects.map((proj, idx) => (
                 <button
                   key={proj.id}
+                  draggable={true}
+                  onDragStart={(e) => handleDragStart(e, idx)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, idx)}
                   onClick={() => { setActiveIndex(idx); setZoom(1); setPanOffset({x:0,y:0}); setActiveTool(null); setShowDetails(false); }}
-                  className={`relative w-24 h-24 rounded-3xl flex-shrink-0 overflow-hidden border-4 transition-all ${activeIndex === idx ? 'border-[#007aff] scale-105 shadow-2xl shadow-[#007aff]/30' : 'border-white/5 opacity-50'}`}
+                  className={`relative w-24 h-24 rounded-3xl flex-shrink-0 overflow-hidden border-4 transition-all ${activeIndex === idx ? 'border-[#007aff] scale-105 shadow-2xl shadow-[#007aff]/30' : 'border-white/5 opacity-50'} ${draggedIdx === idx ? 'opacity-20 scale-95' : ''}`}
                 >
-                  <img src={proj.url} className="w-full h-full object-cover" alt={proj.metadata.name} />
+                  <img src={proj.url} className="w-full h-full object-cover pointer-events-none" alt={proj.metadata.name} />
                 </button>
               ))}
               <button onClick={() => setProjects([])} className="w-24 h-24 bg-white/5 rounded-3xl border-2 border-dashed border-white/20 flex items-center justify-center text-white/30 hover:bg-white/10 active:scale-95 transition-all">
@@ -427,7 +504,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* Preview Area */}
             <div className="relative group">
               <div className="bg-[#1c1c1e]/60 p-1 rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col items-center overflow-hidden">
                 <div 
@@ -450,7 +526,6 @@ export default function App() {
                     <div className="absolute top-8 left-8 bg-white text-black px-6 py-2 rounded-full font-black text-xs uppercase tracking-[0.2em] animate-pulse shadow-xl">Original View</div>
                   )}
 
-                  {/* Resolution Badge Overlay */}
                   <div className="absolute top-6 right-6 px-4 py-1.5 bg-black/40 ios-blur border border-white/10 rounded-full pointer-events-none z-10 flex items-center gap-2 animate-in fade-in duration-500">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#34c759] shadow-[0_0_8px_#34c759]"></div>
                     <span className="text-[10px] font-black text-white/90 uppercase tracking-widest">
@@ -464,7 +539,6 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* Zoom Controls Overlay */}
                   {!activeTool && (
                     <div className="absolute bottom-6 right-6 flex items-center gap-3 bg-white/10 ios-blur border border-white/10 rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => { setZoom(Math.max(1, zoom - 0.5)); if(zoom <= 1.5) setPanOffset({x:0,y:0}); }} className="p-2 hover:bg-white/10 rounded-full transition-colors"><ZoomOutIcon className="w-5 h-5" /></button>
@@ -494,7 +568,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Details Panel */}
             {showDetails && (
               <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-white/10 animate-in slide-in-from-top-4 duration-500">
                 <div className="flex items-center justify-between mb-8">
@@ -522,7 +595,6 @@ export default function App() {
               </div>
             )}
 
-            {/* AI Analysis Result Display */}
             {aiAnalysis && (
               <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-[#007aff]/30 animate-in slide-in-from-top-4 duration-500 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4">
@@ -545,7 +617,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Tool Logic (Darker Theme Adjustments) */}
             <div className="min-h-[200px] pb-12">
               {activeTool === ToolType.ADJUST && (
                 <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-white/10">
@@ -607,7 +678,7 @@ export default function App() {
 
               {activeTool === ToolType.ROTATE && (
                 <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-white/10">
-                  <h3 className="text-2xl font-black uppercase tracking-tighter mb-10">Orientation Tool</h3>
+                  <h3 className="text-2xl font-black uppercase tracking-tighter mb-10"> Orientation Tool</h3>
                   
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
                     <button onClick={() => handleQuickRotate(-90)} className="bg-black/40 border border-white/10 p-6 rounded-3xl flex flex-col items-center gap-3 hover:bg-[#007aff]/10 hover:border-[#007aff]/50 transition-all active:scale-95 group">
@@ -753,41 +824,63 @@ export default function App() {
 
               {activeTool === ToolType.FILTER && (
                 <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-white/10">
-                  <h3 className="text-2xl font-black uppercase tracking-tighter mb-10">Artistic Look</h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 mb-10 p-1 max-h-[40vh] overflow-y-auto no-scrollbar">
-                    {[
-                      { name: 'Vivid', f: 'brightness(1.1) saturate(1.6)' },
-                      { name: 'Dramatic', f: 'contrast(1.5) brightness(0.9)' },
-                      { name: 'Mono', f: 'grayscale(100%)' },
-                      { name: 'Sepia', f: 'sepia(100%)' },
-                      { name: 'Chrome', f: 'contrast(1.2) saturate(1.4) brightness(1.1)' },
-                      { name: 'Fade', f: 'brightness(1.1) contrast(0.8) saturate(0.6)' },
-                      { name: 'Noir', f: 'grayscale(100%) contrast(1.8) brightness(0.7)' },
-                      { name: 'Process', f: 'contrast(1.2) saturate(1.2) hue-rotate(-15deg)' },
-                      { name: 'Transfer', f: 'sepia(0.2) contrast(1.1) brightness(1.1) hue-rotate(10deg)' },
-                      { name: 'Instant', f: 'sepia(0.4) saturate(1.3) contrast(0.9)' },
-                      { name: 'Arctic', f: 'hue-rotate(30deg) saturate(1.2)' },
-                      { name: 'Solar', f: 'sepia(40%) saturate(1.5)' },
-                      { name: 'Lush', f: 'saturate(2) contrast(1.1)' },
-                      { name: 'Antique', f: 'sepia(0.8) contrast(0.8) brightness(1.2)' },
-                      { name: 'Retro', f: 'sepia(0.3) hue-rotate(-10deg) contrast(1.1) saturate(1.4)' },
-                      { name: 'Cool', f: 'hue-rotate(15deg) saturate(1.1) brightness(1.05)' },
-                      { name: 'Warm', f: 'sepia(0.2) saturate(1.5) brightness(1.05)' },
-                      { name: 'High Key', f: 'brightness(1.5) contrast(0.8)' },
-                      { name: 'Low Key', f: 'brightness(0.6) contrast(1.4)' },
-                      { name: 'Bloom', f: 'blur(0.4px) brightness(1.1) contrast(1.1)' }
-                    ].map(filter => (
-                      <button 
-                        key={filter.name}
-                        onClick={() => applyTool((img) => imageService.applyFilter(img, filter.f, targetFormat), `Filter: ${filter.name}`)}
-                        className="flex flex-col items-center gap-3 p-4 bg-black/40 rounded-3xl border border-white/5 hover:border-white/20 active:scale-90 transition-all group"
-                      >
-                        <div className="w-14 h-14 rounded-full border border-white/20 overflow-hidden" style={{ filter: filter.f, backgroundImage: `url(${activeProject.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-                        <span className="text-[9px] font-black uppercase tracking-[0.1em] text-white/40 group-hover:text-white transition-colors text-center">{filter.name}</span>
-                      </button>
-                    ))}
+                  <div className="flex items-center justify-between mb-10">
+                    <h3 className="text-2xl font-black uppercase tracking-tighter">Artistic Look</h3>
+                    <button 
+                      onClick={() => setShowCustomFilterInput(!showCustomFilterInput)}
+                      className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full border transition-all ${showCustomFilterInput ? 'bg-[#007aff] border-[#007aff] text-white' : 'border-white/20 text-white/60 hover:text-white'}`}
+                    >
+                      {showCustomFilterInput ? 'View Presets' : 'Custom Engine'}
+                    </button>
                   </div>
-                  <button onClick={() => setActiveTool(null)} className="w-full bg-white/5 text-white/40 py-5 rounded-3xl font-black uppercase tracking-widest text-xs">Back to Canvas</button>
+
+                  {showCustomFilterInput ? (
+                    <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+                      <div className="bg-black/40 p-8 rounded-[2rem] border border-white/5 mb-10">
+                        <div className="flex items-center gap-3 mb-6">
+                           <FilterIcon className="text-[#007aff] w-5 h-5" />
+                           <span className="text-[11px] font-black uppercase tracking-[0.2em] text-white/40">CSS Filter String</span>
+                        </div>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. contrast(1.5) blur(2px) invert(0.1)"
+                          value={customFilterInput}
+                          onChange={(e) => setCustomFilterInput(e.target.value)}
+                          className="w-full bg-black/60 border border-white/10 rounded-2xl p-6 font-mono text-sm focus:border-[#007aff]/50 outline-none transition-all text-[#007aff]"
+                        />
+                        <p className="mt-4 text-[10px] font-bold text-white/20 uppercase tracking-widest leading-relaxed">
+                          Enter standard CSS filter properties like grayscale, hue-rotate, or sepia for unique results.
+                        </p>
+                      </div>
+                      <div className="flex gap-4">
+                        <button onClick={() => setActiveTool(null)} className="flex-1 bg-white/5 text-white/40 py-6 rounded-3xl font-black uppercase tracking-widest text-xs">Cancel</button>
+                        <button 
+                          onClick={() => applyTool((img) => imageService.applyFilter(img, customFilterInput, targetFormat), 'Custom Look')} 
+                          className="flex-[2] bg-[#007aff] text-white py-6 rounded-3xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-[#007aff]/30"
+                        >
+                          Render Engine
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 mb-10 p-1 max-h-[45vh] overflow-y-auto no-scrollbar rounded-3xl">
+                        {lookPresets.map(filter => (
+                          <button 
+                            key={filter.name}
+                            onClick={() => applyTool((img) => imageService.applyFilter(img, filter.f, targetFormat), `Filter: ${filter.name}`)}
+                            className="flex flex-col items-center gap-3 p-4 bg-black/40 rounded-3xl border border-white/5 hover:border-white/20 active:scale-90 transition-all group"
+                          >
+                            <div className="w-14 h-14 rounded-full border border-white/20 overflow-hidden relative" style={{ filter: filter.f }}>
+                               <img src={activeProject.url} className="w-full h-full object-cover" alt={filter.name} />
+                            </div>
+                            <span className="text-[9px] font-black uppercase tracking-[0.1em] text-white/40 group-hover:text-white transition-colors text-center">{filter.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <button onClick={() => setActiveTool(null)} className="w-full bg-white/5 text-white/40 py-5 rounded-3xl font-black uppercase tracking-widest text-xs">Back to Canvas</button>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -831,7 +924,6 @@ export default function App() {
         )}
       </main>
 
-      {/* Modern iOS Creator Footer */}
       <footer className="w-full py-12 px-6 border-t border-white/5 bg-black/40 ios-blur mt-auto">
         <div className="max-w-4xl mx-auto flex flex-col items-center gap-4 text-center">
           <div className="h-px w-24 bg-gradient-to-r from-transparent via-white/10 to-transparent mb-2"></div>
