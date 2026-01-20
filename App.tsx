@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ToolType, ImageMetadata, HistoryItem, ProjectImage } from './types.ts';
 import Uploader from './components/Uploader.tsx';
 import ToolBar from './components/ToolBar.tsx';
-import { XIcon, DownloadIcon, UndoIcon, RedoIcon, SparklesIcon, ZoomInIcon, ZoomOutIcon, InfoIcon, MirrorIcon, BWIcon, PixelIcon, ConvertIcon, AdjustmentsIcon, EyeIcon, ResetIcon } from './components/Icons.tsx';
+import { XIcon, DownloadIcon, UndoIcon, RedoIcon, SparklesIcon, ZoomInIcon, ZoomOutIcon, InfoIcon, MirrorIcon, BWIcon, PixelIcon, ConvertIcon, AdjustmentsIcon, EyeIcon, ResetIcon, RotateIcon, BorderIcon } from './components/Icons.tsx';
 import * as imageService from './services/imageService.ts';
 import * as geminiService from './services/geminiService.ts';
 
@@ -29,9 +29,10 @@ export default function App() {
   const [height, setHeight] = useState<string>('');
   const [aspectRatio, setAspectRatio] = useState<number>(1);
   const [lockAspectRatio, setLockAspectRatio] = useState(true);
-  const [quality, setQuality] = useState(0.8);
+  const [quality, setQuality] = useState(0.85);
   const [pixelScale, setPixelScale] = useState(0.05);
   const [targetFormat, setTargetFormat] = useState<string>('image/png');
+  const [rotationAngle, setRotationAngle] = useState(0);
 
   // Adjustments state
   const [brightness, setBrightness] = useState(100);
@@ -45,7 +46,7 @@ export default function App() {
   const [isCustomFilterMode, setIsCustomFilterMode] = useState(false);
 
   // Border state
-  const [borderColor, setBorderColor] = useState('#000000');
+  const [borderColor, setBorderColor] = useState('#ffffff');
   const [borderWidth, setBorderWidth] = useState(5);
 
   const activeProject = projects[activeIndex] || null;
@@ -209,7 +210,7 @@ export default function App() {
       const url = await task(img);
       const finalImg = await imageService.loadImage(url);
       const blob = await (await fetch(url)).blob();
-      addToHistory(url, { ...activeProject.metadata, width: finalImg.width, height: finalImg.height, size: blob.size });
+      addToHistory(url, { ...activeProject.metadata, width: finalImg.width, height: finalImg.height, size: blob.size, format: blob.type });
       setActiveTool(null);
       setIsCustomFilterMode(false);
     } catch (e) {
@@ -294,6 +295,37 @@ export default function App() {
     applyTool((img) => imageService.applyFilter(img, filterStr), 'Applying Adjustments');
   };
 
+  const applyFormatConversion = () => {
+    applyTool((img) => imageService.compressImage(img, quality, targetFormat), `Convert to ${targetFormat.split('/')[1].toUpperCase()}`);
+  };
+
+  const handleQuickRotate = (deg: number) => {
+    applyTool((img) => imageService.rotateImage(img, deg, targetFormat), `Rotate ${deg}°`);
+  };
+
+  const applyCustomRotation = () => {
+    applyTool((img) => imageService.rotateImage(img, rotationAngle, targetFormat), `Rotate ${rotationAngle}°`);
+  };
+
+  const applyBorderEffect = () => {
+    applyTool((img) => imageService.addBorder(img, borderColor, borderWidth, targetFormat), 'Frame Applied');
+  };
+
+  const borderPresets = [
+    { name: 'White', color: '#ffffff' },
+    { name: 'Black', color: '#000000' },
+    { name: 'Red', color: '#ff3b30' },
+    { name: 'Orange', color: '#ff9500' },
+    { name: 'Yellow', color: '#ffcc00' },
+    { name: 'Green', color: '#34c759' },
+    { name: 'Teal', color: '#30b0c7' },
+    { name: 'Blue', color: '#007aff' },
+    { name: 'Indigo', color: '#5856d6' },
+    { name: 'Purple', color: '#af52de' },
+    { name: 'Pink', color: '#ff2d55' },
+    { name: 'Gray', color: '#8e8e93' }
+  ];
+
   return (
     <div className="min-h-screen bg-[#000000] text-[#ffffff] pb-48 overflow-x-hidden transition-colors duration-500 flex flex-col">
       {/* Global Processing Loader */}
@@ -324,7 +356,6 @@ export default function App() {
             <button title="Technical Specs" onClick={() => setShowDetails(!showDetails)} className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${showDetails ? 'bg-[#007aff] text-white shadow-lg' : 'bg-white/5 border border-white/10 text-white/60'}`}><InfoIcon className="w-5 h-5" /></button>
             <div className="w-px h-6 bg-white/10 mx-1" />
             
-            {/* New Reset to Original Button */}
             <button title="Reset to Original" onClick={handleResetToOriginal} className="w-11 h-11 rounded-full flex items-center justify-center bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all active:scale-90">
               <ResetIcon className="w-5 h-5" />
             </button>
@@ -574,6 +605,152 @@ export default function App() {
                 </div>
               )}
 
+              {activeTool === ToolType.ROTATE && (
+                <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-white/10">
+                  <h3 className="text-2xl font-black uppercase tracking-tighter mb-10">Orientation Tool</h3>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+                    <button onClick={() => handleQuickRotate(-90)} className="bg-black/40 border border-white/10 p-6 rounded-3xl flex flex-col items-center gap-3 hover:bg-[#007aff]/10 hover:border-[#007aff]/50 transition-all active:scale-95 group">
+                      <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-[#007aff] transition-colors">
+                        <RotateIcon className="w-6 h-6 -scale-x-100" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest">-90°</span>
+                    </button>
+                    <button onClick={() => handleQuickRotate(90)} className="bg-black/40 border border-white/10 p-6 rounded-3xl flex flex-col items-center gap-3 hover:bg-[#007aff]/10 hover:border-[#007aff]/50 transition-all active:scale-95 group">
+                      <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-[#007aff] transition-colors">
+                        <RotateIcon className="w-6 h-6" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest">90°</span>
+                    </button>
+                    <button onClick={() => handleQuickRotate(180)} className="bg-black/40 border border-white/10 p-6 rounded-3xl flex flex-col items-center gap-3 hover:bg-[#007aff]/10 hover:border-[#007aff]/50 transition-all active:scale-95 group">
+                      <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-[#007aff] transition-colors">
+                        <RotateIcon className="w-6 h-6 rotate-180" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest">180°</span>
+                    </button>
+                    <button onClick={() => applyTool((img) => imageService.flipImage(img, 'horizontal', targetFormat), 'Mirror')} className="bg-black/40 border border-white/10 p-6 rounded-3xl flex flex-col items-center gap-3 hover:bg-[#007aff]/10 hover:border-[#007aff]/50 transition-all active:scale-95 group">
+                      <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center group-hover:bg-[#007aff] transition-colors">
+                        <MirrorIcon className="w-6 h-6" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest">Flip H</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-6 mb-10">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">Fine Adjustment</span>
+                      <span className="text-sm font-bold text-[#007aff]">{rotationAngle}°</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="-180" 
+                      max="180" 
+                      step="1" 
+                      value={rotationAngle} 
+                      onChange={(e) => setRotationAngle(parseInt(e.target.value))} 
+                      className="w-full" 
+                    />
+                  </div>
+
+                  <div className="flex gap-4">
+                    <button onClick={() => setActiveTool(null)} className="flex-1 bg-white/5 text-white/40 py-6 rounded-3xl font-black uppercase tracking-widest text-xs">Cancel</button>
+                    <button onClick={applyCustomRotation} className="flex-[2] bg-[#007aff] text-white py-6 rounded-3xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-[#007aff]/30">Apply Custom Rotate</button>
+                  </div>
+                </div>
+              )}
+
+              {activeTool === ToolType.BORDER && (
+                <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-white/10">
+                  <h3 className="text-2xl font-black uppercase tracking-tighter mb-10">Frame Stylist</h3>
+                  
+                  <div className="space-y-8 mb-10">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">Border Thickness</span>
+                        <span className="text-sm font-bold text-[#007aff]">{borderWidth}%</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="20" 
+                        step="0.5" 
+                        value={borderWidth} 
+                        onChange={(e) => setBorderWidth(parseFloat(e.target.value))} 
+                        className="w-full" 
+                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">Palette Presets</span>
+                        <input 
+                          type="color" 
+                          value={borderColor} 
+                          onChange={(e) => setBorderColor(e.target.value)}
+                          className="w-8 h-8 rounded-full border-none p-0 cursor-pointer overflow-hidden bg-transparent"
+                        />
+                      </div>
+                      <div className="grid grid-cols-6 gap-3">
+                        {borderPresets.map(preset => (
+                          <button 
+                            key={preset.name}
+                            onClick={() => setBorderColor(preset.color)}
+                            className={`w-10 h-10 rounded-full border-2 transition-all active:scale-90 ${borderColor.toLowerCase() === preset.color.toLowerCase() ? 'border-[#007aff] scale-110' : 'border-white/10 hover:border-white/30'}`}
+                            style={{ backgroundColor: preset.color }}
+                            title={preset.name}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <button onClick={() => setActiveTool(null)} className="flex-1 bg-white/5 text-white/40 py-6 rounded-3xl font-black uppercase tracking-widest text-xs">Cancel</button>
+                    <button onClick={applyBorderEffect} className="flex-[2] bg-[#007aff] text-white py-6 rounded-3xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-[#007aff]/30">Confirm Frame</button>
+                  </div>
+                </div>
+              )}
+
+              {activeTool === ToolType.CONVERT && (
+                <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-white/10">
+                  <h3 className="text-2xl font-black uppercase tracking-tighter mb-10">Output Engine</h3>
+                  <div className="space-y-8">
+                    <div className="flex bg-black/40 p-2 rounded-3xl border border-white/5">
+                      {['image/png', 'image/jpeg', 'image/webp'].map((fmt) => (
+                        <button
+                          key={fmt}
+                          onClick={() => setTargetFormat(fmt)}
+                          className={`flex-1 py-4 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all ${targetFormat === fmt ? 'bg-white text-black shadow-xl' : 'text-white/30 hover:text-white'}`}
+                        >
+                          {fmt.split('/')[1].toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
+                    {(targetFormat === 'image/jpeg' || targetFormat === 'image/webp') && (
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between px-1">
+                          <span className="text-[11px] font-black text-white/40 uppercase tracking-[0.2em]">Compression Quality</span>
+                          <span className="text-sm font-bold text-[#007aff]">{Math.round(quality * 100)}%</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="0.1" 
+                          max="1.0" 
+                          step="0.01" 
+                          value={quality} 
+                          onChange={(e) => setQuality(parseFloat(e.target.value))} 
+                          className="w-full" 
+                        />
+                      </div>
+                    )}
+                    <div className="flex gap-4 pt-4">
+                      <button onClick={() => setActiveTool(null)} className="flex-1 bg-white/5 text-white/40 py-6 rounded-3xl font-black uppercase tracking-widest text-xs">Cancel</button>
+                      <button onClick={applyFormatConversion} className="flex-[2] bg-[#007aff] text-white py-6 rounded-3xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-[#007aff]/30">Apply Conversion</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {activeTool === ToolType.FILTER && (
                 <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-white/10">
                   <h3 className="text-2xl font-black uppercase tracking-tighter mb-10">Artistic Look</h3>
@@ -602,7 +779,7 @@ export default function App() {
                     ].map(filter => (
                       <button 
                         key={filter.name}
-                        onClick={() => applyTool((img) => imageService.applyFilter(img, filter.f), `Filter: ${filter.name}`)}
+                        onClick={() => applyTool((img) => imageService.applyFilter(img, filter.f, targetFormat), `Filter: ${filter.name}`)}
                         className="flex flex-col items-center gap-3 p-4 bg-black/40 rounded-3xl border border-white/5 hover:border-white/20 active:scale-90 transition-all group"
                       >
                         <div className="w-14 h-14 rounded-full border border-white/20 overflow-hidden" style={{ filter: filter.f, backgroundImage: `url(${activeProject.url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
@@ -634,19 +811,17 @@ export default function App() {
                  </div>
               )}
 
-              {[ToolType.BW, ToolType.MIRROR, ToolType.ROTATE, ToolType.PIXELATE, ToolType.COMPRESS, ToolType.BORDER, ToolType.CROP, ToolType.CONVERT].includes(activeTool as ToolType) && (
+              {[ToolType.BW, ToolType.MIRROR, ToolType.PIXELATE, ToolType.COMPRESS, ToolType.CROP].includes(activeTool as ToolType) && (
                  <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-white/10 text-center">
                     <h3 className="text-2xl font-black uppercase tracking-widest text-[#007aff] mb-6">{activeTool} Active</h3>
                     <p className="text-white/40 mb-10 text-sm font-bold uppercase tracking-widest">Apply the effect to your image?</p>
                     <div className="flex gap-4">
                       <button onClick={() => setActiveTool(null)} className="flex-1 bg-white/5 text-white/40 py-6 rounded-3xl font-black uppercase tracking-widest text-xs">Cancel</button>
                       <button onClick={() => {
-                        if (activeTool === ToolType.BW) applyTool((img) => imageService.grayscaleImage(img), 'Mono');
-                        else if (activeTool === ToolType.ROTATE) applyTool((img) => imageService.rotateImage(img, 90), 'Rotate');
-                        else if (activeTool === ToolType.MIRROR) applyTool((img) => imageService.flipImage(img, 'horizontal'), 'Mirror');
-                        else if (activeTool === ToolType.PIXELATE) applyTool((img) => imageService.pixelateImage(img, 0.1), 'Pixel');
-                        else if (activeTool === ToolType.COMPRESS) applyTool((img) => imageService.compressImage(img, 0.7), 'Shrink');
-                        else if (activeTool === ToolType.BORDER) applyTool((img) => imageService.addBorder(img, borderColor, borderWidth), 'Border');
+                        if (activeTool === ToolType.BW) applyTool((img) => imageService.grayscaleImage(img, targetFormat), 'Mono');
+                        else if (activeTool === ToolType.MIRROR) applyTool((img) => imageService.flipImage(img, 'horizontal', targetFormat), 'Mirror');
+                        else if (activeTool === ToolType.PIXELATE) applyTool((img) => imageService.pixelateImage(img, 0.1, targetFormat), 'Pixel');
+                        else if (activeTool === ToolType.COMPRESS) applyTool((img) => imageService.compressImage(img, 0.7, targetFormat), 'Shrink');
                       }} className="flex-[2] bg-[#007aff] text-white py-6 rounded-3xl font-black uppercase tracking-widest text-xs shadow-2xl">Confirm Action</button>
                     </div>
                  </div>
