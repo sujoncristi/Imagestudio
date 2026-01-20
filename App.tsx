@@ -12,13 +12,25 @@ import {
 import * as imageService from './services/imageService.ts';
 import * as geminiService from './services/geminiService.ts';
 
+interface AiSuggestions {
+  aesthetic_review: string;
+  narrative: string;
+  suggested_filter: string;
+  adjustments: {
+    brightness: number;
+    contrast: number;
+    saturation: number;
+  };
+  crop_advice: string;
+}
+
 export default function App() {
   const [projects, setProjects] = useState<ProjectImage[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeTool, setActiveTool] = useState<ToolType | null>(null);
   const [processing, setProcessing] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
-  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<AiSuggestions | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [isComparing, setIsComparing] = useState(false);
 
@@ -149,17 +161,16 @@ export default function App() {
     } catch (e) { console.error(e); } finally { endTask(); }
   };
 
-  // Fixed: Added missing handleQuickRotate function
   const handleQuickRotate = (degrees: number) => {
     applyTool((img) => imageService.rotateImage(img, degrees), 'Rotating');
   };
 
-  // Fixed: Added handleAiAnalyze logic using the Gemini Vision model
   const handleAiAnalyze = async () => {
     if (!activeProject) return;
     startTask('AI Specialist is analyzing...');
     try {
-      const result = await geminiService.analyzeImage(activeProject.url, activeProject.metadata.format);
+      const jsonStr = await geminiService.analyzeImage(activeProject.url, activeProject.metadata.format);
+      const result = JSON.parse(jsonStr) as AiSuggestions;
       setAiAnalysis(result);
       setActiveTool(null);
     } catch (e) {
@@ -199,6 +210,45 @@ export default function App() {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / 1048576).toFixed(1) + ' MB';
+  };
+
+  const handleAutoApply = async () => {
+    if (!aiAnalysis || !activeProject) return;
+    
+    startTask('Applying AI Enhancements...');
+    try {
+      const { adjustments, suggested_filter } = aiAnalysis;
+      
+      // Calculate filter string
+      let filterStr = `brightness(${adjustments.brightness}%) contrast(${adjustments.contrast}%) saturate(${adjustments.saturation}%)`;
+      
+      if (suggested_filter !== "None") {
+        const preset = lookPresets.find(p => p.name === suggested_filter);
+        if (preset) {
+          filterStr += ` ${preset.f}`;
+        }
+      }
+
+      // Apply the mega-filter
+      const img = await imageService.loadImage(activeProject.url);
+      const url = await imageService.applyFilter(img, filterStr);
+      const finalImg = await imageService.loadImage(url);
+      const blob = await (await fetch(url)).blob();
+      
+      addToHistory(url, { ...activeProject.metadata, width: finalImg.width, height: finalImg.height, size: blob.size, format: blob.type });
+      
+      // Reset local adjustment state to match applied AI values for consistency
+      setBrightness(adjustments.brightness);
+      setContrast(adjustments.contrast);
+      setSaturate(adjustments.saturation);
+      
+      setAiAnalysis(null);
+    } catch (e) {
+      console.error(e);
+      alert('Failed to apply AI suggestions.');
+    } finally {
+      endTask();
+    }
   };
 
   useEffect(() => {
@@ -276,10 +326,34 @@ export default function App() {
                 </div>
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 bg-[#007aff] rounded-2xl flex items-center justify-center shadow-lg shadow-[#007aff]/40"><SparklesIcon className="text-white w-7 h-7" /></div>
-                  <h3 className="text-2xl font-black tracking-tighter uppercase">AI Studio Report</h3>
+                  <h3 className="text-2xl font-black tracking-tighter uppercase">AI Studio Insights</h3>
                 </div>
-                <div className="whitespace-pre-wrap text-white/80 font-medium leading-relaxed bg-black/40 p-8 rounded-[2rem] border border-white/5">
-                  {aiAnalysis}
+                
+                <div className="space-y-6">
+                  <div className="bg-black/40 p-6 rounded-[2rem] border border-white/5">
+                    <p className="text-[#007aff] text-[10px] font-black uppercase tracking-widest mb-2">Aesthetic Review</p>
+                    <p className="text-white font-bold text-lg leading-tight">{aiAnalysis.aesthetic_review}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-black/40 p-6 rounded-[2rem] border border-white/5">
+                       <p className="text-[#34c759] text-[10px] font-black uppercase tracking-widest mb-2">Proposed Adjustments</p>
+                       <div className="flex flex-wrap gap-3">
+                          <span className="bg-white/5 px-3 py-1 rounded-full text-[10px] font-bold">Brightness: {aiAnalysis.adjustments.brightness}%</span>
+                          <span className="bg-white/5 px-3 py-1 rounded-full text-[10px] font-bold">Contrast: {aiAnalysis.adjustments.contrast}%</span>
+                          <span className="bg-white/5 px-3 py-1 rounded-full text-[10px] font-bold">Filter: {aiAnalysis.suggested_filter}</span>
+                       </div>
+                    </div>
+                    <div className="bg-black/40 p-6 rounded-[2rem] border border-white/5">
+                       <p className="text-[#af52de] text-[10px] font-black uppercase tracking-widest mb-2">Framing Tip</p>
+                       <p className="text-xs font-medium text-white/60">{aiAnalysis.crop_advice}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-black/40 p-8 rounded-[2rem] border border-white/5">
+                    <p className="text-sm font-medium text-white/80 leading-relaxed mb-6 italic">"{aiAnalysis.narrative}"</p>
+                    <button onClick={handleAutoApply} className="w-full bg-[#007aff] py-5 rounded-3xl text-sm font-black uppercase shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">Auto-Apply Enhancements</button>
+                  </div>
                 </div>
               </div>
             )}

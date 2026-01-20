@@ -1,8 +1,7 @@
 
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
 export async function analyzeImage(imageBase64: string, mimeType: string = 'image/png') {
-  // Create a new GoogleGenAI instance right before making an API call to ensure it always uses the most up-to-date API key.
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const response = await ai.models.generateContent({
@@ -16,17 +15,52 @@ export async function analyzeImage(imageBase64: string, mimeType: string = 'imag
           },
         },
         {
-          text: `You are an expert iOS photo editor. Provide a concise analysis of this image. 
-          Structure your response with these exact emojis and headers:
-          📸 AESTHETIC REVIEW: (One sentence about style/lighting)
-          📐 SMART RESIZE: (Specific width/height recommendation)
-          ✂️ CROP SUGGESTION: (Best framing advice)
-          🎨 COLOR TIP: (Suggested filter or color adjustment)`
+          text: `You are an elite iOS photo editor and artistic director. 
+          Analyze this image and provide professional editing suggestions in JSON format.
+          Be decisive and specific. 
+          
+          The "suggested_filter" MUST be one of these exact names or "None":
+          Vivid, Dramatic, Mono, Sepia, Cyber, Ethereal, Acid, Velvet, Frost, Golden, Ocean, Forest, Midnight, Ghost, Cinematic, Blueprint.
+
+          The "adjustments" should be values relative to a 100% baseline (e.g., 110 for a 10% increase).`
         }
       ]
     },
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          aesthetic_review: {
+            type: Type.STRING,
+            description: "A professional one-sentence critique of the lighting and composition."
+          },
+          narrative: {
+            type: Type.STRING,
+            description: "A detailed explanation of why these specific changes will improve the photo."
+          },
+          suggested_filter: {
+            type: Type.STRING,
+            description: "The name of the preset filter to apply."
+          },
+          adjustments: {
+            type: Type.OBJECT,
+            properties: {
+              brightness: { type: Type.NUMBER },
+              contrast: { type: Type.NUMBER },
+              saturation: { type: Type.NUMBER }
+            },
+            required: ["brightness", "contrast", "saturation"]
+          },
+          crop_advice: {
+            type: Type.STRING,
+            description: "Specific framing or rule-of-thirds advice."
+          }
+        },
+        required: ["aesthetic_review", "narrative", "suggested_filter", "adjustments", "crop_advice"]
+      }
+    }
   });
 
-  // The text property directly returns the generated string.
   return response.text;
 }
