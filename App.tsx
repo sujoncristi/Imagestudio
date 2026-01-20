@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ToolType, ImageMetadata, HistoryItem, ProjectImage } from './types';
-import Uploader from './components/Uploader';
-import ToolBar from './components/ToolBar';
-import { XIcon, DownloadIcon, UndoIcon, RedoIcon, SparklesIcon, ZoomInIcon, ZoomOutIcon, InfoIcon, MirrorIcon, BWIcon, PixelIcon, ConvertIcon, AdjustmentsIcon, EyeIcon } from './components/Icons';
-import * as imageService from './services/imageService';
-import * as geminiService from './services/geminiService';
+import { ToolType, ImageMetadata, HistoryItem, ProjectImage } from './types.ts';
+import Uploader from './components/Uploader.tsx';
+import ToolBar from './components/ToolBar.tsx';
+import { XIcon, DownloadIcon, UndoIcon, RedoIcon, SparklesIcon, ZoomInIcon, ZoomOutIcon, InfoIcon, MirrorIcon, BWIcon, PixelIcon, ConvertIcon, AdjustmentsIcon, EyeIcon } from './components/Icons.tsx';
+import * as imageService from './services/imageService.ts';
+import * as geminiService from './services/geminiService.ts';
 
 export default function App() {
   const [projects, setProjects] = useState<ProjectImage[]>([]);
@@ -86,6 +86,7 @@ export default function App() {
     if (activeProject && activeProject.historyIndex < activeProject.history.length - 1) {
       const idx = activeProject.historyIndex + 1;
       const next = activeProject.history[idx];
+      // Fix: metadata: meta was causing a "Cannot find name 'meta'" error. Use next.metadata instead.
       updateActiveProject({
         ...activeProject,
         url: next.url,
@@ -208,7 +209,17 @@ export default function App() {
     if (!activeProject) return;
     startTask('Gemini Expert Analysis...');
     try {
-      const text = await geminiService.analyzeImage(activeProject.url);
+      // Fix: Convert blob URL to base64 before passing to Gemini API
+      const response = await fetch(activeProject.url);
+      const blob = await response.blob();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      const text = await geminiService.analyzeImage(base64, activeProject.metadata.format);
       setAiAnalysis(text || "Analysis complete.");
     } catch (error) {
       console.error(error);
@@ -358,7 +369,7 @@ export default function App() {
                   onClick={() => { setActiveIndex(idx); setZoom(1); setPanOffset({x:0,y:0}); setActiveTool(null); setShowDetails(false); }}
                   className={`relative w-24 h-24 rounded-3xl flex-shrink-0 overflow-hidden border-4 transition-all ${activeIndex === idx ? 'border-[#007aff] scale-105 shadow-2xl shadow-[#007aff]/30' : 'border-white/5 opacity-50'}`}
                 >
-                  <img src={proj.url} className="w-full h-full object-cover" />
+                  <img src={proj.url} className="w-full h-full object-cover" alt={proj.metadata.name} />
                 </button>
               ))}
               <button onClick={() => setProjects([])} className="w-24 h-24 bg-white/5 rounded-3xl border-2 border-dashed border-white/20 flex items-center justify-center text-white/30 hover:bg-white/10 active:scale-95 transition-all">
@@ -449,6 +460,29 @@ export default function App() {
                       <span className="block text-base font-bold truncate text-white/90">{item.value}</span>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* AI Analysis Result Display */}
+            {aiAnalysis && (
+              <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-[#007aff]/30 animate-in slide-in-from-top-4 duration-500 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4">
+                   <button onClick={() => setAiAnalysis(null)} className="text-white/20 hover:text-white transition-colors"><XIcon className="w-6 h-6" /></button>
+                </div>
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-12 h-12 bg-[#007aff] rounded-2xl flex items-center justify-center shadow-lg shadow-[#007aff]/30">
+                     <SparklesIcon className="text-white w-6 h-6" />
+                  </div>
+                  <h3 className="text-2xl font-black uppercase tracking-tighter">AI Expert Analysis</h3>
+                </div>
+                <div className="prose prose-invert max-w-none">
+                  <pre className="whitespace-pre-wrap font-sans text-lg leading-relaxed text-white/90 bg-transparent border-none p-0 selection:bg-[#007aff]/30">
+                    {aiAnalysis}
+                  </pre>
+                </div>
+                <div className="mt-8 pt-8 border-t border-white/5 flex items-center gap-2 text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">
+                   Powered by Gemini Flash
                 </div>
               </div>
             )}
@@ -551,6 +585,20 @@ export default function App() {
                   </div>
                   <button onClick={() => setActiveTool(null)} className="w-full bg-white/5 text-white/40 py-5 rounded-3xl font-black uppercase tracking-widest text-xs">Back to Canvas</button>
                 </div>
+              )}
+
+              {activeTool === ToolType.AI_ANALYZE && (
+                 <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-white/10 text-center">
+                    <div className="w-20 h-20 bg-[#007aff]/20 border border-[#007aff]/30 rounded-3xl flex items-center justify-center mx-auto mb-8 text-[#007aff] shadow-xl animate-float">
+                       <SparklesIcon className="w-10 h-10" />
+                    </div>
+                    <h3 className="text-3xl font-black uppercase tracking-tighter mb-4">Gemini Intelligence</h3>
+                    <p className="text-white/40 mb-10 text-lg font-medium max-w-md mx-auto leading-relaxed">Let our specialized AI model analyze your composition, lighting, and provide professional editing suggestions.</p>
+                    <div className="flex gap-4">
+                      <button onClick={() => setActiveTool(null)} className="flex-1 bg-white/5 text-white/40 py-6 rounded-3xl font-black uppercase tracking-widest text-xs transition-all active:scale-95">Cancel</button>
+                      <button onClick={handleAiAnalyze} className="flex-[2] bg-[#007aff] text-white py-6 rounded-3xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-[#007aff]/40 transition-all active:scale-95">Run Analysis</button>
+                    </div>
+                 </div>
               )}
 
               {!activeTool && (

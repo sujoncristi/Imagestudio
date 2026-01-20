@@ -1,16 +1,17 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-export async function analyzeImage(imageBase64: string) {
+export async function analyzeImage(imageBase64: string, mimeType: string = 'image/png') {
+  // Create a new GoogleGenAI instance right before making an API call to ensure it always uses the most up-to-date API key.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: {
       parts: [
         {
           inlineData: {
-            mimeType: 'image/png',
+            mimeType: mimeType,
             data: imageBase64.split(',')[1],
           },
         },
@@ -26,5 +27,6 @@ export async function analyzeImage(imageBase64: string) {
     },
   });
 
+  // The text property directly returns the generated string.
   return response.text;
 }

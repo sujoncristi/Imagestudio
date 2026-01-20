@@ -9,6 +9,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      // Shim process for browser environment to avoid "process is not defined" errors during static deployment
+      window.process = window.process || { env: {} };
+    </script>
     <style>
       :root {
         --ios-blue: #007aff;
@@ -76,6 +80,7 @@
     "react/": "https://esm.sh/react@^19.2.3/",
     "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client",
     "@google/genai": "https://esm.sh/@google/genai@^1.37.0"
   }
 }
@@ -83,5 +88,6 @@
 </head>
   <body class="antialiased selection:bg-[#007aff]/40">
     <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
   </body>
 </html>

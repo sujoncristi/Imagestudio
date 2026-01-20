@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
-import { ToolType } from '../types';
+import { ToolType } from '../types.ts';
 import { 
   ResizeIcon, CropIcon, RotateIcon, SparklesIcon, 
   MirrorIcon, BWIcon, PixelIcon, CompressIcon, FilterIcon, BorderIcon, ConvertIcon, AdjustmentsIcon
-} from './Icons';
+} from './Icons.tsx';
 
 interface ToolBarProps {
   activeTool: ToolType | null;

@@ -1,6 +1,6 @@
 {
-  "name": "Imagerize any Image",
-  "description": "A high-end image processing suite with an elegant any image aesthetic, featuring AI-powered image analysis and advanced editing tools.",
+  "name": "Imagerize",
+  "description": "A high-end image processing suite with an elegant iOS aesthetic, featuring AI-powered image analysis and advanced editing tools.",
   "requestFramePermissions": [
     "camera"
   ]
