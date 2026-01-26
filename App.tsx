@@ -7,11 +7,11 @@ import {
   XIcon, DownloadIcon, UndoIcon, RedoIcon, SparklesIcon, 
   ZoomInIcon, ZoomOutIcon, InfoIcon, 
   EyeIcon, ResetIcon, RotateIcon, FilterIcon,
-  ResizeIcon, CropIcon, AdjustmentsIcon, UploadIcon, MirrorIcon, PixelIcon, CompressIcon
+  ResizeIcon, CropIcon, AdjustmentsIcon, UploadIcon, MirrorIcon, PixelIcon, CompressIcon, MagicWandIcon
 } from './components/Icons.tsx';
 import * as imageService from './services/imageService.ts';
 
-type ViewType = 'home' | 'editor';
+type ViewType = 'home' | 'editor' | 'enhance';
 
 const HeroVisual = () => {
   const [step, setStep] = useState(0);
@@ -36,7 +36,7 @@ const HeroVisual = () => {
       <div className="absolute inset-0 bg-gradient-to-tr from-[#007aff]/30 via-[#5856d6]/20 to-[#af52de]/30 blur-[100px] rounded-full animate-pulse opacity-60"></div>
       <div className="relative h-full w-full bg-[#1c1c1e] rounded-[4rem] p-5 border border-white/10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-hidden flex items-center justify-center">
         <div className="absolute top-10 left-0 right-0 flex justify-center z-10">
-          <div className="bg-black/40 ios-blur px-8 py-2.5 rounded-full border border-white/10 text-[11px] font-black uppercase tracking-[0.4em] text-[#007aff] shadow-2xl transition-all duration-700">
+          <div className="bg-black/40 ios-blur px-8 py-2.5 rounded-full border border-white/10 text-[11px] font-black uppercase tracking-[0.4em] text-[#007aff] shadow-xl transition-all duration-700">
             {labels[step]}
           </div>
         </div>
@@ -82,7 +82,6 @@ export default function App() {
   const [compressQuality, setCompressQuality] = useState(0.8);
 
   const [lookCategory, setLookCategory] = useState<'Modern' | 'Studio' | 'Vintage' | 'Artistic' | 'Glitch' | 'Cartoon'>('Modern');
-  const [lastSelectedFilter, setLastSelectedFilter] = useState<{name: string, f: string} | null>(null);
 
   const activeProject = projects[activeIndex] || null;
 
@@ -148,6 +147,45 @@ export default function App() {
     setActiveIndex(projects.length);
     setView('editor');
     endTask();
+  };
+
+  const handleAutoEnhance = async (files: File[]) => {
+    if (files.length === 0) return;
+    const file = files[0];
+    startTask('Analyzing Histogram...');
+    try {
+      const originalUrl = URL.createObjectURL(file);
+      const img = await imageService.loadImage(originalUrl);
+      
+      // Simulate "Intelligent" Enhance
+      const enhancedUrl = await imageService.applyFilter(img, 'brightness(1.05) contrast(1.15) saturate(1.25)');
+      const finalImg = await imageService.loadImage(enhancedUrl);
+      const finalBlob = await (await fetch(enhancedUrl)).blob();
+
+      const meta: ImageMetadata = {
+        width: finalImg.width, height: finalImg.height, format: finalBlob.type,
+        size: finalBlob.size, originalSize: file.size, name: `Enhanced_${file.name}`
+      };
+
+      const newProject: ProjectImage = {
+        id: Math.random().toString(36).substr(2, 9),
+        url: enhancedUrl,
+        metadata: meta,
+        history: [
+          { url: originalUrl, metadata: { ...meta, width: img.width, height: img.height, size: file.size, format: file.type } },
+          { url: enhancedUrl, metadata: meta, action: 'Auto Enhance' }
+        ],
+        historyIndex: 1
+      };
+
+      setProjects(prev => [...prev, newProject]);
+      setActiveIndex(projects.length);
+      setView('editor');
+    } catch (e) {
+      alert("Auto enhance failed.");
+    } finally {
+      endTask();
+    }
   };
 
   const lookPresets = {
@@ -268,23 +306,78 @@ export default function App() {
                 <span className="bg-gradient-to-r from-[#007aff] via-[#af52de] to-[#ff2d55] bg-clip-text text-transparent">Simply Crafted.</span>
               </h2>
               <p className="text-[#8e8e93] text-xl md:text-2xl font-medium max-w-2xl mx-auto leading-relaxed">
-                A high-performance image suite designed for professional workflows. No fluff, just pure creative control.
+                Professional image mastering suite designed for absolute control.
               </p>
             </div>
 
-            <div className="w-full max-w-xl px-4">
+            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 px-4">
+              {/* STUDIO EDITOR CARD */}
               <div 
-                className="group relative w-full p-12 bg-[#1c1c1e] rounded-[4rem] border border-white/5 shadow-2xl cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex flex-col items-center text-center overflow-hidden"
+                className="group relative p-12 bg-[#1c1c1e] rounded-[4rem] border border-white/5 shadow-2xl cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex flex-col items-center text-center overflow-hidden"
                 onClick={() => setView('editor')}
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="w-24 h-24 bg-[#007aff] rounded-3xl flex items-center justify-center mb-10 shadow-[0_20px_40px_rgba(0,122,255,0.4)] group-hover:rotate-6 transition-all duration-500">
-                  <AdjustmentsIcon className="w-12 h-12 text-white" />
+                <div className="w-20 h-20 bg-[#1c1c1e] border border-white/10 rounded-3xl flex items-center justify-center mb-8 shadow-xl group-hover:bg-[#007aff] transition-all">
+                  <AdjustmentsIcon className="w-10 h-10 text-white" />
                 </div>
-                <h3 className="text-4xl font-black mb-4 tracking-tight">Studio Editor</h3>
-                <p className="text-white/40 font-bold text-lg mb-10 leading-snug px-4">Import your high-res photos to begin your professional edit session.</p>
-                <div className="bg-white text-black px-12 py-5 rounded-full text-sm font-black uppercase tracking-[0.2em] shadow-xl group-hover:bg-[#007aff] group-hover:text-white transition-all">Open Suite</div>
+                <h3 className="text-3xl font-black mb-3">Studio Editor</h3>
+                <p className="text-white/40 font-bold mb-8 leading-snug">Full manual control over every pixel with high-end grading tools.</p>
+                <div className="bg-white/5 text-white/60 border border-white/10 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] group-hover:bg-white group-hover:text-black transition-all">Open Suite</div>
               </div>
+
+              {/* AUTO ENHANCE CARD */}
+              <div 
+                className="group relative p-12 bg-gradient-to-br from-[#007aff]/20 to-[#af52de]/20 rounded-[4rem] border border-white/10 shadow-2xl cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex flex-col items-center text-center overflow-hidden"
+                onClick={() => setView('enhance')}
+              >
+                <div className="absolute inset-0 bg-white/[0.05] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-8 shadow-2xl group-hover:scale-110 transition-transform">
+                  <MagicWandIcon className="w-10 h-10 text-[#007aff]" />
+                </div>
+                <h3 className="text-3xl font-black mb-3">Auto Enhance</h3>
+                <p className="text-white/40 font-bold mb-8 leading-snug">Single-tap mastering using intelligent histogram balancing.</p>
+                <div className="bg-[#007aff] text-white px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-xl group-hover:bg-white group-hover:text-[#007aff] transition-all">Magic Polish</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ENHANCE VIEW */}
+        {view === 'enhance' && (
+          <div className="py-20 flex flex-col items-center gap-12 animate-in fade-in slide-in-from-bottom-12 duration-700 max-w-3xl mx-auto">
+            <div className="text-center space-y-4">
+              <div className="w-24 h-24 bg-[#007aff] rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-[0_20px_60px_rgba(0,122,255,0.4)] animate-pulse">
+                <MagicWandIcon className="w-12 h-12 text-white" />
+              </div>
+              <h2 className="text-5xl font-black tracking-tight">Intelligent Mastering</h2>
+              <p className="text-white/40 text-xl font-medium">Upload a photo to automatically fix exposure, contrast, and color vibrance.</p>
+            </div>
+
+            <div className="w-full bg-[#1c1c1e] p-12 rounded-[4rem] border border-white/10 shadow-3xl text-center group cursor-pointer relative overflow-hidden transition-all hover:border-[#007aff]/50">
+               <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={(e) => handleAutoEnhance(Array.from(e.target.files || []))} accept="image/*" />
+               <div className="flex flex-col items-center gap-8 py-10">
+                  <div className="w-20 h-20 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center group-hover:border-[#007aff] transition-colors">
+                    <UploadIcon className="w-8 h-8 opacity-40 group-hover:opacity-100 text-[#007aff]" />
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-2xl font-black">Drop photo to enhance</p>
+                    <p className="text-white/20 font-bold uppercase tracking-widest text-sm">Instant studio mastering</p>
+                  </div>
+                  <button className="bg-white/5 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-white/10 group-hover:bg-[#007aff] group-hover:text-white transition-all">Select Image</button>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+               {[
+                 { t: 'Luminance', d: 'Perfects shadow recovery and highlights.' },
+                 { t: 'Vibrance', d: 'Boosts dull colors without clipping.' },
+                 { t: 'Definition', d: 'Intelligently sharpens natural textures.' }
+               ].map(f => (
+                 <div key={f.t} className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 text-center">
+                    <h4 className="text-[#007aff] font-black uppercase tracking-widest text-xs mb-3">{f.t}</h4>
+                    <p className="text-white/40 text-sm leading-relaxed">{f.d}</p>
+                 </div>
+               ))}
             </div>
           </div>
         )}
@@ -299,7 +392,7 @@ export default function App() {
                   </div>
                   <div className="space-y-4 max-w-md">
                     <h2 className="text-5xl font-black tracking-tight">Empty Gallery</h2>
-                    <p className="text-white/40 text-xl font-medium">Your creative journey begins with a single import. Drag files here or use the button below.</p>
+                    <p className="text-white/40 text-xl font-medium">Import photos to begin your professional edit session.</p>
                   </div>
                   <Uploader onUpload={handleUpload} onUrlUpload={() => {}} />
                </div>
@@ -365,7 +458,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* RIGHT SIDE: TOOLS PANEL (On Desktop) */}
+                {/* RIGHT SIDE: TOOLS PANEL */}
                 <div className="w-full lg:w-[400px] flex flex-col gap-6">
                   <div className="bg-[#1c1c1e] p-8 rounded-[4rem] border border-white/10 shadow-2xl space-y-8 max-h-[85vh] overflow-y-auto no-scrollbar">
                     {activeTool ? (
@@ -415,7 +508,7 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* CROP TOOL (IMPROVED) */}
+                        {/* CROP TOOL */}
                         {activeTool === ToolType.CROP && (
                            <div className="space-y-8">
                              <div className="space-y-4">
@@ -449,7 +542,7 @@ export default function App() {
                            </div>
                         )}
 
-                        {/* RESIZE TOOL (IMPROVED) */}
+                        {/* RESIZE TOOL */}
                         {activeTool === ToolType.RESIZE && (
                           <div className="space-y-8">
                             <div className="space-y-4">
@@ -485,7 +578,7 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* ROTATE TOOL (IMPROVED) */}
+                        {/* ROTATE TOOL */}
                         {activeTool === ToolType.ROTATE && (
                            <div className="space-y-10">
                               <div className="space-y-6">
@@ -503,7 +596,7 @@ export default function App() {
                            </div>
                         )}
 
-                        {/* MIRROR TOOL (IMPROVED) */}
+                        {/* MIRROR TOOL */}
                         {activeTool === ToolType.MIRROR && (
                            <div className="space-y-8">
                               <p className="text-white/40 text-center font-medium">Flip image across axes</p>
@@ -520,7 +613,7 @@ export default function App() {
                            </div>
                         )}
 
-                        {/* COMPRESS/SHRINK TOOL (IMPROVED) */}
+                        {/* COMPRESS TOOL */}
                         {activeTool === ToolType.COMPRESS && (
                            <div className="space-y-10">
                               <div className="space-y-4">
@@ -530,15 +623,11 @@ export default function App() {
                                  </div>
                                  <input type="range" min="0.1" max="1.0" step="0.05" value={compressQuality} onChange={e => setCompressQuality(parseFloat(e.target.value))} className="w-full" />
                               </div>
-                              <div className="p-6 bg-[#34c759]/10 rounded-[2rem] border border-[#34c759]/20 flex items-center gap-4">
-                                 <div className="w-10 h-10 bg-[#34c759] rounded-full flex items-center justify-center text-white"><CompressIcon className="w-5 h-5" /></div>
-                                 <p className="text-[11px] font-bold text-[#34c759]">Smart optimization enabled</p>
-                              </div>
                               <button onClick={() => applyTool(img => imageService.compressImage(img, compressQuality), 'Shrinking')} className="w-full py-6 rounded-3xl bg-[#34c759] text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all">Execute Compression</button>
                            </div>
                         )}
 
-                        {/* PIXELATE/8-BIT TOOL (IMPROVED) */}
+                        {/* PIXELATE TOOL */}
                         {activeTool === ToolType.PIXELATE && (
                            <div className="space-y-10">
                               <div className="space-y-4">
@@ -548,29 +637,8 @@ export default function App() {
                                  </div>
                                  <input type="range" min="0.01" max="0.5" step="0.01" value={pixelScale} onChange={e => setPixelScale(parseFloat(e.target.value))} className="w-full" />
                               </div>
-                              <div className="grid grid-cols-3 gap-3">
-                                 {[0.02, 0.05, 0.1].map(scale => (
-                                    <button 
-                                       key={scale} 
-                                       className={`py-3 rounded-2xl text-[10px] font-black uppercase transition-all ${pixelScale === scale ? 'bg-[#ff9500] text-white' : 'bg-white/5 text-white/40'}`}
-                                       onClick={() => setPixelScale(scale)}
-                                    >
-                                       {scale === 0.02 ? 'Super' : scale === 0.05 ? 'Heavy' : 'Light'}
-                                    </button>
-                                 ))}
-                              </div>
                               <button onClick={() => applyTool(img => imageService.pixelateImage(img, pixelScale), 'Retro Engine')} className="w-full py-6 rounded-3xl bg-[#ff9500] text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all">Apply Pixelation</button>
                            </div>
-                        )}
-
-                        {/* BW Quick Action */}
-                        {activeTool === ToolType.BW && (
-                          <div className="space-y-6">
-                             <div className="p-8 bg-black/20 rounded-[2.5rem] border border-white/5 text-center">
-                                <p className="text-white/40 font-medium mb-6">Apply studio mono conversion?</p>
-                                <button onClick={() => applyTool(img => imageService.grayscaleImage(img), 'Mono')} className="w-full py-5 rounded-3xl bg-white text-black font-black uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all">Convert to B&W</button>
-                             </div>
-                          </div>
                         )}
 
                       </div>
