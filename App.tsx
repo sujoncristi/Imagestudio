@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ToolType, ImageMetadata, ProjectImage, HistoryItem } from './types.ts';
+import { ToolType, ImageMetadata, ProjectImage, HistoryItem, ViewType } from './types.ts';
 import Uploader from './components/Uploader.tsx';
 import ToolBar from './components/ToolBar.tsx';
 import { 
@@ -8,11 +8,9 @@ import {
   ZoomInIcon, ZoomOutIcon, InfoIcon, 
   EyeIcon, ResetIcon, RotateIcon, FilterIcon,
   ResizeIcon, CropIcon, AdjustmentsIcon, UploadIcon, MirrorIcon, PixelIcon, CompressIcon, MagicWandIcon,
-  GripVerticalIcon
+  GripVerticalIcon, ConvertIcon
 } from './components/Icons.tsx';
 import * as imageService from './services/imageService.ts';
-
-type ViewType = 'home' | 'editor' | 'enhance' | 'crop';
 
 const lookPresets = {
   Modern: [
@@ -74,18 +72,13 @@ const HeroVisual = () => {
 
   return (
     <div className="relative w-full max-w-2xl mx-auto aspect-video mb-12 px-4 group">
-      {/* Background Glow */}
       <div className="absolute inset-0 bg-gradient-to-tr from-[#007aff]/20 via-[#5856d6]/10 to-[#af52de]/20 blur-[120px] rounded-full animate-pulse opacity-60"></div>
-      
-      {/* Main Preview Container */}
       <div className="relative h-full w-full bg-[#1c1c1e] rounded-[3rem] p-4 border border-white/10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-hidden flex items-center justify-center">
         <div className="absolute top-8 left-0 right-0 flex justify-center z-20">
           <div className="bg-black/60 ios-blur px-6 py-2 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-[0.3em] text-[#007aff] shadow-2xl transition-all duration-700">
             {labels[step]}
           </div>
         </div>
-
-        {/* Layered Images */}
         {[0, 1, 2, 3].map((s) => (
            <img 
             key={s}
@@ -94,8 +87,6 @@ const HeroVisual = () => {
             style={getStyle(s)} 
           />
         ))}
-        
-        {/* Decorative Floating UI Elements */}
         <div className="absolute bottom-10 left-10 w-12 h-12 bg-white/10 ios-blur rounded-2xl border border-white/10 flex items-center justify-center shadow-2xl animate-float"><AdjustmentsIcon className="text-[#007aff] w-6 h-6" /></div>
         <div className="absolute top-16 right-10 w-10 h-10 bg-white/10 ios-blur rounded-xl border border-white/10 flex items-center justify-center shadow-2xl animate-float" style={{animationDelay: '1.5s'}}><CropIcon className="text-[#af52de] w-5 h-5" /></div>
       </div>
@@ -128,6 +119,10 @@ export default function App() {
   const [activeCropHandle, setActiveCropHandle] = useState<string | null>(null);
   const cropStartPos = useRef({ x: 0, y: 0 });
   const initialCropBox = useRef({ x: 0, y: 0, w: 0, h: 0 });
+
+  // Formatting State
+  const [targetFormat, setTargetFormat] = useState<string>('image/jpeg');
+  const [formatQuality, setFormatQuality] = useState(0.9);
 
   // Tool specific State
   const [width, setWidth] = useState<string>('');
@@ -207,6 +202,23 @@ export default function App() {
     endTask();
   };
 
+  const handleFormatUpload = async (files: File[]) => {
+    if (files.length === 0) return;
+    startTask('Initializing Format Converter...');
+    const newProjects: ProjectImage[] = await Promise.all(files.map(async (file) => {
+      const url = URL.createObjectURL(file);
+      const img = await imageService.loadImage(url);
+      const meta: ImageMetadata = {
+        width: img.width, height: img.height, format: file.type,
+        size: file.size, originalSize: file.size, name: file.name
+      };
+      return { id: Math.random().toString(36).substr(2, 9), url, metadata: meta, history: [{ url, metadata: meta }], historyIndex: 0 };
+    }));
+    setProjects(prev => [...prev, ...newProjects]);
+    setActiveIndex(projects.length);
+    endTask();
+  };
+
   const handleAutoEnhance = async (files: File[]) => {
     if (files.length === 0) return;
     const file = files[0];
@@ -280,7 +292,6 @@ export default function App() {
   };
 
   const handleImageMouseDown = (e: React.MouseEvent) => {
-    // Only allow panning if we're not using the crop tool
     if (activeTool === ToolType.CROP) return;
     e.preventDefault();
     setIsPanning(true);
@@ -364,8 +375,6 @@ export default function App() {
     setDraggedThumbnailIndex(index);
     e.dataTransfer.setData('thumbnailIndex', index.toString());
     e.dataTransfer.effectAllowed = 'move';
-    
-    // Create a custom drag ghost image
     const ghost = new Image();
     ghost.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; 
     e.dataTransfer.setDragImage(ghost, 0, 0);
@@ -437,9 +446,31 @@ export default function App() {
     }
   };
 
+  const executeFormatConversion = async (project: ProjectImage) => {
+    startTask(`Converting ${project.metadata.name}...`);
+    try {
+      const img = await imageService.loadImage(project.url);
+      const convertedUrl = await imageService.compressImage(img, formatQuality, targetFormat);
+      const link = document.createElement('a');
+      link.href = convertedUrl;
+      const extension = targetFormat.split('/')[1];
+      link.download = `${project.metadata.name.split('.')[0]}_converted.${extension}`;
+      link.click();
+    } catch (e) {
+      alert("Failed to convert image.");
+    } finally {
+      endTask();
+    }
+  };
+
+  const executeBulkConversion = async () => {
+    for (const p of projects) {
+      await executeFormatConversion(p);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col font-sans selection:bg-[#007aff]/30 overflow-x-hidden">
-      {/* PROCESSING OVERLAY */}
       {processing && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center animate-in fade-in duration-300">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-2xl"></div>
@@ -455,7 +486,6 @@ export default function App() {
         </div>
       )}
 
-      {/* HEADER */}
       <header className="sticky top-0 z-40 bg-black/60 ios-blur border-b border-white/5 px-6 md:px-12 py-5 flex items-center justify-between transition-all duration-500">
         <div className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-all active:scale-95" onClick={() => {setView('home'); setActiveTool(null);}}>
           <div className="w-11 h-11 bg-gradient-to-br from-[#007aff] to-[#5856d6] rounded-xl flex items-center justify-center shadow-xl shadow-[#007aff]/20">
@@ -482,11 +512,9 @@ export default function App() {
 
       <main className="flex-1 w-full max-w-[1440px] mx-auto p-4 md:p-8 transition-all duration-700 overflow-hidden">
         
-        {/* HOME VIEW */}
         {view === 'home' && (
           <div className="py-8 flex flex-col items-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
             <HeroVisual />
-            
             <div className="text-center space-y-6 mb-16 px-4">
               <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9] max-w-4xl mx-auto">
                 Studio Mastery. <br/>
@@ -497,7 +525,6 @@ export default function App() {
               </p>
             </div>
 
-            {/* RECENT WORK STRIP */}
             {projects.length > 0 && (
               <div className="w-full max-w-5xl mb-16 animate-in slide-in-from-right-8 duration-700">
                 <div className="flex items-center justify-between mb-6 px-4">
@@ -520,9 +547,7 @@ export default function App() {
               </div>
             )}
 
-            {/* BENTO GRID MENU */}
             <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-12 gap-6 px-4 mb-20">
-              {/* STUDIO EDITOR - LARGE */}
               <div 
                 className="col-span-1 md:col-span-8 group relative p-12 bg-[#1c1c1e] rounded-[3.5rem] border border-white/5 shadow-2xl cursor-pointer hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col justify-end overflow-hidden min-h-[400px]"
                 onClick={() => setView('editor')}
@@ -533,12 +558,11 @@ export default function App() {
                 </div>
                 <div>
                   <h3 className="text-4xl font-black mb-2">Studio Editor</h3>
-                  <p className="text-white/40 font-bold mb-8 leading-snug max-w-sm">A full manual workflow for grading, pixel-manipulation, and batch processing.</p>
+                  <p className="text-white/40 font-bold mb-8 leading-snug max-w-sm">Full manual workflow for grading, pixel-manipulation, and batch processing.</p>
                   <div className="inline-flex bg-white/5 text-white/60 border border-white/10 px-8 py-3.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] group-hover:bg-white group-hover:text-black transition-all">Launch Workspace</div>
                 </div>
               </div>
 
-              {/* IMAGE CROP - VERTICAL */}
               <div 
                 className="col-span-1 md:col-span-4 group relative p-10 bg-gradient-to-br from-[#af52de]/20 to-[#ff2d55]/20 rounded-[3.5rem] border border-white/10 shadow-2xl cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex flex-col items-center text-center overflow-hidden min-h-[400px]"
                 onClick={() => setView('crop')}
@@ -554,42 +578,130 @@ export default function App() {
                 </div>
               </div>
 
-              {/* AUTO ENHANCE - WIDE */}
               <div 
-                className="col-span-1 md:col-span-12 group relative p-10 bg-[#1c1c1e] rounded-[3.5rem] border border-white/5 shadow-2xl cursor-pointer hover:scale-[1.005] active:scale-[0.99] transition-all duration-500 flex flex-col md:flex-row items-center justify-between overflow-hidden"
+                className="col-span-1 md:col-span-5 group relative p-10 bg-[#1c1c1e] rounded-[3.5rem] border border-white/5 shadow-2xl cursor-pointer hover:scale-[1.005] active:scale-[0.99] transition-all duration-500 flex flex-col items-center justify-between overflow-hidden"
                 onClick={() => setView('enhance')}
               >
-                <div className="flex items-center gap-8">
-                  <div className="w-14 h-14 bg-[#34c759] rounded-2xl flex items-center justify-center shadow-2xl group-hover:rotate-6 transition-transform">
-                    <MagicWandIcon className="w-7 h-7 text-white" />
+                <div className="w-14 h-14 bg-[#34c759] rounded-2xl flex items-center justify-center shadow-2xl mb-8 group-hover:rotate-6 transition-transform">
+                  <MagicWandIcon className="w-7 h-7 text-white" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-3xl font-black mb-1">Auto Polish</h3>
+                  <p className="text-white/40 font-bold leading-snug text-sm">One-tap neural balancing of tones.</p>
+                </div>
+                <div className="mt-8 bg-[#34c759] text-white px-8 py-3.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl group-hover:scale-105 transition-all">Magic Edit</div>
+              </div>
+
+              <div 
+                className="col-span-1 md:col-span-7 group relative p-10 bg-gradient-to-br from-[#007aff]/20 to-[#5856d6]/20 rounded-[3.5rem] border border-white/5 shadow-2xl cursor-pointer hover:scale-[1.005] active:scale-[0.99] transition-all duration-500 flex flex-col md:flex-row items-center justify-between overflow-hidden min-h-[280px]"
+                onClick={() => setView('format')}
+              >
+                <div className="flex flex-col md:flex-row items-center gap-8">
+                  <div className="w-16 h-16 bg-white/10 ios-blur rounded-2xl flex items-center justify-center shadow-2xl group-hover:-rotate-3 transition-transform border border-white/10">
+                    <ConvertIcon className="w-8 h-8 text-[#007aff]" />
                   </div>
                   <div className="text-center md:text-left">
-                    <h3 className="text-3xl font-black mb-1">Intelligent Mastering</h3>
-                    <p className="text-white/40 font-bold leading-snug text-sm">One-tap neural balancing of tones and highlights.</p>
+                    <h3 className="text-3xl font-black mb-1">Format & Convert</h3>
+                    <p className="text-white/40 font-bold leading-snug text-sm">Seamlessly switch between PNG, JPG, and WEBP.</p>
                   </div>
                 </div>
-                <div className="mt-6 md:mt-0 bg-[#34c759] text-white px-10 py-4 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl group-hover:scale-105 transition-all">Analyze Photo</div>
+                <div className="mt-6 md:mt-0 bg-[#007aff] text-white px-10 py-4 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl group-hover:bg-white group-hover:text-[#007aff] transition-all">Format Suite</div>
               </div>
-            </div>
-
-            {/* TECHNICAL SPECS OVERVIEW */}
-            <div className="w-full max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4 px-4 pb-20 opacity-30">
-               {[
-                 { t: 'CHROMA', d: 'Engine v2.1' },
-                 { t: 'NEURAL', d: 'ML-inference' },
-                 { t: 'PRECISION', d: '32-bit Float' },
-                 { t: 'LATENCY', d: '< 10ms' }
-               ].map(s => (
-                 <div key={s.t} className="text-center border-r border-white/10 last:border-0 py-4">
-                    <div className="text-[10px] font-black tracking-[0.3em] mb-1">{s.t}</div>
-                    <div className="text-[10px] font-medium text-white/60">{s.d}</div>
-                 </div>
-               ))}
             </div>
           </div>
         )}
 
-        {/* ENHANCE VIEW */}
+        {view === 'format' && (
+           <div className="py-20 flex flex-col items-center gap-12 animate-in fade-in slide-in-from-bottom-12 duration-700 max-w-4xl mx-auto">
+             <div className="text-center space-y-4">
+                <div className="w-24 h-24 bg-[#007aff] rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-[0_20px_60px_rgba(0,122,255,0.4)] transition-transform active:scale-95">
+                  <ConvertIcon className="w-12 h-12 text-white" />
+                </div>
+                <h2 className="text-5xl font-black tracking-tight">Format Suite</h2>
+                <p className="text-white/40 text-xl font-medium">Batch convert and optimize your studio assets for web or print.</p>
+             </div>
+
+             {projects.length === 0 ? (
+               <div className="w-full bg-[#1c1c1e] p-12 rounded-[4rem] border border-white/10 shadow-3xl text-center group cursor-pointer relative overflow-hidden transition-all hover:border-[#007aff]/50 active:scale-[0.99]">
+                  <input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={(e) => handleFormatUpload(Array.from(e.target.files || []))} accept="image/*" />
+                  <div className="flex flex-col items-center gap-8 py-10">
+                      <div className="w-20 h-20 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center group-hover:border-[#007aff] group-hover:scale-110 transition-all">
+                        <UploadIcon className="w-8 h-8 opacity-40 group-hover:opacity-100 text-[#007aff]" />
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-2xl font-black group-hover:text-[#007aff] transition-colors">Select assets to convert</p>
+                        <p className="text-white/20 font-bold uppercase tracking-widest text-sm">PNG • JPG • WEBP</p>
+                      </div>
+                      <button className="bg-white/5 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-white/10 group-hover:bg-[#007aff] group-hover:text-white transition-all">Import Photos</button>
+                  </div>
+               </div>
+             ) : (
+               <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2 flex flex-col gap-6">
+                    <div className="bg-[#1c1c1e] p-8 rounded-[3rem] border border-white/5 shadow-2xl">
+                       <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 mb-6 px-2">Selected Assets</h4>
+                       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                          {projects.map((p, idx) => (
+                            <div key={p.id} className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 group">
+                               <img src={p.url} className="w-full h-full object-cover" />
+                               <button 
+                                 onClick={() => setProjects(prev => prev.filter(item => item.id !== p.id))}
+                                 className="absolute top-1 right-1 w-6 h-6 bg-black/60 ios-blur rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                               >
+                                 <XIcon className="w-3 h-3 text-white" />
+                               </button>
+                            </div>
+                          ))}
+                          <label className="aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex items-center justify-center cursor-pointer hover:bg-white/10 transition-all">
+                             <input type="file" multiple className="hidden" onChange={(e) => handleFormatUpload(Array.from(e.target.files || []))} />
+                             <UploadIcon className="w-6 h-6 opacity-30" />
+                          </label>
+                       </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-6">
+                    <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-white/5 shadow-2xl space-y-10">
+                       <div className="space-y-4">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Target Format</p>
+                          <div className="grid grid-cols-3 gap-3">
+                             {['image/jpeg', 'image/png', 'image/webp'].map(fmt => (
+                               <button 
+                                 key={fmt}
+                                 onClick={() => setTargetFormat(fmt)}
+                                 className={`py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${targetFormat === fmt ? 'bg-[#007aff] text-white shadow-lg' : 'bg-white/5 text-white/30 hover:text-white'}`}
+                               >
+                                 {fmt.split('/')[1]}
+                               </button>
+                             ))}
+                          </div>
+                       </div>
+
+                       {(targetFormat === 'image/jpeg' || targetFormat === 'image/webp') && (
+                         <div className="space-y-4">
+                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-white/40 px-2">
+                               <span>Output Quality</span>
+                               <span className="text-white tabular-nums">{Math.round(formatQuality * 100)}%</span>
+                            </div>
+                            <input type="range" min="0.1" max="1.0" step="0.05" value={formatQuality} onChange={e => setFormatQuality(parseFloat(e.target.value))} className="w-full" />
+                         </div>
+                       )}
+
+                       <div className="pt-4">
+                         <button 
+                           onClick={executeBulkConversion}
+                           className="w-full py-6 rounded-3xl bg-[#007aff] text-white font-black uppercase text-[12px] tracking-[0.2em] shadow-[0_20px_40px_rgba(0,122,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+                         >
+                           Convert & Download ({projects.length})
+                         </button>
+                       </div>
+                    </div>
+                  </div>
+               </div>
+             )}
+           </div>
+        )}
+
         {view === 'enhance' && (
           <div className="py-20 flex flex-col items-center gap-12 animate-in fade-in slide-in-from-bottom-12 duration-700 max-w-3xl mx-auto">
             <div className="text-center space-y-4">
@@ -599,7 +711,6 @@ export default function App() {
               <h2 className="text-5xl font-black tracking-tight">Intelligent Mastering</h2>
               <p className="text-white/40 text-xl font-medium">Upload a photo to automatically fix exposure, contrast, and color vibrance.</p>
             </div>
-
             <div className="w-full bg-[#1c1c1e] p-12 rounded-[4rem] border border-white/10 shadow-3xl text-center group cursor-pointer relative overflow-hidden transition-all hover:border-[#34c759]/50 active:scale-[0.99]">
                <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={(e) => handleAutoEnhance(Array.from(e.target.files || []))} accept="image/*" />
                <div className="flex flex-col items-center gap-8 py-10">
@@ -616,7 +727,6 @@ export default function App() {
           </div>
         )}
 
-        {/* CROP VIEW (Initial Step) */}
         {view === 'crop' && (
           <div className="py-20 flex flex-col items-center gap-12 animate-in fade-in slide-in-from-bottom-12 duration-700 max-w-3xl mx-auto">
             <div className="text-center space-y-4">
@@ -626,7 +736,6 @@ export default function App() {
               <h2 className="text-5xl font-black tracking-tight">Precision Crop</h2>
               <p className="text-white/40 text-xl font-medium">Reframe your shots with pixel-perfect accuracy and social presets.</p>
             </div>
-
             <div className="w-full bg-[#1c1c1e] p-12 rounded-[4rem] border border-white/10 shadow-3xl text-center group cursor-pointer relative overflow-hidden transition-all hover:border-[#af52de]/50 active:scale-[0.99]">
                <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={(e) => handleCropOnlyUpload(Array.from(e.target.files || []))} accept="image/*" />
                <div className="flex flex-col items-center gap-8 py-10">
@@ -643,7 +752,6 @@ export default function App() {
           </div>
         )}
 
-        {/* EDITOR VIEW */}
         {view === 'editor' && (
           <div className="h-full flex flex-col lg:flex-row gap-8 animate-in fade-in duration-700">
             {projects.length === 0 ? (
@@ -660,7 +768,6 @@ export default function App() {
             ) : (
               <>
                 <div className={`flex-1 flex flex-col gap-6 transition-all duration-500 ${activeTool ? 'lg:scale-[0.98]' : 'scale-100'}`}>
-                  {/* PROJECT SWITCHER */}
                   <div className="flex items-center gap-4 overflow-x-auto pb-4 no-scrollbar px-2">
                     <button onClick={() => {setView('home'); setActiveTool(null);}} className="w-20 h-20 bg-white/5 border border-white/10 rounded-[2rem] flex-shrink-0 flex items-center justify-center hover:bg-white/10 transition-all active:scale-90"><XIcon className="w-7 h-7 opacity-40"/></button>
                     {projects.map((proj, idx) => (
@@ -690,7 +797,6 @@ export default function App() {
                     </label>
                   </div>
 
-                  {/* MAIN CANVAS */}
                   <div className="relative flex-1 bg-[#1c1c1e] rounded-[4rem] border border-white/10 shadow-3xl overflow-hidden group transition-all duration-700">
                     <div 
                       ref={previewContainerRef} 
@@ -727,12 +833,10 @@ export default function App() {
                               <div className="border-r border-b border-white"></div><div className="border-r border-b border-white"></div><div className="border-b border-white"></div>
                               <div className="border-r border-b border-white"></div><div className="border-r border-b border-white"></div><div className="border-b border-white"></div>
                             </div>
-
                             <div 
                               className="absolute inset-4 cursor-move active:cursor-grabbing"
                               onMouseDown={(e) => handleCropHandleMouseDown(e, 'move')}
                             ></div>
-
                             {[
                                 { id: 'top-left', style: 'top-[-2px] left-[-2px] border-t-4 border-l-4' },
                                 { id: 'top-right', style: 'top-[-2px] right-[-2px] border-t-4 border-r-4' },
@@ -745,7 +849,6 @@ export default function App() {
                                     onMouseDown={(e) => handleCropHandleMouseDown(e, h.id)}
                                 ></div>
                             ))}
-
                             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 cursor-ns-resize" onMouseDown={(e) => handleCropHandleMouseDown(e, 'top')}></div>
                             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-1 cursor-ns-resize" onMouseDown={(e) => handleCropHandleMouseDown(e, 'bottom')}></div>
                             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 cursor-ew-resize" onMouseDown={(e) => handleCropHandleMouseDown(e, 'left')}></div>
@@ -753,7 +856,6 @@ export default function App() {
                           </div>
                         )}
                       </div>
-                      
                       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6 bg-black/60 ios-blur border border-white/10 rounded-full p-2 px-6 shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
                         <button onClick={() => adjustZoom(-0.2)} className="p-3 hover:bg-white/10 rounded-full transition-all active:scale-90"><ZoomOutIcon className="w-6 h-6 text-white/60" /></button>
                         <span className="text-[14px] font-black w-14 text-center tabular-nums">{Math.round(zoom*100)}%</span>
@@ -763,7 +865,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* RIGHT SIDE: TOOLS PANEL */}
                 <div className={`w-full lg:w-[400px] flex flex-col gap-6 transition-all duration-500 ${activeTool ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10 pointer-events-none hidden lg:flex'}`}>
                   <div className="bg-[#1c1c1e] p-8 rounded-[4rem] border border-white/10 shadow-2xl space-y-8 max-h-[85vh] overflow-y-auto no-scrollbar spring-in">
                     {activeTool ? (
@@ -834,7 +935,6 @@ export default function App() {
                                     ))}
                                 </div>
                              </div>
-
                              <div className="space-y-4">
                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 px-2">Aspect Ratio Presets</p>
                                 <div className="grid grid-cols-3 gap-3">
@@ -964,7 +1064,6 @@ export default function App() {
                               <button onClick={() => applyTool(img => imageService.pixelateImage(img, pixelScale), 'Retro Engine')} className="w-full py-6 rounded-3xl bg-[#ff9500] text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#ff9500]/90">Apply Pixelation</button>
                            </div>
                         )}
-
                       </div>
                     ) : (
                       <div className="h-[400px] flex flex-col items-center justify-center text-center gap-6 animate-in fade-in duration-1000">

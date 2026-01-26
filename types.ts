@@ -36,3 +36,5 @@ export interface ProjectImage {
   historyIndex: number;
   metadata: ImageMetadata;
 }
+
+export type ViewType = 'home' | 'editor' | 'enhance' | 'crop' | 'format';
