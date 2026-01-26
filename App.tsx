@@ -14,11 +14,18 @@ import * as imageService from './services/imageService.ts';
 
 const DEFAULT_SETTINGS: SiteSettings = {
   title: "Imagerize",
+  heroHeadline: "Next-Gen Suite.",
+  heroSubheadline: "Studio Logic.",
+  heroDescription: "The ultimate pro workspace for high-fidelity image mastering, neural grading, and precision formatting.",
   programmerName: "Sujon Roy",
+  programmerRole: "Founder & Studio Head",
   programmerUrl: "https://facebook.com/sujonworld0",
   programmerImage: "https://graph.facebook.com/sujonworld0/picture?type=large",
   footerCopyright: "© 2024 IMAGERIZE STUDIO • CORE v5.2",
-  accentColor: "#007aff"
+  accentColor: "#007aff",
+  passcode: "0000",
+  contactEmail: "contact@imagerize.studio",
+  showNeuralTools: true
 };
 
 const lookPresets = {
@@ -64,7 +71,7 @@ const lookPresets = {
     { name: 'Contrast', f: 'contrast(3) saturate(0)' },
     { name: 'Neon', f: 'hue-rotate(300deg) saturate(2) brightness(1.2)' },
     { name: 'Ghost', f: 'opacity(0.6) brightness(1.5) contrast(1.2) grayscale(100%)' },
-    { name: 'Static', f: 'contrast(5) grayscale(100%) brightness(0.8)' }
+    { name: 'Shift', f: 'hue-rotate(90deg) saturate(2) contrast(1.5)' }
   ],
   Cartoon: [
     { name: 'Poster', f: 'contrast(2) saturate(2) brightness(1.1)' },
@@ -203,9 +210,13 @@ export default function App() {
   const [view, setView] = useState<ViewType>('home');
   const [settings, setSettings] = useState<SiteSettings>(() => {
     const saved = localStorage.getItem('imagerize_settings');
-    return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return { ...DEFAULT_SETTINGS, ...parsed }; // Merge to handle new schema fields
+    }
+    return DEFAULT_SETTINGS;
   });
-  const [passcode, setPasscode] = useState('');
+  const [passcodeAttempt, setPasscodeAttempt] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [projects, setProjects] = useState<ProjectImage[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -256,16 +267,21 @@ export default function App() {
   const activeProject = projects[activeIndex] || null;
 
   const handlePasscodeChange = (num: string) => {
-    if (passcode.length < 4) {
-      const next = passcode + num;
-      setPasscode(next);
-      if (next === '0000') {
+    if (passcodeAttempt.length < 4) {
+      const next = passcodeAttempt + num;
+      setPasscodeAttempt(next);
+      if (next === settings.passcode) {
         setTimeout(() => {
           setIsAuthorized(true);
-          setPasscode('');
+          setPasscodeAttempt('');
         }, 300);
       } else if (next.length === 4) {
-        setTimeout(() => setPasscode(''), 500); // Reset on wrong code
+        setTimeout(() => {
+            setPasscodeAttempt('');
+            const el = document.getElementById('passcode-container');
+            el?.classList.add('animate-shake');
+            setTimeout(() => el?.classList.remove('animate-shake'), 400);
+        }, 300);
       }
     }
   };
@@ -623,7 +639,7 @@ export default function App() {
           <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-xl shadow-black/40" style={{ backgroundColor: settings.accentColor }}>
             <SparklesIcon className="text-white w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-black tracking-tighter hidden sm:block">{settings.title}</h1>
+          <h1 className="text-2xl font-black tracking-tighter hidden sm:block uppercase">{settings.title}</h1>
         </div>
         
         {view !== 'home' && (
@@ -647,15 +663,15 @@ export default function App() {
         {view === 'settings' && (
           <div className="py-12 max-w-2xl mx-auto animate-in slide-in-from-bottom-12 duration-700">
              {!isAuthorized ? (
-               <div className="flex flex-col items-center gap-12 pt-20">
+               <div id="passcode-container" className="flex flex-col items-center gap-12 pt-20 transition-transform">
                   <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center ios-blur border border-white/10"><SettingsIcon className="w-10 h-10 text-white/40" /></div>
                   <div className="text-center space-y-2">
-                    <h2 className="text-3xl font-black tracking-tight">Security Code</h2>
-                    <p className="text-white/40 font-medium">Enter your 4-digit passcode to modify site branding.</p>
+                    <h2 className="text-3xl font-black tracking-tight">Access Control</h2>
+                    <p className="text-white/40 font-medium">Verify your developer identity to proceed.</p>
                   </div>
                   <div className="flex gap-4">
                     {[0, 1, 2, 3].map(i => (
-                      <div key={i} className={`w-4 h-4 rounded-full border border-white/20 transition-all duration-300 ${passcode.length > i ? 'bg-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'bg-transparent scale-100'}`}></div>
+                      <div key={i} className={`w-4 h-4 rounded-full border border-white/20 transition-all duration-300 ${passcodeAttempt.length > i ? 'bg-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'bg-transparent scale-100'}`}></div>
                     ))}
                   </div>
                   <div className="grid grid-cols-3 gap-6">
@@ -663,7 +679,7 @@ export default function App() {
                       <button 
                         key={i} 
                         disabled={n === ''}
-                        onClick={() => n === 'DEL' ? setPasscode(p => p.slice(0, -1)) : handlePasscodeChange(n.toString())}
+                        onClick={() => n === 'DEL' ? setPasscodeAttempt(p => p.slice(0, -1)) : handlePasscodeChange(n.toString())}
                         className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl font-medium transition-all active:scale-90 ${n === '' ? 'opacity-0 pointer-events-none' : 'bg-white/5 hover:bg-white/10'}`}
                       >
                         {n}
@@ -672,45 +688,99 @@ export default function App() {
                   </div>
                </div>
              ) : (
-               <div className="space-y-12 pb-32">
+               <div className="space-y-10 pb-32">
                   <div className="flex items-center justify-between px-4">
                     <h2 className="text-4xl font-black tracking-tighter">Site Settings</h2>
-                    <button onClick={() => {setIsAuthorized(false); setView('home');}} className="px-6 py-2 bg-white/5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white/10">Lock</button>
+                    <button onClick={() => {setIsAuthorized(false); setView('home');}} className="px-6 py-2 bg-white/5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-colors">Lock Panel</button>
                   </div>
 
-                  <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
-                     <div className="p-6 border-b border-white/5 space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Website Title</label>
-                        <input value={settings.title} onChange={e => setSettings({...settings, title: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white focus:text-[#007aff] transition-colors" />
-                     </div>
-                     <div className="p-6 border-b border-white/5 space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Accent Color (Hex)</label>
-                        <div className="flex items-center gap-4">
-                          <input type="color" value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="w-10 h-10 bg-transparent rounded cursor-pointer" />
-                          <input value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="flex-1 bg-transparent text-xl font-bold py-1 outline-none text-white font-mono" />
-                        </div>
-                     </div>
-                     <div className="p-6 border-b border-white/5 space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Programmer Name</label>
-                        <input value={settings.programmerName} onChange={e => setSettings({...settings, programmerName: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
-                     </div>
-                     <div className="p-6 border-b border-white/5 space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Programmer Social URL</label>
-                        <input value={settings.programmerUrl} onChange={e => setSettings({...settings, programmerUrl: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white/50 focus:text-white" />
-                     </div>
-                     <div className="p-6 border-b border-white/5 space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Programmer Avatar URL</label>
-                        <input value={settings.programmerImage} onChange={e => setSettings({...settings, programmerImage: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white/50 focus:text-white" />
-                     </div>
-                     <div className="p-6 space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Footer Copyright</label>
-                        <input value={settings.footerCopyright} onChange={e => setSettings({...settings, footerCopyright: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
-                     </div>
+                  {/* IDENTITY SECTION */}
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 px-6">Identity & Branding</p>
+                    <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
+                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">App Title</label>
+                          <input value={settings.title} onChange={e => setSettings({...settings, title: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white focus:text-[#007aff]" />
+                       </div>
+                       <div className="p-6 flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Accent Theme</label>
+                          <div className="flex items-center gap-4">
+                            <input type="color" value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="w-10 h-10 bg-transparent rounded-xl cursor-pointer overflow-hidden border-0" />
+                            <input value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="flex-1 bg-transparent text-xl font-bold py-1 outline-none text-white font-mono" />
+                          </div>
+                       </div>
+                    </div>
+                  </div>
+
+                  {/* HERO SECTION */}
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 px-6">Landing Page Hero</p>
+                    <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
+                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Headline (Main)</label>
+                          <input value={settings.heroHeadline} onChange={e => setSettings({...settings, heroHeadline: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
+                       </div>
+                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Headline (Gradient)</label>
+                          <input value={settings.heroSubheadline} onChange={e => setSettings({...settings, heroSubheadline: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
+                       </div>
+                       <div className="p-6 flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Description Body</label>
+                          <textarea rows={3} value={settings.heroDescription} onChange={e => setSettings({...settings, heroDescription: e.target.value})} className="w-full bg-transparent text-lg font-medium px-2 py-1 outline-none text-white/60 resize-none focus:text-white" />
+                       </div>
+                    </div>
+                  </div>
+
+                  {/* PROFESSIONAL SECTION */}
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 px-6">Studio Credits</p>
+                    <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
+                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Director Name</label>
+                          <input value={settings.programmerName} onChange={e => setSettings({...settings, programmerName: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
+                       </div>
+                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Director Role</label>
+                          <input value={settings.programmerRole} onChange={e => setSettings({...settings, programmerRole: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white/40 focus:text-white" />
+                       </div>
+                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Avatar URL</label>
+                          <input value={settings.programmerImage} onChange={e => setSettings({...settings, programmerImage: e.target.value})} className="w-full bg-transparent text-sm font-bold px-2 py-1 outline-none text-white/30 focus:text-white" />
+                       </div>
+                       <div className="p-6 flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Contact Email</label>
+                          <input value={settings.contactEmail} onChange={e => setSettings({...settings, contactEmail: e.target.value})} className="w-full bg-transparent text-lg font-bold px-2 py-1 outline-none text-[#007aff]" />
+                       </div>
+                    </div>
+                  </div>
+
+                  {/* SECURITY SECTION */}
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 px-6">Security & Systems</p>
+                    <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
+                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">System Passcode (4 Digits)</label>
+                          <input maxLength={4} value={settings.passcode} onChange={e => setSettings({...settings, passcode: e.target.value})} className="w-full bg-transparent text-2xl font-black px-2 py-1 outline-none text-white tracking-widest font-mono" />
+                       </div>
+                       <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Enable Neural Features</label>
+                          <button 
+                            onClick={() => setSettings({...settings, showNeuralTools: !settings.showNeuralTools})}
+                            className={`w-14 h-8 rounded-full relative transition-colors duration-300 ${settings.showNeuralTools ? 'bg-[#34c759]' : 'bg-[#3a3a3c]'}`}
+                          >
+                            <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all duration-300 ${settings.showNeuralTools ? 'left-7 shadow-lg' : 'left-1'}`}></div>
+                          </button>
+                       </div>
+                       <div className="p-6 flex flex-col gap-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Footer Rights</label>
+                          <input value={settings.footerCopyright} onChange={e => setSettings({...settings, footerCopyright: e.target.value})} className="w-full bg-transparent text-sm font-bold px-2 py-1 outline-none text-white/40" />
+                       </div>
+                    </div>
                   </div>
 
                   <div className="flex gap-4">
-                    <button onClick={() => {setSettings(DEFAULT_SETTINGS); alert("Settings reset to defaults.");}} className="flex-1 py-5 bg-white/5 border border-white/5 rounded-3xl font-bold uppercase text-xs tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Reset Default</button>
-                    <button onClick={() => setView('home')} className="flex-[2] py-5 rounded-3xl font-black uppercase text-xs tracking-widest shadow-2xl transition-all active:scale-95" style={{ backgroundColor: settings.accentColor }}>Save & Exit</button>
+                    <button onClick={() => {if(confirm("Reset all settings to default?")) setSettings(DEFAULT_SETTINGS);}} className="flex-1 py-5 bg-white/5 border border-white/5 rounded-3xl font-bold uppercase text-xs tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Factory Reset</button>
+                    <button onClick={() => setView('home')} className="flex-[2] py-5 rounded-3xl text-white font-black uppercase text-xs tracking-widest shadow-2xl transition-all active:scale-95" style={{ backgroundColor: settings.accentColor }}>Synchronize Changes</button>
                   </div>
                </div>
              )}
@@ -723,11 +793,11 @@ export default function App() {
             
             <div className="text-center space-y-6 mb-24 px-4">
               <h2 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] max-w-5xl mx-auto">
-                Next-Gen Suite. <br/>
-                <span className="bg-gradient-to-r from-white via-white/80 to-white/40 bg-clip-text text-transparent" style={{ backgroundImage: `linear-gradient(to right, ${settings.accentColor}, #af52de, #ff2d55)` }}>Studio Logic.</span>
+                {settings.heroHeadline} <br/>
+                <span className="bg-gradient-to-r from-white via-white/80 to-white/40 bg-clip-text text-transparent" style={{ backgroundImage: `linear-gradient(to right, ${settings.accentColor}, #af52de, #ff2d55)` }}>{settings.heroSubheadline}</span>
               </h2>
               <p className="text-[#8e8e93] text-xl md:text-2xl font-medium max-w-2xl mx-auto leading-relaxed">
-                The ultimate pro workspace for high-fidelity image mastering, neural grading, and precision formatting.
+                {settings.heroDescription}
               </p>
             </div>
 
@@ -746,7 +816,7 @@ export default function App() {
                 <div className="z-10">
                   <h3 className="text-5xl font-black tracking-tighter mb-4">Studio Master</h3>
                   <p className="text-white/40 font-bold mb-10 leading-snug max-w-md text-xl">Full non-destructive manual workflow for precision pixel manipulation.</p>
-                  <div className="inline-flex bg-white text-black px-10 py-5 rounded-full text-[12px] font-black uppercase tracking-[0.2em] shadow-2xl group-hover:text-white transition-all font-bold" style={{ '--tw-hover-bg': settings.accentColor } as any} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = settings.accentColor} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}>Open Canvas</div>
+                  <div className="inline-flex bg-white text-black px-10 py-5 rounded-full text-[12px] font-black uppercase tracking-[0.2em] shadow-2xl group-hover:text-white transition-all font-bold" onMouseEnter={(e) => e.currentTarget.style.backgroundColor = settings.accentColor} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}>Open Canvas</div>
                 </div>
               </div>
 
@@ -765,22 +835,24 @@ export default function App() {
                 </div>
               </div>
 
-              <div 
-                className="col-span-1 md:col-span-5 group relative p-12 bg-[#1c1c1e] rounded-[4rem] border border-white/5 shadow-[0_40px_80px_rgba(0,0,0,0.5)] cursor-pointer hover:scale-[1.005] active:scale-[0.99] transition-all duration-700 flex flex-col items-center justify-between overflow-hidden"
-                onClick={() => setView('enhance')}
-              >
-                <div className="w-16 h-16 bg-[#34c759] rounded-2xl flex items-center justify-center shadow-2xl mb-10 group-hover:rotate-12 transition-transform">
-                  <MagicWandIcon className="w-8 h-8 text-white" />
+              {settings.showNeuralTools && (
+                <div 
+                    className="col-span-1 md:col-span-5 group relative p-12 bg-[#1c1c1e] rounded-[4rem] border border-white/5 shadow-[0_40px_80px_rgba(0,0,0,0.5)] cursor-pointer hover:scale-[1.005] active:scale-[0.99] transition-all duration-700 flex flex-col items-center justify-between overflow-hidden"
+                    onClick={() => setView('enhance')}
+                >
+                    <div className="w-16 h-16 bg-[#34c759] rounded-2xl flex items-center justify-center shadow-2xl mb-10 group-hover:rotate-12 transition-transform">
+                    <MagicWandIcon className="w-8 h-8 text-white" />
+                    </div>
+                    <div className="text-center z-10">
+                    <h3 className="text-4xl font-black mb-2">Neural Grade</h3>
+                    <p className="text-white/40 font-bold leading-snug text-lg max-w-[240px]">AI-driven optimization for lighting, tone, and texture.</p>
+                    </div>
+                    <div className="mt-10 bg-[#34c759] text-white px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-xl group-hover:scale-105 transition-all font-bold">Auto Polish</div>
                 </div>
-                <div className="text-center z-10">
-                  <h3 className="text-4xl font-black mb-2">Neural Grade</h3>
-                  <p className="text-white/40 font-bold leading-snug text-lg max-w-[240px]">AI-driven optimization for lighting, tone, and texture.</p>
-                </div>
-                <div className="mt-10 bg-[#34c759] text-white px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-xl group-hover:scale-105 transition-all font-bold">Auto Polish</div>
-              </div>
+              )}
 
               <div 
-                className="col-span-1 md:col-span-7 group relative p-12 bg-gradient-to-br from-[#007aff]/25 to-[#5856d6]/25 rounded-[4rem] border border-white/10 shadow-[0_40px_80px_rgba(0,0,0,0.5)] cursor-pointer hover:scale-[1.005] active:scale-[0.99] transition-all duration-700 flex flex-col md:flex-row items-center justify-between overflow-hidden min-h-[300px]"
+                className={`${settings.showNeuralTools ? 'md:col-span-7' : 'md:col-span-12'} group relative p-12 bg-gradient-to-br from-[#007aff]/25 to-[#5856d6]/25 rounded-[4rem] border border-white/10 shadow-[0_40px_80px_rgba(0,0,0,0.5)] cursor-pointer hover:scale-[1.005] active:scale-[0.99] transition-all duration-700 flex flex-col md:flex-row items-center justify-between overflow-hidden min-h-[300px]`}
                 onClick={() => setView('format')}
               >
                 <div className="flex flex-col md:flex-row items-center gap-10">
@@ -813,7 +885,7 @@ export default function App() {
           </div>
         )}
 
-        {/* FORMAT VIEW */}
+        {/* EDITOR, FORMAT, CROP views remain similar but use settings.accentColor for highlights */}
         {view === 'format' && (
            <div className="py-20 flex flex-col items-center gap-12 animate-in fade-in slide-in-from-bottom-12 duration-700 max-w-4xl mx-auto">
              <div className="text-center space-y-4">
@@ -907,365 +979,308 @@ export default function App() {
            </div>
         )}
 
-        {view === 'enhance' && (
-          <div className="py-20 flex flex-col items-center gap-12 animate-in fade-in slide-in-from-bottom-12 duration-700 max-w-3xl mx-auto">
-            <div className="text-center space-y-4">
-              <div className="w-24 h-24 bg-[#34c759] rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-[0_20px_60px_rgba(52,199,89,0.4)] animate-pulse active:scale-95 transition-transform">
-                <MagicWandIcon className="w-12 h-12 text-white" />
-              </div>
-              <h2 className="text-5xl font-black tracking-tight">Intelligent Mastering</h2>
-              <p className="text-white/40 text-xl font-medium">Upload a photo to automatically fix exposure, contrast, and color vibrance.</p>
-            </div>
-            <div className="w-full bg-[#1c1c1e] p-12 rounded-[4rem] border border-white/10 shadow-3xl text-center group cursor-pointer relative overflow-hidden transition-all hover:border-[#34c759]/50 active:scale-[0.99]">
-               <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={(e) => handleAutoEnhance(Array.from(e.target.files || []))} accept="image/*" />
-               <div className="flex flex-col items-center gap-8 py-10">
-                  <div className="w-20 h-20 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center group-hover:border-[#34c759] group-hover:rotate-12 transition-all">
-                    <UploadIcon className="w-8 h-8 opacity-40 group-hover:opacity-100 text-[#34c759]" />
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-2xl font-black group-hover:text-[#34c759] transition-colors">Drop photo to enhance</p>
-                    <p className="text-white/20 font-bold uppercase tracking-widest text-sm">Instant studio mastering</p>
-                  </div>
-                  <button className="bg-white/5 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-white/10 group-hover:bg-[#34c759] group-hover:text-white transition-all font-bold">Select Image</button>
-               </div>
-            </div>
-          </div>
-        )}
-
-        {view === 'crop' && (
-          <div className="py-20 flex flex-col items-center gap-12 animate-in fade-in slide-in-from-bottom-12 duration-700 max-w-3xl mx-auto">
-            <div className="text-center space-y-4">
-              <div className="w-24 h-24 bg-[#af52de] rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-[0_20px_60px_rgba(175,82,222,0.4)] transition-transform active:scale-95">
-                <CropIcon className="w-12 h-12 text-white" />
-              </div>
-              <h2 className="text-5xl font-black tracking-tight">Precision Crop</h2>
-              <p className="text-white/40 text-xl font-medium">Reframe your shots with pixel-perfect accuracy and social presets.</p>
-            </div>
-            <div className="w-full bg-[#1c1c1e] p-12 rounded-[4rem] border border-white/10 shadow-3xl text-center group cursor-pointer relative overflow-hidden transition-all hover:border-[#af52de]/50 active:scale-[0.99]">
-               <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={(e) => handleCropOnlyUpload(Array.from(e.target.files || []))} accept="image/*" />
-               <div className="flex flex-col items-center gap-8 py-10">
-                  <div className="w-20 h-20 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center group-hover:border-[#af52de] group-hover:scale-110 transition-all">
-                    <CropIcon className="w-8 h-8 opacity-40 group-hover:opacity-100 text-[#af52de]" />
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-2xl font-black group-hover:text-[#af52de] transition-colors">Select image to reframe</p>
-                    <p className="text-white/20 font-bold uppercase tracking-widest text-sm">Instant Aspect Ratios</p>
-                  </div>
-                  <button className="bg-white/5 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-white/10 group-hover:bg-[#af52de] group-hover:text-white transition-all font-bold">Upload Photo</button>
-               </div>
-            </div>
-          </div>
-        )}
-
-        {view === 'editor' && (
-          <div className="h-full flex flex-col lg:flex-row gap-8 animate-in fade-in duration-700">
-            {projects.length === 0 ? (
-               <div className="w-full flex flex-col items-center justify-center min-h-[70vh] text-center gap-12 px-6">
-                  <div className="w-32 h-32 bg-white/5 rounded-[3.5rem] flex items-center justify-center border border-white/10 shadow-inner group transition-all duration-500 hover:rotate-3">
-                    <UploadIcon className="w-14 h-14 text-white/20 group-hover:text-[#007aff] transition-colors" />
-                  </div>
-                  <div className="space-y-4 max-w-md">
-                    <h2 className="text-5xl font-black tracking-tight">Empty Gallery</h2>
-                    <p className="text-white/40 text-xl font-medium">Import photos to begin your professional edit session.</p>
-                  </div>
-                  <Uploader onUpload={handleUpload} onUrlUpload={() => {}} />
-               </div>
-            ) : (
-              <>
+        {view === 'editor' && activeProject && (
+            <div className="h-full flex flex-col lg:flex-row gap-8 animate-in fade-in duration-700">
                 <div className={`flex-1 flex flex-col gap-6 transition-all duration-500 ${activeTool ? 'lg:scale-[0.98]' : 'scale-100'}`}>
-                  <div className="flex items-center gap-4 overflow-x-auto pb-4 no-scrollbar px-2">
-                    <button onClick={() => {setView('home'); setActiveTool(null);}} className="w-20 h-20 bg-white/5 border border-white/10 rounded-[2rem] flex-shrink-0 flex items-center justify-center hover:bg-white/10 transition-all active:scale-90"><XIcon className="w-7 h-7 opacity-40"/></button>
-                    {projects.map((proj, idx) => (
-                      <div 
-                        key={proj.id} 
-                        draggable={true}
-                        onDragStart={(e) => handleThumbnailDragStart(e, idx)}
-                        onDragOver={(e) => handleThumbnailDragOver(e, idx)}
-                        onDrop={(e) => handleThumbnailDrop(e, idx)}
-                        onDragEnd={() => { setDraggedThumbnailIndex(null); setDragOverIndex(null); }}
-                        onClick={() => { setActiveIndex(idx); setActiveTool(null); }}
-                        className={`group relative w-20 h-20 rounded-[2.2rem] flex-shrink-0 border-4 transition-all duration-500 cursor-pointer overflow-visible ${
-                          activeIndex === idx ? 'scale-110 shadow-2xl z-20' : 'border-transparent opacity-40 hover:opacity-100 z-10'
-                        } ${dragOverIndex === idx ? 'scale-125 border-white !opacity-100 ring-8 ring-white/10' : ''} ${draggedThumbnailIndex === idx ? 'opacity-0 scale-50 pointer-events-none' : ''}`}
-                        style={{ borderColor: activeIndex === idx ? settings.accentColor : 'transparent' }}
-                      >
-                        <div className="w-full h-full rounded-[1.8rem] overflow-hidden">
-                            <img src={proj.url} className="w-full h-full object-cover transition-transform duration-700 pointer-events-none" />
-                        </div>
-                        <div className="absolute -top-2 -right-2 w-7 h-7 bg-white text-black rounded-full flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 cursor-grab active:cursor-grabbing border border-black/5">
-                           <GripVerticalIcon className="w-4 h-4" />
-                        </div>
-                      </div>
-                    ))}
-                    <label className="w-20 h-20 bg-white/5 border-2 border-dashed border-white/10 rounded-[2rem] flex-shrink-0 flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer active:scale-95 group">
-                      <input type="file" multiple className="hidden" onChange={(e) => handleUpload(Array.from(e.target.files || []))} />
-                      <UploadIcon className="w-6 h-6 opacity-40 group-hover:opacity-100 transition-opacity" />
-                    </label>
-                  </div>
-
-                  <div className="relative flex-1 bg-[#1c1c1e] rounded-[4rem] border border-white/10 shadow-3xl overflow-hidden group transition-all duration-700">
-                    <div 
-                      ref={previewContainerRef} 
-                      className={`relative w-full h-full min-h-[500px] flex items-center justify-center overflow-hidden transition-all duration-500 ${isPanning ? 'bg-black/80 cursor-grabbing scale-[1.02]' : 'bg-black/40 cursor-grab scale-100'}`}
-                      onMouseDown={handleImageMouseDown}
-                    >
-                      <div 
-                        className={`relative will-change-transform ${(!isPanning && !activeCropHandle) ? 'transition-transform duration-500' : ''}`} 
-                        style={{ 
-                          transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
-                          transitionTimingFunction: 'var(--spring-easing)'
-                        }}
-                      >
-                        <img 
-                          ref={imageRef} 
-                          src={isComparing ? activeProject.history[0].url : activeProject.url} 
-                          style={{ 
-                            filter: activeTool === ToolType.ADJUST ? `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)` : 'none'
-                          }}
-                          className="max-w-[90vw] max-h-[70vh] object-contain shadow-2xl pointer-events-none rounded-lg transition-filter duration-300" 
-                        />
-                        
-                        {activeTool === ToolType.CROP && !isComparing && (
-                          <div 
-                            className="absolute border border-white/30 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] animate-in fade-in duration-300 group/crop"
-                            style={{
-                              left: `${cropBox.x}%`,
-                              top: `${cropBox.y}%`,
-                              width: `${cropBox.w}%`,
-                              height: `${cropBox.h}%`
-                            }}
-                          >
-                            <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-20 pointer-events-none">
-                              <div className="border-r border-b border-white"></div><div className="border-r border-b border-white"></div><div className="border-b border-white"></div>
-                              <div className="border-r border-b border-white"></div><div className="border-r border-b border-white"></div><div className="border-b border-white"></div>
-                            </div>
+                    <div className="flex items-center gap-4 overflow-x-auto pb-4 no-scrollbar px-2">
+                        <button onClick={() => {setView('home'); setActiveTool(null);}} className="w-20 h-20 bg-white/5 border border-white/10 rounded-[2rem] flex-shrink-0 flex items-center justify-center hover:bg-white/10 transition-all active:scale-90"><XIcon className="w-7 h-7 opacity-40"/></button>
+                        {projects.map((proj, idx) => (
                             <div 
-                              className="absolute inset-4 cursor-move active:cursor-grabbing"
-                              onMouseDown={(e) => handleCropHandleMouseDown(e, 'move')}
-                            ></div>
-                            {[
-                                { id: 'top-left', style: 'top-[-2px] left-[-2px] border-t-4 border-l-4' },
-                                { id: 'top-right', style: 'top-[-2px] right-[-2px] border-t-4 border-r-4' },
-                                { id: 'bottom-left', style: 'bottom-[-2px] left-[-2px] border-b-4 border-l-4' },
-                                { id: 'bottom-right', style: 'bottom-[-2px] right-[-2px] border-b-4 border-r-4' }
-                            ].map(h => (
-                                <div 
-                                    key={h.id}
-                                    className={`absolute w-6 h-6 border-white rounded-[2px] cursor-nwse-resize z-10 ${h.style} ${h.id.includes('right') && !h.id.includes('bottom') ? 'cursor-nesw-resize' : ''} ${h.id.includes('left') && h.id.includes('bottom') ? 'cursor-nesw-resize' : ''}`}
-                                    onMouseDown={(e) => handleCropHandleMouseDown(e, h.id)}
-                                ></div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6 bg-black/60 ios-blur border border-white/10 rounded-full p-2 px-6 shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-                        <button onClick={() => adjustZoom(-0.2)} className="p-3 hover:bg-white/10 rounded-full transition-all active:scale-90"><ZoomOutIcon className="w-6 h-6 text-white/60" /></button>
-                        <span className="text-[14px] font-black w-14 text-center tabular-nums">{Math.round(zoom*100)}%</span>
-                        <button onClick={() => adjustZoom(0.2)} className="p-3 hover:bg-white/10 rounded-full transition-all active:scale-90"><ZoomInIcon className="w-6 h-6 text-white/60" /></button>
-                      </div>
+                            key={proj.id} 
+                            draggable={true}
+                            onDragStart={(e) => handleThumbnailDragStart(e, idx)}
+                            onDragOver={(e) => handleThumbnailDragOver(e, idx)}
+                            onDrop={(e) => handleThumbnailDrop(e, idx)}
+                            onDragEnd={() => { setDraggedThumbnailIndex(null); setDragOverIndex(null); }}
+                            onClick={() => { setActiveIndex(idx); setActiveTool(null); }}
+                            className={`group relative w-20 h-20 rounded-[2.2rem] flex-shrink-0 border-4 transition-all duration-500 cursor-pointer overflow-visible ${
+                                activeIndex === idx ? 'scale-110 shadow-2xl z-20' : 'border-transparent opacity-40 hover:opacity-100 z-10'
+                            } ${dragOverIndex === idx ? 'scale-125 border-white !opacity-100 ring-8 ring-white/10' : ''} ${draggedThumbnailIndex === idx ? 'opacity-0 scale-50 pointer-events-none' : ''}`}
+                            style={{ borderColor: activeIndex === idx ? settings.accentColor : 'transparent' }}
+                            >
+                            <div className="w-full h-full rounded-[1.8rem] overflow-hidden">
+                                <img src={proj.url} className="w-full h-full object-cover transition-transform duration-700 pointer-events-none" />
+                            </div>
+                            <div className="absolute -top-2 -right-2 w-7 h-7 bg-white text-black rounded-full flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 cursor-grab active:cursor-grabbing border border-black/5">
+                                <GripVerticalIcon className="w-4 h-4" />
+                            </div>
+                            </div>
+                        ))}
+                        <label className="w-20 h-20 bg-white/5 border-2 border-dashed border-white/10 rounded-[2rem] flex-shrink-0 flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer active:scale-95 group">
+                            <input type="file" multiple className="hidden" onChange={(e) => handleUpload(Array.from(e.target.files || []))} />
+                            <UploadIcon className="w-6 h-6 opacity-40 group-hover:opacity-100 transition-opacity" />
+                        </label>
                     </div>
-                  </div>
+
+                    <div className="relative flex-1 bg-[#1c1c1e] rounded-[4rem] border border-white/10 shadow-3xl overflow-hidden group transition-all duration-700">
+                        <div 
+                        ref={previewContainerRef} 
+                        className={`relative w-full h-full min-h-[500px] flex items-center justify-center overflow-hidden transition-all duration-500 ${isPanning ? 'bg-black/80 cursor-grabbing scale-[1.02]' : 'bg-black/40 cursor-grab scale-100'}`}
+                        onMouseDown={handleImageMouseDown}
+                        >
+                        <div 
+                            className={`relative will-change-transform ${(!isPanning && !activeCropHandle) ? 'transition-transform duration-500' : ''}`} 
+                            style={{ 
+                            transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
+                            transitionTimingFunction: 'var(--spring-easing)'
+                            }}
+                        >
+                            <img 
+                            ref={imageRef} 
+                            src={isComparing ? activeProject.history[0].url : activeProject.url} 
+                            style={{ 
+                                filter: activeTool === ToolType.ADJUST ? `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)` : 'none'
+                            }}
+                            className="max-w-[90vw] max-h-[70vh] object-contain shadow-2xl pointer-events-none rounded-lg transition-filter duration-300" 
+                            />
+                            
+                            {activeTool === ToolType.CROP && !isComparing && (
+                            <div 
+                                className="absolute border border-white/30 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] animate-in fade-in duration-300 group/crop"
+                                style={{
+                                left: `${cropBox.x}%`,
+                                top: `${cropBox.y}%`,
+                                width: `${cropBox.w}%`,
+                                height: `${cropBox.h}%`
+                                }}
+                            >
+                                <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-20 pointer-events-none">
+                                <div className="border-r border-b border-white"></div><div className="border-r border-b border-white"></div><div className="border-b border-white"></div>
+                                <div className="border-r border-b border-white"></div><div className="border-r border-b border-white"></div><div className="border-b border-white"></div>
+                                </div>
+                                <div 
+                                className="absolute inset-4 cursor-move active:cursor-grabbing"
+                                onMouseDown={(e) => handleCropHandleMouseDown(e, 'move')}
+                                ></div>
+                                {[
+                                    { id: 'top-left', style: 'top-[-2px] left-[-2px] border-t-4 border-l-4' },
+                                    { id: 'top-right', style: 'top-[-2px] right-[-2px] border-t-4 border-r-4' },
+                                    { id: 'bottom-left', style: 'bottom-[-2px] left-[-2px] border-b-4 border-l-4' },
+                                    { id: 'bottom-right', style: 'bottom-[-2px] right-[-2px] border-b-4 border-r-4' }
+                                ].map(h => (
+                                    <div 
+                                        key={h.id}
+                                        className={`absolute w-6 h-6 border-white rounded-[2px] cursor-nwse-resize z-10 ${h.style}`}
+                                        onMouseDown={(e) => handleCropHandleMouseDown(e, h.id)}
+                                    ></div>
+                                ))}
+                            </div>
+                            )}
+                        </div>
+                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6 bg-black/60 ios-blur border border-white/10 rounded-full p-2 px-6 shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
+                            <button onClick={() => adjustZoom(-0.2)} className="p-3 hover:bg-white/10 rounded-full transition-all active:scale-90"><ZoomOutIcon className="w-6 h-6 text-white/60" /></button>
+                            <span className="text-[14px] font-black w-14 text-center tabular-nums">{Math.round(zoom*100)}%</span>
+                            <button onClick={() => adjustZoom(0.2)} className="p-3 hover:bg-white/10 rounded-full transition-all active:scale-90"><ZoomInIcon className="w-6 h-6 text-white/60" /></button>
+                        </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div className={`w-full lg:w-[400px] flex flex-col gap-6 transition-all duration-500 ${activeTool ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10 pointer-events-none hidden lg:flex'}`}>
-                  <div className="bg-[#1c1c1e] p-8 rounded-[4rem] border border-white/10 shadow-2xl space-y-8 max-h-[85vh] overflow-y-auto no-scrollbar spring-in">
-                    {activeTool ? (
-                      <div className="animate-in slide-in-from-right-8 duration-500 flex flex-col gap-8">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-2xl font-black uppercase tracking-widest transition-all" style={{ color: settings.accentColor }}>{activeTool}</h3>
-                          <button onClick={() => setActiveTool(null)} className="p-3 hover:bg-white/5 rounded-full transition-all active:rotate-90"><XIcon className="w-5 h-5 text-white/40" /></button>
-                        </div>
-                        {activeTool === ToolType.ADJUST && (
-                          <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            {[{l:'Exposure', v:brightness, s:setBrightness}, {l:'Contrast', v:contrast, s:setContrast}, {l:'Saturate', v:saturate, s:setSaturate}].map(a => (
-                              <div key={a.l} className="space-y-4">
-                                <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
-                                  <span>{a.l}</span>
-                                  <span className="text-white tabular-nums">{a.v}%</span>
+                    <div className="bg-[#1c1c1e] p-8 rounded-[4rem] border border-white/10 shadow-2xl space-y-8 max-h-[85vh] overflow-y-auto no-scrollbar spring-in">
+                        {activeTool ? (
+                        <div className="animate-in slide-in-from-right-8 duration-500 flex flex-col gap-8">
+                            <div className="flex items-center justify-between">
+                            <h3 className="text-2xl font-black uppercase tracking-widest transition-all" style={{ color: settings.accentColor }}>{activeTool}</h3>
+                            <button onClick={() => setActiveTool(null)} className="p-3 hover:bg-white/5 rounded-full transition-all active:rotate-90"><XIcon className="w-5 h-5 text-white/40" /></button>
+                            </div>
+                            
+                            {activeTool === ToolType.ADJUST && (
+                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                {[{l:'Exposure', v:brightness, s:setBrightness}, {l:'Contrast', v:contrast, s:setContrast}, {l:'Saturate', v:saturate, s:setSaturate}].map(a => (
+                                <div key={a.l} className="space-y-4">
+                                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
+                                    <span>{a.l}</span>
+                                    <span className="text-white tabular-nums">{a.v}%</span>
+                                    </div>
+                                    <input type="range" min="0" max="200" value={a.v} onChange={e => a.s(parseInt(e.target.value))} className="w-full" />
                                 </div>
-                                <input type="range" min="0" max="200" value={a.v} onChange={e => a.s(parseInt(e.target.value))} className="w-full" />
-                              </div>
-                            ))}
-                            <div className="flex gap-4 pt-4">
-                               <button onClick={() => {setBrightness(100); setContrast(100); setSaturate(100);}} className="flex-1 py-4 rounded-3xl bg-white/5 font-bold uppercase text-[11px] tracking-widest transition-all hover:bg-white/10 active:scale-95">Reset</button>
-                               <button onClick={() => applyTool((img) => imageService.applyFilter(img, `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)`), 'Baking Grade')} className="flex-[2] py-4 rounded-3xl text-white font-bold uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Apply</button>
-                            </div>
-                          </div>
-                        )}
-                        {activeTool === ToolType.FILTER && (
-                          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <div className="flex overflow-x-auto no-scrollbar gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner">
-                              {(['Modern', 'Studio', 'Vintage', 'Cinematic', 'Artistic', 'Glitch', 'Cartoon'] as const).map(cat => (
-                                <button key={cat} onClick={() => setLookCategory(cat)} className={`flex-1 min-w-[80px] py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${lookCategory === cat ? 'text-white shadow-lg' : 'text-white/30 hover:text-white'}`} style={{ backgroundColor: lookCategory === cat ? settings.accentColor : '' }}>{cat}</button>
-                              ))}
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto no-scrollbar pb-10">
-                              {lookPresets[lookCategory as keyof typeof lookPresets].map((p) => (
-                                <button key={p.name} onClick={() => applyTool((img) => imageService.applyFilter(img, p.f), p.name)} className="flex flex-col items-center gap-3 group bg-black/20 p-3 rounded-[2rem] border border-white/5 transition-all active:scale-95" style={{ '--hover-border': settings.accentColor } as any} onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
-                                  <div className="w-full aspect-square rounded-2xl border-2 border-white/5 overflow-hidden transition-all duration-500 group-hover:scale-105">
-                                    <img src={activeProject.url} className="w-full h-full object-cover" style={{filter: p.f}} />
-                                  </div>
-                                  <span className="text-[10px] font-black uppercase tracking-tighter text-white/40 group-hover:text-white transition-colors">{p.name}</span>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        {activeTool === ToolType.CROP && (
-                           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                             <div className="space-y-6">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 px-2">Numerical Inputs (px)</p>
-                                <div className="grid grid-cols-2 gap-4">
-                                    {[
-                                        { label: 'X', key: 'x' as const },
-                                        { label: 'Y', key: 'y' as const },
-                                        { label: 'Width', key: 'w' as const },
-                                        { label: 'Height', key: 'h' as const }
-                                    ].map(field => (
-                                        <div key={field.key} className="space-y-1">
-                                            <label className="text-[9px] font-black uppercase tracking-widest text-white/20 pl-2">{field.label}</label>
-                                            <input 
-                                                type="number" 
-                                                value={getCropDisplayValue(field.key)} 
-                                                onChange={(e) => handleManualCropChange(field.key, parseInt(e.target.value) || 0)}
-                                                className="w-full bg-black/40 border border-white/10 rounded-2xl py-3 px-4 text-sm font-bold focus:border-[#af52de] outline-none transition-colors tabular-nums text-white"
-                                            />
-                                        </div>
-                                    ))}
+                                ))}
+                                <div className="flex gap-4 pt-4">
+                                <button onClick={() => {setBrightness(100); setContrast(100); setSaturate(100);}} className="flex-1 py-4 rounded-3xl bg-white/5 font-bold uppercase text-[11px] tracking-widest transition-all hover:bg-white/10 active:scale-95">Reset</button>
+                                <button onClick={() => applyTool((img) => imageService.applyFilter(img, `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)`), 'Baking Grade')} className="flex-[2] py-4 rounded-3xl text-white font-bold uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Apply</button>
                                 </div>
-                             </div>
-                             <div className="space-y-4">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 px-2">Aspect Ratio Presets</p>
-                                <div className="grid grid-cols-3 gap-3">
-                                   {[
-                                     { label: 'Free', r: null },
-                                     { label: 'Square', r: 1 },
-                                     { label: '4:5', r: 0.8 },
-                                     { label: '9:16', r: 0.5625 },
-                                     { label: '3:4', r: 0.75 },
-                                     { label: '16:9', r: 1.777 }
-                                   ].map(ratio => (
-                                     <button 
-                                       key={ratio.label} 
-                                       className="py-4 bg-white/5 rounded-2xl text-[11px] font-black uppercase hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-white/5"
-                                       onClick={() => {
-                                          if (ratio.r) {
-                                            const imgRatio = activeProject.metadata.width / activeProject.metadata.height;
-                                            let w = 80;
-                                            let h = (80 / ratio.r) * imgRatio;
-                                            if (h > 90) {
-                                                h = 80;
-                                                w = (80 * ratio.r) / imgRatio;
-                                            }
-                                            setCropBox({ x: (100 - w) / 2, y: (100 - h) / 2, w, h });
-                                          }
-                                       }}
-                                     >
-                                       {ratio.label}
-                                     </button>
-                                   ))}
-                                </div>
-                             </div>
-                             <button onClick={() => applyTool((img) => imageService.cropImage(img, (cropBox.x/100)*img.width, (cropBox.y/100)*img.height, (cropBox.w/100)*img.width, (cropBox.h/100)*img.height), 'Studio Reframe')} className="w-full py-6 rounded-3xl bg-[#af52de] font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#af52de]/90">Apply Reframe</button>
-                           </div>
-                        )}
-                        {activeTool === ToolType.RESIZE && (
-                          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <div className="grid grid-cols-2 gap-6">
-                              <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Width</label>
-                                <input type="number" value={width} onChange={e => setWidth(e.target.value)} placeholder={activeProject.metadata.width.toString()} className="w-full bg-black/40 border border-white/10 rounded-3xl p-6 text-2xl font-black outline-none focus:border-[#007aff] transition-all tabular-nums text-white" style={{ borderColor: `${settings.accentColor}20` }} />
-                              </div>
-                              <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Height</label>
-                                <input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder={activeProject.metadata.height.toString()} className="w-full bg-black/40 border border-white/10 rounded-3xl p-6 text-2xl font-black outline-none focus:border-[#007aff] transition-all tabular-nums text-white" style={{ borderColor: `${settings.accentColor}20` }} />
-                              </div>
                             </div>
-                            <button onClick={() => applyTool((img) => imageService.resizeImage(img, parseInt(width) || img.width, parseInt(height) || img.height), 'Resampling')} className="w-full py-6 rounded-3xl text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Confirm Rescale</button>
-                          </div>
-                        )}
-                        {activeTool === ToolType.ROTATE && (
-                           <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                              <div className="space-y-6">
-                                 <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
-                                    <span>Precision Rotation</span>
-                                    <span className="text-white tabular-nums">{rotation}°</span>
-                                 </div>
-                                 <input type="range" min="-45" max="45" value={rotation} onChange={e => setRotation(parseInt(e.target.value))} className="w-full" />
-                                 <div className="flex gap-4">
-                                    <button onClick={() => applyTool(img => imageService.rotateImage(img, -90), 'Rotate Left')} className="flex-1 py-4 bg-white/5 rounded-2xl flex flex-col items-center gap-2 hover:bg-white/10 transition-all active:scale-90"><RotateIcon className="w-5 h-5 -scale-x-100" /><span className="text-[9px] font-black uppercase">-90°</span></button>
-                                    <button onClick={() => applyTool(img => imageService.rotateImage(img, 90), 'Rotate Right')} className="flex-1 py-4 bg-white/5 rounded-2xl flex flex-col items-center gap-2 hover:bg-white/10 transition-all active:scale-90"><RotateIcon className="w-5 h-5" /><span className="text-[9px] font-black uppercase">+90°</span></button>
-                                 </div>
-                              </div>
-                              <button onClick={() => applyTool(img => imageService.rotateImage(img, rotation), 'Fine Rotate')} className="w-full py-6 rounded-3xl text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Apply Rotation</button>
-                           </div>
-                        )}
-                        {activeTool === ToolType.MIRROR && (
-                           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                              <div className="grid grid-cols-2 gap-4">
-                                 <button onClick={() => applyTool(img => imageService.flipImage(img, 'horizontal'), 'Horizontal Flip')} className="py-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center gap-4 group transition-all active:scale-95" onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
-                                    <MirrorIcon className="w-8 h-8 group-hover:scale-110 transition-transform" style={{ color: settings.accentColor }} />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Horizontal</span>
-                                 </button>
-                                 <button onClick={() => applyTool(img => imageService.flipImage(img, 'vertical'), 'Vertical Flip')} className="py-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center gap-4 group transition-all active:scale-95" onMouseEnter={e => e.currentTarget.style.borderColor = '#af52de'} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
-                                    <MirrorIcon className="w-8 h-8 text-[#af52de] rotate-90 group-hover:scale-110 transition-transform" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Vertical</span>
-                                 </button>
-                              </div>
-                           </div>
-                        )}
-                        {activeTool === ToolType.COMPRESS && (
-                           <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                              <div className="space-y-4">
-                                 <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
-                                    <span>Quality Profile</span>
-                                    <span className="text-white tabular-nums">{Math.round(compressQuality*100)}%</span>
-                                 </div>
-                                 <input type="range" min="0.1" max="1.0" step="0.05" value={compressQuality} onChange={e => setCompressQuality(parseFloat(e.target.value))} className="w-full" />
-                              </div>
-                              <button onClick={() => applyTool(img => imageService.compressImage(img, compressQuality), 'Shrinking')} className="w-full py-6 rounded-3xl bg-[#34c759] text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#34c759]/90">Execute Compression</button>
-                           </div>
-                        )}
-                        {activeTool === ToolType.PIXELATE && (
-                           <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                              <div className="space-y-4">
-                                 <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
-                                    <span>Pixel Density</span>
-                                    <span className="text-white tabular-nums">{Math.round(pixelScale*100)}%</span>
-                                 </div>
-                                 <input type="range" min="0.01" max="0.5" step="0.01" value={pixelScale} onChange={e => setPixelScale(parseFloat(e.target.value))} className="w-full" />
-                              </div>
-                              <button onClick={() => applyTool(img => imageService.pixelateImage(img, pixelScale), 'Retro Engine')} className="w-full py-6 rounded-3xl bg-[#ff9500] text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#ff9500]/90">Apply Pixelation</button>
-                           </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="h-[400px] flex flex-col items-center justify-center text-center gap-6 animate-in fade-in duration-1000">
-                         <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center border border-white/5 group transition-all duration-500 hover:rotate-6">
-                            <SparklesIcon className="w-8 h-8 text-white/10 transition-colors" style={{ '--group-hover-color': settings.accentColor } as any} onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''} />
-                         </div>
-                         <div className="space-y-2">
-                           <h4 className="font-black uppercase tracking-[0.3em] text-[12px] text-white/40">Studio Session</h4>
-                           <p className="text-white/20 text-sm font-medium px-12">Select an engine from the toolbar below to start editing.</p>
-                         </div>
-                      </div>
-                    )}
-                  </div>
+                            )}
 
-                  <div className={`bg-[#1c1c1e] p-8 rounded-[4rem] border border-white/10 shadow-2xl flex items-center justify-between transition-all duration-500 ${activeTool ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none hidden lg:flex'}`}>
-                    <div>
-                       <h3 className="text-2xl font-black truncate max-w-[200px] mb-1">{activeProject.metadata.name}</h3>
-                       <div className="flex gap-2">
-                         <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 bg-white/5 rounded-full text-white/40 tabular-nums">{activeProject.metadata.width}×{activeProject.metadata.height}</span>
-                         <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full tabular-nums" style={{ color: settings.accentColor, backgroundColor: `${settings.accentColor}15` }}>{(activeProject.metadata.size / 1024 / 1024).toFixed(2)} MB</span>
-                       </div>
+                            {activeTool === ToolType.FILTER && (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex overflow-x-auto no-scrollbar gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner">
+                                {(['Modern', 'Studio', 'Vintage', 'Cinematic', 'Artistic', 'Glitch', 'Cartoon'] as const).map(cat => (
+                                    <button key={cat} onClick={() => setLookCategory(cat)} className={`flex-1 min-w-[80px] py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${lookCategory === cat ? 'text-white shadow-lg' : 'text-white/30 hover:text-white'}`} style={{ backgroundColor: lookCategory === cat ? settings.accentColor : '' }}>{cat}</button>
+                                ))}
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto no-scrollbar pb-10">
+                                {lookPresets[lookCategory as keyof typeof lookPresets].map((p) => (
+                                    <button key={p.name} onClick={() => applyTool((img) => imageService.applyFilter(img, p.f), p.name)} className="flex flex-col items-center gap-3 group bg-black/20 p-3 rounded-[2rem] border border-white/5 transition-all active:scale-95" onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
+                                    <div className="w-full aspect-square rounded-2xl border-2 border-white/5 overflow-hidden transition-all duration-500 group-hover:scale-105">
+                                        <img src={activeProject.url} className="w-full h-full object-cover" style={{filter: p.f}} />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-tighter text-white/40 group-hover:text-white transition-colors">{p.name}</span>
+                                    </button>
+                                ))}
+                                </div>
+                            </div>
+                            )}
+
+                            {activeTool === ToolType.CROP && (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="space-y-6">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 px-2">Numerical Inputs (px)</p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {[
+                                            { label: 'X', key: 'x' as const },
+                                            { label: 'Y', key: 'y' as const },
+                                            { label: 'Width', key: 'w' as const },
+                                            { label: 'Height', key: 'h' as const }
+                                        ].map(field => (
+                                            <div key={field.key} className="space-y-1">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-white/20 pl-2">{field.label}</label>
+                                                <input 
+                                                    type="number" 
+                                                    value={getCropDisplayValue(field.key)} 
+                                                    onChange={(e) => handleManualCropChange(field.key, parseInt(e.target.value) || 0)}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl py-3 px-4 text-sm font-bold focus:border-[#af52de] outline-none transition-colors tabular-nums text-white"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 px-2">Aspect Ratio Presets</p>
+                                    <div className="grid grid-cols-3 gap-3">
+                                    {[
+                                        { label: 'Free', r: null },
+                                        { label: 'Square', r: 1 },
+                                        { label: '4:5', r: 0.8 },
+                                        { label: '9:16', r: 0.5625 },
+                                        { label: '3:4', r: 0.75 },
+                                        { label: '16:9', r: 1.777 }
+                                    ].map(ratio => (
+                                        <button 
+                                        key={ratio.label} 
+                                        className="py-4 bg-white/5 rounded-2xl text-[11px] font-black uppercase hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-white/5"
+                                        onClick={() => {
+                                            if (ratio.r) {
+                                                const imgRatio = activeProject.metadata.width / activeProject.metadata.height;
+                                                let w = 80;
+                                                let h = (80 / ratio.r) * imgRatio;
+                                                if (h > 90) {
+                                                    h = 80;
+                                                    w = (80 * ratio.r) / imgRatio;
+                                                }
+                                                setCropBox({ x: (100 - w) / 2, y: (100 - h) / 2, w, h });
+                                            }
+                                        }}
+                                        >
+                                        {ratio.label}
+                                        </button>
+                                    ))}
+                                    </div>
+                                </div>
+                                <button onClick={() => applyTool((img) => imageService.cropImage(img, (cropBox.x/100)*img.width, (cropBox.y/100)*img.height, (cropBox.w/100)*img.width, (cropBox.h/100)*img.height), 'Studio Reframe')} className="w-full py-6 rounded-3xl bg-[#af52de] font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#af52de]/90">Apply Reframe</button>
+                            </div>
+                            )}
+
+                            {activeTool === ToolType.RESIZE && (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Width</label>
+                                    <input type="number" value={width} onChange={e => setWidth(e.target.value)} placeholder={activeProject.metadata.width.toString()} className="w-full bg-black/40 border border-white/10 rounded-3xl p-6 text-2xl font-black outline-none focus:border-[#007aff] transition-all tabular-nums text-white" style={{ borderColor: `${settings.accentColor}20` }} />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Height</label>
+                                    <input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder={activeProject.metadata.height.toString()} className="w-full bg-black/40 border border-white/10 rounded-3xl p-6 text-2xl font-black outline-none focus:border-[#007aff] transition-all tabular-nums text-white" style={{ borderColor: `${settings.accentColor}20` }} />
+                                </div>
+                                </div>
+                                <button onClick={() => applyTool((img) => imageService.resizeImage(img, parseInt(width) || img.width, parseInt(height) || img.height), 'Resampling')} className="w-full py-6 rounded-3xl text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Confirm Rescale</button>
+                            </div>
+                            )}
+
+                            {activeTool === ToolType.ROTATE && (
+                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="space-y-6">
+                                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
+                                        <span>Precision Rotation</span>
+                                        <span className="text-white tabular-nums">{rotation}°</span>
+                                    </div>
+                                    <input type="range" min="-45" max="45" value={rotation} onChange={e => setRotation(parseInt(e.target.value))} className="w-full" />
+                                    <div className="flex gap-4">
+                                        <button onClick={() => applyTool(img => imageService.rotateImage(img, -90), 'Rotate Left')} className="flex-1 py-4 bg-white/5 rounded-2xl flex flex-col items-center gap-2 hover:bg-white/10 transition-all active:scale-90"><RotateIcon className="w-5 h-5 -scale-x-100" /><span className="text-[9px] font-black uppercase">-90°</span></button>
+                                        <button onClick={() => applyTool(img => imageService.rotateImage(img, 90), 'Rotate Right')} className="flex-1 py-4 bg-white/5 rounded-2xl flex flex-col items-center gap-2 hover:bg-white/10 transition-all active:scale-90"><RotateIcon className="w-5 h-5" /><span className="text-[9px] font-black uppercase">+90°</span></button>
+                                    </div>
+                                </div>
+                                <button onClick={() => applyTool(img => imageService.rotateImage(img, rotation), 'Fine Rotate')} className="w-full py-6 rounded-3xl text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Apply Rotation</button>
+                            </div>
+                            )}
+
+                            {activeTool === ToolType.MIRROR && (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button onClick={() => applyTool(img => imageService.flipImage(img, 'horizontal'), 'Horizontal Flip')} className="py-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center gap-4 group transition-all active:scale-95" onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
+                                        <MirrorIcon className="w-8 h-8 group-hover:scale-110 transition-transform" style={{ color: settings.accentColor }} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Horizontal</span>
+                                    </button>
+                                    <button onClick={() => applyTool(img => imageService.flipImage(img, 'vertical'), 'Vertical Flip')} className="py-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center gap-4 group transition-all active:scale-95" onMouseEnter={e => e.currentTarget.style.borderColor = '#af52de'} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
+                                        <MirrorIcon className="w-8 h-8 text-[#af52de] rotate-90 group-hover:scale-110 transition-transform" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Vertical</span>
+                                    </button>
+                                </div>
+                            </div>
+                            )}
+
+                            {activeTool === ToolType.COMPRESS && (
+                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="space-y-4">
+                                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
+                                        <span>Quality Profile</span>
+                                        <span className="text-white tabular-nums">{Math.round(compressQuality*100)}%</span>
+                                    </div>
+                                    <input type="range" min="0.1" max="1.0" step="0.05" value={compressQuality} onChange={e => setCompressQuality(parseFloat(e.target.value))} className="w-full" />
+                                </div>
+                                <button onClick={() => applyTool(img => imageService.compressImage(img, compressQuality), 'Shrinking')} className="w-full py-6 rounded-3xl bg-[#34c759] text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#34c759]/90">Execute Compression</button>
+                            </div>
+                            )}
+
+                            {activeTool === ToolType.PIXELATE && (
+                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="space-y-4">
+                                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
+                                        <span>Pixel Density</span>
+                                        <span className="text-white tabular-nums">{Math.round(pixelScale*100)}%</span>
+                                    </div>
+                                    <input type="range" min="0.01" max="0.5" step="0.01" value={pixelScale} onChange={e => setPixelScale(parseFloat(e.target.value))} className="w-full" />
+                                </div>
+                                <button onClick={() => applyTool(img => imageService.pixelateImage(img, pixelScale), 'Retro Engine')} className="w-full py-6 rounded-3xl bg-[#ff9500] text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#ff9500]/90">Apply Pixelation</button>
+                            </div>
+                            )}
+                        </div>
+                        ) : (
+                        <div className="h-[400px] flex flex-col items-center justify-center text-center gap-6 animate-in fade-in duration-1000">
+                            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center border border-white/5 group transition-all duration-500 hover:rotate-6">
+                                <SparklesIcon className="w-8 h-8 text-white/10 transition-colors" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''} />
+                            </div>
+                            <div className="space-y-2">
+                            <h4 className="font-black uppercase tracking-[0.3em] text-[12px] text-white/40">Studio Session</h4>
+                            <p className="text-white/20 text-sm font-medium px-12">Select an engine from the toolbar below to start editing.</p>
+                            </div>
+                        </div>
+                        )}
                     </div>
-                    <a href={activeProject.url} download={`imagerize_${activeProject.metadata.name}`} className="bg-white text-black px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all font-bold" onMouseEnter={e => {e.currentTarget.style.backgroundColor = settings.accentColor; e.currentTarget.style.color = 'white'}} onMouseLeave={e => {e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = 'black'}}>Export</a>
-                  </div>
+
+                    <div className={`bg-[#1c1c1e] p-8 rounded-[4rem] border border-white/10 shadow-2xl flex items-center justify-between transition-all duration-500 ${activeTool ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none hidden lg:flex'}`}>
+                        <div>
+                        <h3 className="text-2xl font-black truncate max-w-[200px] mb-1">{activeProject.metadata.name}</h3>
+                        <div className="flex gap-2">
+                            <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 bg-white/5 rounded-full text-white/40 tabular-nums">{activeProject.metadata.width}×{activeProject.metadata.height}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full tabular-nums" style={{ color: settings.accentColor, backgroundColor: `${settings.accentColor}15` }}>{(activeProject.metadata.size / 1024 / 1024).toFixed(2)} MB</span>
+                        </div>
+                        </div>
+                        <a href={activeProject.url} download={`imagerize_${activeProject.metadata.name}`} className="bg-white text-black px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all font-bold" onMouseEnter={e => {e.currentTarget.style.backgroundColor = settings.accentColor; e.currentTarget.style.color = 'white'}} onMouseLeave={e => {e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = 'black'}}>Export</a>
+                    </div>
                 </div>
-              </>
-            )}
-          </div>
+            </div>
         )}
       </main>
 
@@ -1285,10 +1300,10 @@ export default function App() {
                 <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Lead Programmer</p>
                 <button onClick={() => setView('settings')} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><SettingsIcon className="w-4 h-4 text-white/40" /></button>
              </div>
-             <a href={settings.programmerUrl} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 hover:scale-105 transition-all bg-white/5 p-4 rounded-3xl border border-white/10" style={{ '--hover-border': settings.accentColor } as any} onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
+             <a href={settings.programmerUrl} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 hover:scale-105 transition-all bg-white/5 p-4 rounded-3xl border border-white/10" onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
                 <div className="text-right">
                    <span className="block text-2xl font-black tracking-tighter text-white">{settings.programmerName}</span>
-                   <span className="block text-[10px] font-black uppercase tracking-[0.1em] text-white/30">Founder & Studio Head</span>
+                   <span className="block text-[10px] font-black uppercase tracking-[0.1em] text-white/30">{settings.programmerRole}</span>
                 </div>
                 <div className="w-14 h-14 rounded-2xl border border-white/20 overflow-hidden shadow-2xl transition-transform group-hover:rotate-6"><img src={settings.programmerImage} className="w-full h-full object-cover" alt={settings.programmerName} /></div>
              </a>
@@ -1298,7 +1313,7 @@ export default function App() {
             <span className="cursor-pointer transition-all hover:text-white" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''}>Privacy</span>
             <span className="cursor-pointer transition-all hover:text-white" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''}>Security</span>
             <span className="cursor-pointer transition-all hover:text-white" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''}>Cookies</span>
-            <span className="cursor-pointer transition-all hover:text-white" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''}>Contact</span>
+            <a href={`mailto:${settings.contactEmail}`} className="cursor-pointer transition-all hover:text-white" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''}>Contact</a>
           </div>
         </div>
       </footer>

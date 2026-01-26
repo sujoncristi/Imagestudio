@@ -39,11 +39,18 @@ export interface ProjectImage {
 
 export interface SiteSettings {
   title: string;
+  heroHeadline: string;
+  heroSubheadline: string;
+  heroDescription: string;
   programmerName: string;
+  programmerRole: string;
   programmerUrl: string;
   programmerImage: string;
   footerCopyright: string;
   accentColor: string;
+  passcode: string;
+  contactEmail: string;
+  showNeuralTools: boolean;
 }
 
 export type ViewType = 'home' | 'editor' | 'enhance' | 'crop' | 'format' | 'settings';
