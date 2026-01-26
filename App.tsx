@@ -7,13 +7,13 @@ import {
   XIcon, DownloadIcon, UndoIcon, RedoIcon, SparklesIcon, 
   ZoomInIcon, ZoomOutIcon, InfoIcon, 
   EyeIcon, ResetIcon, RotateIcon, FilterIcon,
-  ResizeIcon, CropIcon, AdjustmentsIcon, UploadIcon, MirrorIcon, PixelIcon, CompressIcon, MagicWandIcon
+  ResizeIcon, CropIcon, AdjustmentsIcon, UploadIcon, MirrorIcon, PixelIcon, CompressIcon, MagicWandIcon,
+  GripVerticalIcon
 } from './components/Icons.tsx';
 import * as imageService from './services/imageService.ts';
 
 type ViewType = 'home' | 'editor' | 'enhance' | 'crop';
 
-// Look presets definition to fix the missing name error
 const lookPresets = {
   Modern: [
     { name: 'Vivid', f: 'saturate(1.4) contrast(1.1) brightness(1.05)' },
@@ -60,33 +60,44 @@ const HeroVisual = () => {
     return () => clearInterval(timer);
   }, []);
   
-  const getStyle = () => {
-    switch(step) {
-      case 1: return { filter: 'brightness(1.1) saturate(1.4) contrast(1.1)', transform: 'scale(1.02)' };
-      case 2: return { filter: 'grayscale(100%) contrast(1.25)', transform: 'scale(1.05) rotate(1deg)' };
-      case 3: return { filter: 'sepia(0.2) contrast(1.1) brightness(1.05)', transform: 'scale(1) rotate(-1deg)' };
-      default: return { filter: 'none', transform: 'scale(1)' };
+  const getStyle = (s: number) => {
+    const isMain = s === step;
+    switch(s) {
+      case 1: return { filter: 'brightness(1.1) saturate(1.4) contrast(1.1)', opacity: isMain ? 1 : 0 };
+      case 2: return { filter: 'grayscale(100%) contrast(1.25)', opacity: isMain ? 1 : 0 };
+      case 3: return { filter: 'sepia(0.2) contrast(1.1) brightness(1.05)', opacity: isMain ? 1 : 0 };
+      default: return { filter: 'none', opacity: isMain ? 1 : 0 };
     }
   };
 
-  const labels = ["Raw Capture", "Studio Vivid", "Noir Mono", "Film Classic"];
+  const labels = ["RAW CAPTURE", "STUDIO VIVID", "NOIR MONO", "FILM CLASSIC"];
 
   return (
-    <div className="relative w-full max-w-xl mx-auto aspect-square mb-16 px-4 group">
-      <div className="absolute inset-0 bg-gradient-to-tr from-[#007aff]/30 via-[#5856d6]/20 to-[#af52de]/30 blur-[100px] rounded-full animate-pulse opacity-60"></div>
-      <div className="relative h-full w-full bg-[#1c1c1e] rounded-[4rem] p-5 border border-white/10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-hidden flex items-center justify-center">
-        <div className="absolute top-10 left-0 right-0 flex justify-center z-10">
-          <div className="bg-black/40 ios-blur px-8 py-2.5 rounded-full border border-white/10 text-[11px] font-black uppercase tracking-[0.4em] text-[#007aff] shadow-xl transition-all duration-700">
+    <div className="relative w-full max-w-2xl mx-auto aspect-video mb-12 px-4 group">
+      {/* Background Glow */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-[#007aff]/20 via-[#5856d6]/10 to-[#af52de]/20 blur-[120px] rounded-full animate-pulse opacity-60"></div>
+      
+      {/* Main Preview Container */}
+      <div className="relative h-full w-full bg-[#1c1c1e] rounded-[3rem] p-4 border border-white/10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] overflow-hidden flex items-center justify-center">
+        <div className="absolute top-8 left-0 right-0 flex justify-center z-20">
+          <div className="bg-black/60 ios-blur px-6 py-2 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-[0.3em] text-[#007aff] shadow-2xl transition-all duration-700">
             {labels[step]}
           </div>
         </div>
-        <img 
-          src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop" 
-          className="w-full h-full object-cover rounded-[3.2rem] transition-all duration-[2000ms] cubic-bezier(0.4, 0, 0.2, 1)" 
-          style={getStyle()} 
-        />
-        <div className="absolute bottom-12 left-12 w-14 h-14 bg-white/10 ios-blur rounded-2xl border border-white/10 flex items-center justify-center shadow-2xl animate-float"><AdjustmentsIcon className="text-[#007aff] w-7 h-7" /></div>
-        <div className="absolute top-24 right-12 w-12 h-12 bg-white/10 ios-blur rounded-xl border border-white/10 flex items-center justify-center shadow-2xl animate-float" style={{animationDelay: '1.5s'}}><CropIcon className="text-[#af52de] w-6 h-6" /></div>
+
+        {/* Layered Images */}
+        {[0, 1, 2, 3].map((s) => (
+           <img 
+            key={s}
+            src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop" 
+            className="absolute inset-4 w-[calc(100%-2rem)] h-[calc(100%-2rem)] object-cover rounded-[2.2rem] transition-all duration-1000 ease-in-out" 
+            style={getStyle(s)} 
+          />
+        ))}
+        
+        {/* Decorative Floating UI Elements */}
+        <div className="absolute bottom-10 left-10 w-12 h-12 bg-white/10 ios-blur rounded-2xl border border-white/10 flex items-center justify-center shadow-2xl animate-float"><AdjustmentsIcon className="text-[#007aff] w-6 h-6" /></div>
+        <div className="absolute top-16 right-10 w-10 h-10 bg-white/10 ios-blur rounded-xl border border-white/10 flex items-center justify-center shadow-2xl animate-float" style={{animationDelay: '1.5s'}}><CropIcon className="text-[#af52de] w-5 h-5" /></div>
       </div>
     </div>
   );
@@ -112,10 +123,15 @@ export default function App() {
   const [draggedThumbnailIndex, setDraggedThumbnailIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   
+  // Crop specific State
+  const [cropBox, setCropBox] = useState({ x: 10, y: 10, w: 80, h: 80 });
+  const [activeCropHandle, setActiveCropHandle] = useState<string | null>(null);
+  const cropStartPos = useRef({ x: 0, y: 0 });
+  const initialCropBox = useRef({ x: 0, y: 0, w: 0, h: 0 });
+
   // Tool specific State
   const [width, setWidth] = useState<string>('');
   const [height, setHeight] = useState<string>('');
-  const [cropBox, setCropBox] = useState({ x: 10, y: 10, w: 80, h: 80 });
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
   const [saturate, setSaturate] = useState(100);
@@ -264,6 +280,8 @@ export default function App() {
   };
 
   const handleImageMouseDown = (e: React.MouseEvent) => {
+    // Only allow panning if we're not using the crop tool
+    if (activeTool === ToolType.CROP) return;
     e.preventDefault();
     setIsPanning(true);
     dragStartPos.current = { x: e.clientX, y: e.clientY };
@@ -273,20 +291,55 @@ export default function App() {
   useEffect(() => {
     const handleGlobalMouseUp = () => {
       setIsPanning(false);
+      setActiveCropHandle(null);
     };
     
     const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (!isPanning) return;
-      
-      const dx = e.clientX - dragStartPos.current.x;
-      const dy = e.clientY - dragStartPos.current.y;
-      
-      window.requestAnimationFrame(() => {
-        setPanOffset({ 
-          x: panStartOffset.current.x + dx, 
-          y: panStartOffset.current.y + dy 
+      if (isPanning) {
+        const dx = e.clientX - dragStartPos.current.x;
+        const dy = e.clientY - dragStartPos.current.y;
+        
+        window.requestAnimationFrame(() => {
+          setPanOffset({ 
+            x: panStartOffset.current.x + dx, 
+            y: panStartOffset.current.y + dy 
+          });
         });
-      });
+      } else if (activeCropHandle && imageRef.current) {
+        const rect = imageRef.current.getBoundingClientRect();
+        const mouseX = ((e.clientX - rect.left) / rect.width) * 100;
+        const mouseY = ((e.clientY - rect.top) / rect.height) * 100;
+        
+        const dx = mouseX - cropStartPos.current.x;
+        const dy = mouseY - cropStartPos.current.y;
+        
+        window.requestAnimationFrame(() => {
+          let { x, y, w, h } = initialCropBox.current;
+          
+          if (activeCropHandle === 'move') {
+            x = Math.max(0, Math.min(100 - w, x + dx));
+            y = Math.max(0, Math.min(100 - h, y + dy));
+          } else {
+            if (activeCropHandle.includes('top')) {
+              const newY = Math.max(0, Math.min(y + h - 5, y + dy));
+              h = h + (y - newY);
+              y = newY;
+            }
+            if (activeCropHandle.includes('bottom')) {
+              h = Math.max(5, Math.min(100 - y, h + dy));
+            }
+            if (activeCropHandle.includes('left')) {
+              const newX = Math.max(0, Math.min(x + w - 5, x + dx));
+              w = w + (x - newX);
+              x = newX;
+            }
+            if (activeCropHandle.includes('right')) {
+              w = Math.max(5, Math.min(100 - x, w + dx));
+            }
+          }
+          setCropBox({ x, y, w, h });
+        });
+      }
     };
     
     window.addEventListener('mouseup', handleGlobalMouseUp);
@@ -295,7 +348,7 @@ export default function App() {
       window.removeEventListener('mouseup', handleGlobalMouseUp);
       window.removeEventListener('mousemove', handleGlobalMouseMove);
     };
-  }, [isPanning]);
+  }, [isPanning, activeCropHandle]);
 
   const adjustZoom = (delta: number) => {
     setZoom(prev => {
@@ -311,11 +364,18 @@ export default function App() {
     setDraggedThumbnailIndex(index);
     e.dataTransfer.setData('thumbnailIndex', index.toString());
     e.dataTransfer.effectAllowed = 'move';
+    
+    // Create a custom drag ghost image
+    const ghost = new Image();
+    ghost.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; 
+    e.dataTransfer.setDragImage(ghost, 0, 0);
   };
 
   const handleThumbnailDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
-    setDragOverIndex(index);
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
   };
 
   const handleThumbnailDrop = (e: React.DragEvent, dropIndex: number) => {
@@ -343,6 +403,40 @@ export default function App() {
     setDragOverIndex(null);
   };
 
+  const handleCropHandleMouseDown = (e: React.MouseEvent, handle: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!imageRef.current) return;
+    
+    const rect = imageRef.current.getBoundingClientRect();
+    const mouseX = ((e.clientX - rect.left) / rect.width) * 100;
+    const mouseY = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    setActiveCropHandle(handle);
+    cropStartPos.current = { x: mouseX, y: mouseY };
+    initialCropBox.current = { ...cropBox };
+  };
+
+  const handleManualCropChange = (key: keyof typeof cropBox, value: number) => {
+    if (!activeProject) return;
+    let newValue = value;
+    if (key === 'x' || key === 'w') {
+        newValue = (value / activeProject.metadata.width) * 100;
+    } else {
+        newValue = (value / activeProject.metadata.height) * 100;
+    }
+    setCropBox(prev => ({ ...prev, [key]: Math.max(0, Math.min(100, newValue)) }));
+  };
+
+  const getCropDisplayValue = (key: keyof typeof cropBox) => {
+    if (!activeProject) return 0;
+    if (key === 'x' || key === 'w') {
+        return Math.round((cropBox[key] / 100) * activeProject.metadata.width);
+    } else {
+        return Math.round((cropBox[key] / 100) * activeProject.metadata.height);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col font-sans selection:bg-[#007aff]/30 overflow-x-hidden">
       {/* PROCESSING OVERLAY */}
@@ -362,26 +456,26 @@ export default function App() {
       )}
 
       {/* HEADER */}
-      <header className="sticky top-0 z-40 bg-black/60 ios-blur border-b border-white/5 px-6 md:px-12 py-6 flex items-center justify-between transition-all duration-500">
-        <div className="flex items-center gap-5 cursor-pointer hover:opacity-80 transition-all active:scale-95" onClick={() => {setView('home'); setActiveTool(null);}}>
-          <div className="w-12 h-12 bg-gradient-to-br from-[#007aff] to-[#5856d6] rounded-2xl flex items-center justify-center shadow-2xl shadow-[#007aff]/30">
-            <SparklesIcon className="text-white w-7 h-7" />
+      <header className="sticky top-0 z-40 bg-black/60 ios-blur border-b border-white/5 px-6 md:px-12 py-5 flex items-center justify-between transition-all duration-500">
+        <div className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-all active:scale-95" onClick={() => {setView('home'); setActiveTool(null);}}>
+          <div className="w-11 h-11 bg-gradient-to-br from-[#007aff] to-[#5856d6] rounded-xl flex items-center justify-center shadow-xl shadow-[#007aff]/20">
+            <SparklesIcon className="text-white w-6 h-6" />
           </div>
-          <h1 className="text-3xl font-black tracking-tighter hidden sm:block">Imagerize</h1>
+          <h1 className="text-2xl font-black tracking-tighter hidden sm:block">Imagerize</h1>
         </div>
         
         {view !== 'home' && (
-          <div className="flex items-center gap-2 md:gap-4 spring-in">
+          <div className="flex items-center gap-3 md:gap-4 spring-in">
             {view === 'editor' && activeProject && (
               <div className="flex items-center bg-white/5 rounded-full p-1 border border-white/10 shadow-inner">
-                <button onMouseDown={() => setIsComparing(true)} onMouseUp={() => setIsComparing(false)} onMouseLeave={() => setIsComparing(false)} className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-white/10 text-white/60 transition-all active:scale-90"><EyeIcon className="w-5 h-5" /></button>
-                <button onClick={() => { setZoom(1); setPanOffset({x:0, y:0}); }} className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-white/10 text-white/60 transition-all active:scale-90"><ResetIcon className="w-5 h-5" /></button>
+                <button onMouseDown={() => setIsComparing(true)} onMouseUp={() => setIsComparing(false)} onMouseLeave={() => setIsComparing(false)} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 text-white/60 transition-all active:scale-90"><EyeIcon className="w-5 h-5" /></button>
+                <button onClick={() => { setZoom(1); setPanOffset({x:0, y:0}); }} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 text-white/60 transition-all active:scale-90"><ResetIcon className="w-5 h-5" /></button>
                 <div className="w-px h-6 bg-white/10 mx-1" />
-                <button onClick={undo} disabled={activeProject.historyIndex <= 0} className="w-11 h-11 rounded-full text-[#007aff] disabled:opacity-10 hover:bg-white/5 transition-all active:scale-90"><UndoIcon className="w-5 h-5" /></button>
-                <button onClick={redo} disabled={activeProject.historyIndex >= activeProject.history.length - 1} className="w-11 h-11 rounded-full text-[#007aff] disabled:opacity-10 hover:bg-white/5 transition-all active:scale-90"><RedoIcon className="w-5 h-5" /></button>
+                <button onClick={undo} disabled={activeProject.historyIndex <= 0} className="w-10 h-10 rounded-full text-[#007aff] disabled:opacity-10 hover:bg-white/5 transition-all active:scale-90"><UndoIcon className="w-5 h-5" /></button>
+                <button onClick={redo} disabled={activeProject.historyIndex >= activeProject.history.length - 1} className="w-10 h-10 rounded-full text-[#007aff] disabled:opacity-10 hover:bg-white/5 transition-all active:scale-90"><RedoIcon className="w-5 h-5" /></button>
               </div>
             )}
-            <button onClick={() => setView('home')} className="bg-white text-black px-6 py-2.5 rounded-full text-[13px] font-bold active:scale-95 transition-all hover:bg-white/90">Home</button>
+            <button onClick={() => setView('home')} className="bg-white text-black px-5 py-2 rounded-full text-[13px] font-bold active:scale-95 transition-all hover:bg-white/90">Studio</button>
           </div>
         )}
       </header>
@@ -390,60 +484,107 @@ export default function App() {
         
         {/* HOME VIEW */}
         {view === 'home' && (
-          <div className="py-12 flex flex-col items-center animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="py-8 flex flex-col items-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
             <HeroVisual />
+            
             <div className="text-center space-y-6 mb-16 px-4">
-              <h2 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] max-w-4xl mx-auto">
-                Studio Quality. <br/>
-                <span className="bg-gradient-to-r from-[#007aff] via-[#af52de] to-[#ff2d55] bg-clip-text text-transparent">Simply Crafted.</span>
+              <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9] max-w-4xl mx-auto">
+                Studio Mastery. <br/>
+                <span className="bg-gradient-to-r from-[#007aff] via-[#af52de] to-[#ff2d55] bg-clip-text text-transparent">Pixel Perfect.</span>
               </h2>
-              <p className="text-[#8e8e93] text-xl md:text-2xl font-medium max-w-2xl mx-auto leading-relaxed">
-                Professional image mastering suite designed for absolute control.
+              <p className="text-[#8e8e93] text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
+                The definitive high-end suite for precise image grading, re-composition, and neural enhancement.
               </p>
             </div>
 
-            <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-8 px-4 mb-20">
-              {/* STUDIO EDITOR CARD */}
+            {/* RECENT WORK STRIP */}
+            {projects.length > 0 && (
+              <div className="w-full max-w-5xl mb-16 animate-in slide-in-from-right-8 duration-700">
+                <div className="flex items-center justify-between mb-6 px-4">
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Resume Session</h4>
+                  <button onClick={() => setProjects([])} className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ff3b30]">Clear All</button>
+                </div>
+                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 px-4">
+                  {projects.map((proj, idx) => (
+                    <div 
+                      key={proj.id} 
+                      onClick={() => { setActiveIndex(idx); setView('editor'); }}
+                      className="relative w-32 h-32 md:w-40 md:h-40 bg-[#1c1c1e] rounded-[2rem] border border-white/5 overflow-hidden flex-shrink-0 cursor-pointer group hover:scale-105 transition-all duration-500"
+                    >
+                      <img src={proj.url} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                      <div className="absolute bottom-4 left-4 right-4 truncate text-[9px] font-bold uppercase tracking-widest text-white/80">{proj.metadata.name}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* BENTO GRID MENU */}
+            <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-12 gap-6 px-4 mb-20">
+              {/* STUDIO EDITOR - LARGE */}
               <div 
-                className="group relative p-12 bg-[#1c1c1e] rounded-[4rem] border border-white/5 shadow-2xl cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex flex-col items-center text-center overflow-hidden"
+                className="col-span-1 md:col-span-8 group relative p-12 bg-[#1c1c1e] rounded-[3.5rem] border border-white/5 shadow-2xl cursor-pointer hover:scale-[1.01] active:scale-[0.98] transition-all duration-500 flex flex-col justify-end overflow-hidden min-h-[400px]"
                 onClick={() => setView('editor')}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="w-20 h-20 bg-[#1c1c1e] border border-white/10 rounded-3xl flex items-center justify-center mb-8 shadow-xl group-hover:bg-[#007aff] group-hover:rotate-3 transition-all">
-                  <AdjustmentsIcon className="w-10 h-10 text-white" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#007aff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="absolute top-12 left-12 w-16 h-16 bg-[#007aff] rounded-2xl flex items-center justify-center shadow-2xl group-hover:rotate-3 transition-transform">
+                  <AdjustmentsIcon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-3xl font-black mb-3">Studio Editor</h3>
-                <p className="text-white/40 font-bold mb-8 leading-snug">Full manual control over every pixel with high-end grading tools.</p>
-                <div className="bg-white/5 text-white/60 border border-white/10 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] group-hover:bg-white group-hover:text-black transition-all">Open Suite</div>
+                <div>
+                  <h3 className="text-4xl font-black mb-2">Studio Editor</h3>
+                  <p className="text-white/40 font-bold mb-8 leading-snug max-w-sm">A full manual workflow for grading, pixel-manipulation, and batch processing.</p>
+                  <div className="inline-flex bg-white/5 text-white/60 border border-white/10 px-8 py-3.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] group-hover:bg-white group-hover:text-black transition-all">Launch Workspace</div>
+                </div>
               </div>
 
-              {/* IMAGE CROP CARD */}
+              {/* IMAGE CROP - VERTICAL */}
               <div 
-                className="group relative p-12 bg-gradient-to-br from-[#af52de]/20 to-[#ff2d55]/20 rounded-[4rem] border border-white/10 shadow-2xl cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex flex-col items-center text-center overflow-hidden"
+                className="col-span-1 md:col-span-4 group relative p-10 bg-gradient-to-br from-[#af52de]/20 to-[#ff2d55]/20 rounded-[3.5rem] border border-white/10 shadow-2xl cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex flex-col items-center text-center overflow-hidden min-h-[400px]"
                 onClick={() => setView('crop')}
               >
-                <div className="absolute inset-0 bg-white/[0.05] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-8 shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all">
-                  <CropIcon className="w-10 h-10 text-[#af52de]" />
+                <div className="absolute inset-0 bg-white/[0.03] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-auto shadow-2xl group-hover:scale-110 transition-transform">
+                  <CropIcon className="w-7 h-7 text-[#af52de]" />
                 </div>
-                <h3 className="text-3xl font-black mb-3">Image Crop</h3>
-                <p className="text-white/40 font-bold mb-8 leading-snug">Precision reframing with smart aspect ratio presets for social media.</p>
-                <div className="bg-[#af52de] text-white px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-xl group-hover:bg-white group-hover:text-[#af52de] transition-all">Start Crop</div>
+                <div className="mt-auto">
+                  <h3 className="text-3xl font-black mb-3">Smart Crop</h3>
+                  <p className="text-white/40 font-bold mb-8 leading-snug text-sm">Precision re-composition for social presets.</p>
+                  <div className="bg-[#af52de] text-white px-8 py-3.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl group-hover:bg-white group-hover:text-[#af52de] transition-all">Start Task</div>
+                </div>
               </div>
 
-              {/* AUTO ENHANCE CARD */}
+              {/* AUTO ENHANCE - WIDE */}
               <div 
-                className="group relative p-12 bg-gradient-to-br from-[#007aff]/20 to-[#af52de]/20 rounded-[4rem] border border-white/10 shadow-2xl cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 flex flex-col items-center text-center overflow-hidden"
+                className="col-span-1 md:col-span-12 group relative p-10 bg-[#1c1c1e] rounded-[3.5rem] border border-white/5 shadow-2xl cursor-pointer hover:scale-[1.005] active:scale-[0.99] transition-all duration-500 flex flex-col md:flex-row items-center justify-between overflow-hidden"
                 onClick={() => setView('enhance')}
               >
-                <div className="absolute inset-0 bg-white/[0.05] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-8 shadow-2xl group-hover:scale-110 group-hover:-rotate-3 transition-all">
-                  <MagicWandIcon className="w-10 h-10 text-[#007aff]" />
+                <div className="flex items-center gap-8">
+                  <div className="w-14 h-14 bg-[#34c759] rounded-2xl flex items-center justify-center shadow-2xl group-hover:rotate-6 transition-transform">
+                    <MagicWandIcon className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="text-center md:text-left">
+                    <h3 className="text-3xl font-black mb-1">Intelligent Mastering</h3>
+                    <p className="text-white/40 font-bold leading-snug text-sm">One-tap neural balancing of tones and highlights.</p>
+                  </div>
                 </div>
-                <h3 className="text-3xl font-black mb-3">Auto Enhance</h3>
-                <p className="text-white/40 font-bold mb-8 leading-snug">Single-tap mastering using intelligent histogram balancing.</p>
-                <div className="bg-[#007aff] text-white px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-xl group-hover:bg-white group-hover:text-[#007aff] transition-all">Magic Polish</div>
+                <div className="mt-6 md:mt-0 bg-[#34c759] text-white px-10 py-4 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl group-hover:scale-105 transition-all">Analyze Photo</div>
               </div>
+            </div>
+
+            {/* TECHNICAL SPECS OVERVIEW */}
+            <div className="w-full max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-4 px-4 pb-20 opacity-30">
+               {[
+                 { t: 'CHROMA', d: 'Engine v2.1' },
+                 { t: 'NEURAL', d: 'ML-inference' },
+                 { t: 'PRECISION', d: '32-bit Float' },
+                 { t: 'LATENCY', d: '< 10ms' }
+               ].map(s => (
+                 <div key={s.t} className="text-center border-r border-white/10 last:border-0 py-4">
+                    <div className="text-[10px] font-black tracking-[0.3em] mb-1">{s.t}</div>
+                    <div className="text-[10px] font-medium text-white/60">{s.d}</div>
+                 </div>
+               ))}
             </div>
           </div>
         )}
@@ -452,38 +593,25 @@ export default function App() {
         {view === 'enhance' && (
           <div className="py-20 flex flex-col items-center gap-12 animate-in fade-in slide-in-from-bottom-12 duration-700 max-w-3xl mx-auto">
             <div className="text-center space-y-4">
-              <div className="w-24 h-24 bg-[#007aff] rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-[0_20px_60px_rgba(0,122,255,0.4)] animate-pulse active:scale-95 transition-transform">
+              <div className="w-24 h-24 bg-[#34c759] rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-[0_20px_60px_rgba(52,199,89,0.4)] animate-pulse active:scale-95 transition-transform">
                 <MagicWandIcon className="w-12 h-12 text-white" />
               </div>
               <h2 className="text-5xl font-black tracking-tight">Intelligent Mastering</h2>
               <p className="text-white/40 text-xl font-medium">Upload a photo to automatically fix exposure, contrast, and color vibrance.</p>
             </div>
 
-            <div className="w-full bg-[#1c1c1e] p-12 rounded-[4rem] border border-white/10 shadow-3xl text-center group cursor-pointer relative overflow-hidden transition-all hover:border-[#007aff]/50 active:scale-[0.99]">
+            <div className="w-full bg-[#1c1c1e] p-12 rounded-[4rem] border border-white/10 shadow-3xl text-center group cursor-pointer relative overflow-hidden transition-all hover:border-[#34c759]/50 active:scale-[0.99]">
                <input type="file" className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={(e) => handleAutoEnhance(Array.from(e.target.files || []))} accept="image/*" />
                <div className="flex flex-col items-center gap-8 py-10">
-                  <div className="w-20 h-20 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center group-hover:border-[#007aff] group-hover:rotate-12 transition-all">
-                    <UploadIcon className="w-8 h-8 opacity-40 group-hover:opacity-100 text-[#007aff]" />
+                  <div className="w-20 h-20 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center group-hover:border-[#34c759] group-hover:rotate-12 transition-all">
+                    <UploadIcon className="w-8 h-8 opacity-40 group-hover:opacity-100 text-[#34c759]" />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-2xl font-black group-hover:text-[#007aff] transition-colors">Drop photo to enhance</p>
+                    <p className="text-2xl font-black group-hover:text-[#34c759] transition-colors">Drop photo to enhance</p>
                     <p className="text-white/20 font-bold uppercase tracking-widest text-sm">Instant studio mastering</p>
                   </div>
-                  <button className="bg-white/5 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-white/10 group-hover:bg-[#007aff] group-hover:text-white transition-all">Select Image</button>
+                  <button className="bg-white/5 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-white/10 group-hover:bg-[#34c759] group-hover:text-white transition-all">Select Image</button>
                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-20">
-               {[
-                 { t: 'Luminance', d: 'Perfects shadow recovery and highlights.' },
-                 { t: 'Vibrance', d: 'Boosts dull colors without clipping.' },
-                 { t: 'Definition', d: 'Intelligently sharpens natural textures.' }
-               ].map((f, i) => (
-                 <div key={f.t} className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 text-center spring-in" style={{animationDelay: `${i * 150}ms`}}>
-                    <h4 className="text-[#007aff] font-black uppercase tracking-widest text-xs mb-3">{f.t}</h4>
-                    <p className="text-white/40 text-sm leading-relaxed">{f.d}</p>
-                 </div>
-               ))}
             </div>
           </div>
         )}
@@ -533,7 +661,7 @@ export default function App() {
               <>
                 <div className={`flex-1 flex flex-col gap-6 transition-all duration-500 ${activeTool ? 'lg:scale-[0.98]' : 'scale-100'}`}>
                   {/* PROJECT SWITCHER */}
-                  <div className="flex items-center gap-4 overflow-x-auto pb-4 no-scrollbar">
+                  <div className="flex items-center gap-4 overflow-x-auto pb-4 no-scrollbar px-2">
                     <button onClick={() => {setView('home'); setActiveTool(null);}} className="w-20 h-20 bg-white/5 border border-white/10 rounded-[2rem] flex-shrink-0 flex items-center justify-center hover:bg-white/10 transition-all active:scale-90"><XIcon className="w-7 h-7 opacity-40"/></button>
                     {projects.map((proj, idx) => (
                       <div 
@@ -544,11 +672,16 @@ export default function App() {
                         onDrop={(e) => handleThumbnailDrop(e, idx)}
                         onDragEnd={() => { setDraggedThumbnailIndex(null); setDragOverIndex(null); }}
                         onClick={() => { setActiveIndex(idx); setActiveTool(null); }}
-                        className={`relative w-20 h-20 rounded-[2rem] flex-shrink-0 overflow-hidden border-4 transition-all duration-500 cursor-grab active:cursor-grabbing ${
-                          activeIndex === idx ? 'border-[#007aff] scale-110 shadow-[0_20px_40px_rgba(0,122,255,0.3)] z-10' : 'border-transparent opacity-40 hover:opacity-100'
-                        } ${dragOverIndex === idx ? 'scale-125 border-white opacity-100' : ''} ${draggedThumbnailIndex === idx ? 'opacity-20 scale-90 grayscale' : ''}`}
+                        className={`group relative w-20 h-20 rounded-[2.2rem] flex-shrink-0 border-4 transition-all duration-500 cursor-pointer overflow-visible ${
+                          activeIndex === idx ? 'border-[#007aff] scale-110 shadow-[0_20px_40px_rgba(0,122,255,0.4)] z-20' : 'border-transparent opacity-40 hover:opacity-100 z-10'
+                        } ${dragOverIndex === idx ? 'scale-125 border-white !opacity-100 ring-8 ring-white/10' : ''} ${draggedThumbnailIndex === idx ? 'opacity-0 scale-50 pointer-events-none' : ''}`}
                       >
-                        <img src={proj.url} className="w-full h-full object-cover transition-transform duration-700 pointer-events-none" />
+                        <div className="w-full h-full rounded-[1.8rem] overflow-hidden">
+                            <img src={proj.url} className="w-full h-full object-cover transition-transform duration-700 pointer-events-none" />
+                        </div>
+                        <div className="absolute -top-2 -right-2 w-7 h-7 bg-white text-black rounded-full flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 cursor-grab active:cursor-grabbing border border-black/5">
+                           <GripVerticalIcon className="w-4 h-4" />
+                        </div>
                       </div>
                     ))}
                     <label className="w-20 h-20 bg-white/5 border-2 border-dashed border-white/10 rounded-[2rem] flex-shrink-0 flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer active:scale-95 group">
@@ -565,7 +698,7 @@ export default function App() {
                       onMouseDown={handleImageMouseDown}
                     >
                       <div 
-                        className={`relative will-change-transform ${!isPanning ? 'transition-transform duration-500' : ''}`} 
+                        className={`relative will-change-transform ${(!isPanning && !activeCropHandle) ? 'transition-transform duration-500' : ''}`} 
                         style={{ 
                           transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
                           transitionTimingFunction: 'var(--spring-easing)'
@@ -581,16 +714,46 @@ export default function App() {
                         />
                         
                         {activeTool === ToolType.CROP && !isComparing && (
-                          <div className="absolute inset-0 pointer-events-none border-2 border-[#007aff] shadow-[0_0_0_9999px_rgba(0,0,0,0.7)] animate-in fade-in zoom-in duration-500">
-                            <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-30">
+                          <div 
+                            className="absolute border border-white/30 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] animate-in fade-in duration-300 group/crop"
+                            style={{
+                              left: `${cropBox.x}%`,
+                              top: `${cropBox.y}%`,
+                              width: `${cropBox.w}%`,
+                              height: `${cropBox.h}%`
+                            }}
+                          >
+                            <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-20 pointer-events-none">
                               <div className="border-r border-b border-white"></div><div className="border-r border-b border-white"></div><div className="border-b border-white"></div>
                               <div className="border-r border-b border-white"></div><div className="border-r border-b border-white"></div><div className="border-b border-white"></div>
                             </div>
+
+                            <div 
+                              className="absolute inset-4 cursor-move active:cursor-grabbing"
+                              onMouseDown={(e) => handleCropHandleMouseDown(e, 'move')}
+                            ></div>
+
+                            {[
+                                { id: 'top-left', style: 'top-[-2px] left-[-2px] border-t-4 border-l-4' },
+                                { id: 'top-right', style: 'top-[-2px] right-[-2px] border-t-4 border-r-4' },
+                                { id: 'bottom-left', style: 'bottom-[-2px] left-[-2px] border-b-4 border-l-4' },
+                                { id: 'bottom-right', style: 'bottom-[-2px] right-[-2px] border-b-4 border-r-4' }
+                            ].map(h => (
+                                <div 
+                                    key={h.id}
+                                    className={`absolute w-6 h-6 border-white rounded-[2px] cursor-nwse-resize z-10 ${h.style} ${h.id.includes('right') && !h.id.includes('bottom') ? 'cursor-nesw-resize' : ''} ${h.id.includes('left') && h.id.includes('bottom') ? 'cursor-nesw-resize' : ''}`}
+                                    onMouseDown={(e) => handleCropHandleMouseDown(e, h.id)}
+                                ></div>
+                            ))}
+
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 cursor-ns-resize" onMouseDown={(e) => handleCropHandleMouseDown(e, 'top')}></div>
+                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-1 cursor-ns-resize" onMouseDown={(e) => handleCropHandleMouseDown(e, 'bottom')}></div>
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-10 cursor-ew-resize" onMouseDown={(e) => handleCropHandleMouseDown(e, 'left')}></div>
+                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-10 cursor-ew-resize" onMouseDown={(e) => handleCropHandleMouseDown(e, 'right')}></div>
                           </div>
                         )}
                       </div>
                       
-                      {/* ZOOM CONTROLS */}
                       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6 bg-black/60 ios-blur border border-white/10 rounded-full p-2 px-6 shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
                         <button onClick={() => adjustZoom(-0.2)} className="p-3 hover:bg-white/10 rounded-full transition-all active:scale-90"><ZoomOutIcon className="w-6 h-6 text-white/60" /></button>
                         <span className="text-[14px] font-black w-14 text-center tabular-nums">{Math.round(zoom*100)}%</span>
@@ -610,7 +773,6 @@ export default function App() {
                           <button onClick={() => setActiveTool(null)} className="p-3 hover:bg-white/5 rounded-full transition-all active:rotate-90"><XIcon className="w-5 h-5 text-white/40" /></button>
                         </div>
 
-                        {/* ADJUST TOOL */}
                         {activeTool === ToolType.ADJUST && (
                           <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             {[{l:'Exposure', v:brightness, s:setBrightness}, {l:'Contrast', v:contrast, s:setContrast}, {l:'Saturate', v:saturate, s:setSaturate}].map(a => (
@@ -629,7 +791,6 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* FILTER TOOL */}
                         {activeTool === ToolType.FILTER && (
                           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="flex overflow-x-auto no-scrollbar gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner">
@@ -650,11 +811,32 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* CROP TOOL */}
                         {activeTool === ToolType.CROP && (
                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                             <div className="space-y-6">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 px-2">Numerical Inputs (px)</p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {[
+                                        { label: 'X', key: 'x' as const },
+                                        { label: 'Y', key: 'y' as const },
+                                        { label: 'Width', key: 'w' as const },
+                                        { label: 'Height', key: 'h' as const }
+                                    ].map(field => (
+                                        <div key={field.key} className="space-y-1">
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-white/20 pl-2">{field.label}</label>
+                                            <input 
+                                                type="number" 
+                                                value={getCropDisplayValue(field.key)} 
+                                                onChange={(e) => handleManualCropChange(field.key, parseInt(e.target.value) || 0)}
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl py-3 px-4 text-sm font-bold focus:border-[#af52de] outline-none transition-colors tabular-nums"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                             </div>
+
                              <div className="space-y-4">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 px-2">Aspect Ratio</p>
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 px-2">Aspect Ratio Presets</p>
                                 <div className="grid grid-cols-3 gap-3">
                                    {[
                                      { label: 'Free', r: null },
@@ -669,9 +851,14 @@ export default function App() {
                                        className="py-4 bg-white/5 rounded-2xl text-[11px] font-black uppercase hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-white/5"
                                        onClick={() => {
                                           if (ratio.r) {
-                                            const w = 80;
-                                            const h = (80 / ratio.r) * (activeProject.metadata.width / activeProject.metadata.height);
-                                            setCropBox({ ...cropBox, w, h: Math.min(h, 80) });
+                                            const imgRatio = activeProject.metadata.width / activeProject.metadata.height;
+                                            let w = 80;
+                                            let h = (80 / ratio.r) * imgRatio;
+                                            if (h > 90) {
+                                                h = 80;
+                                                w = (80 * ratio.r) / imgRatio;
+                                            }
+                                            setCropBox({ x: (100 - w) / 2, y: (100 - h) / 2, w, h });
                                           }
                                        }}
                                      >
@@ -680,11 +867,10 @@ export default function App() {
                                    ))}
                                 </div>
                              </div>
-                             <button onClick={() => applyTool((img) => imageService.cropImage(img, (cropBox.x/100)*img.width, (cropBox.y/100)*img.height, (cropBox.w/100)*img.width, (cropBox.h/100)*img.height), 'Studio Reframe')} className="w-full py-6 rounded-3xl bg-[#007aff] font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#007aff]/90">Apply Crop</button>
+                             <button onClick={() => applyTool((img) => imageService.cropImage(img, (cropBox.x/100)*img.width, (cropBox.y/100)*img.height, (cropBox.w/100)*img.width, (cropBox.h/100)*img.height), 'Studio Reframe')} className="w-full py-6 rounded-3xl bg-[#af52de] font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#af52de]/90">Apply Reframe</button>
                            </div>
                         )}
 
-                        {/* RESIZE TOOL */}
                         {activeTool === ToolType.RESIZE && (
                           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="space-y-4">
@@ -720,7 +906,6 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* ROTATE TOOL */}
                         {activeTool === ToolType.ROTATE && (
                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                               <div className="space-y-6">
@@ -738,7 +923,6 @@ export default function App() {
                            </div>
                         )}
 
-                        {/* MIRROR TOOL */}
                         {activeTool === ToolType.MIRROR && (
                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                               <p className="text-white/40 text-center font-medium">Flip image across axes</p>
@@ -755,7 +939,6 @@ export default function App() {
                            </div>
                         )}
 
-                        {/* COMPRESS TOOL */}
                         {activeTool === ToolType.COMPRESS && (
                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                               <div className="space-y-4">
@@ -769,7 +952,6 @@ export default function App() {
                            </div>
                         )}
 
-                        {/* PIXELATE TOOL */}
                         {activeTool === ToolType.PIXELATE && (
                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                               <div className="space-y-4">
@@ -797,7 +979,6 @@ export default function App() {
                     )}
                   </div>
 
-                  {/* PROJECT INFO CARD */}
                   <div className={`bg-[#1c1c1e] p-8 rounded-[4rem] border border-white/10 shadow-2xl flex items-center justify-between transition-all duration-500 ${activeTool ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none hidden lg:flex'}`}>
                     <div>
                        <h3 className="text-2xl font-black truncate max-w-[200px] mb-1">{activeProject.metadata.name}</h3>
@@ -826,7 +1007,6 @@ export default function App() {
         </div>
       </footer>
 
-      {/* BOTTOM TOOLBAR */}
       {view === 'editor' && activeProject && (
         <ToolBar activeTool={activeTool} onSelectTool={(t) => setActiveTool(activeTool === t ? null : t)} />
       )}
