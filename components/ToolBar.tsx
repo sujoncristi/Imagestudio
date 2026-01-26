@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ToolType } from '../types.ts';
 import { 
   ResizeIcon, CropIcon, RotateIcon, SparklesIcon, 
-  MirrorIcon, BWIcon, PixelIcon, CompressIcon, FilterIcon, BorderIcon, ConvertIcon, AdjustmentsIcon
+  MirrorIcon, BWIcon, PixelIcon, CompressIcon, FilterIcon, AdjustmentsIcon, MagicWandIcon, GrainIcon
 } from './Icons.tsx';
 
 interface ToolBarProps {
@@ -16,14 +16,14 @@ const ToolBar: React.FC<ToolBarProps> = ({ activeTool, onSelectTool }) => {
 
   const tools = [
     { id: ToolType.ADJUST, label: 'Adjust', icon: AdjustmentsIcon, tooltip: 'Grade Colors' },
-    { id: ToolType.RESIZE, label: 'Resize', icon: ResizeIcon, tooltip: 'Scale Dimensions' },
-    { id: ToolType.CROP, label: 'Crop', icon: CropIcon, tooltip: 'Reframe Frame' },
     { id: ToolType.FILTER, label: 'Look', icon: FilterIcon, tooltip: 'Artistic Presets' },
-    { id: ToolType.BORDER, label: 'Border', icon: BorderIcon, tooltip: 'Style Borders' },
-    { id: ToolType.CONVERT, label: 'Format', icon: ConvertIcon, tooltip: 'Export Types' },
+    { id: ToolType.NEURAL_EDIT, label: 'GenAI', icon: MagicWandIcon, tooltip: 'Neural Modification' },
+    { id: ToolType.CROP, label: 'Crop', icon: CropIcon, tooltip: 'Reframing' },
+    { id: ToolType.RESIZE, label: 'Resize', icon: ResizeIcon, tooltip: 'Scale Dimensions' },
+    { id: ToolType.GRAIN, label: 'Texture', icon: GrainIcon, tooltip: 'Analog Grain' },
     { id: ToolType.BW, label: 'Mono', icon: BWIcon, tooltip: 'Black & White' },
-    { id: ToolType.MIRROR, label: 'Flip', icon: MirrorIcon, tooltip: 'Mirror Flip' },
     { id: ToolType.ROTATE, label: 'Turn', icon: RotateIcon, tooltip: 'Rotate 90°' },
+    { id: ToolType.MIRROR, label: 'Flip', icon: MirrorIcon, tooltip: 'Mirror Flip' },
     { id: ToolType.COMPRESS, label: 'Shrink', icon: CompressIcon, tooltip: 'Minimize Size' },
     { id: ToolType.PIXELATE, label: '8-Bit', icon: PixelIcon, tooltip: 'Retro Pixels' },
     { id: ToolType.AI_ANALYZE, label: 'Expert', icon: SparklesIcon, tooltip: 'AI Insights' },
@@ -32,7 +32,6 @@ const ToolBar: React.FC<ToolBarProps> = ({ activeTool, onSelectTool }) => {
   return (
     <div className="fixed bottom-0 left-0 right-0 p-8 flex justify-center z-50 pointer-events-none pb-safe">
       <div className="relative flex flex-col items-center max-w-full">
-        {/* Tooltip Popup */}
         <div className={`absolute -top-14 bg-white text-black text-[11px] font-black px-4 py-2 rounded-full shadow-2xl transition-all duration-300 pointer-events-none uppercase tracking-widest ${hoveredTool ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-90'}`}>
           {tools.find(t => t.id === hoveredTool)?.tooltip}
         </div>

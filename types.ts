@@ -11,7 +11,9 @@ export enum ToolType {
   PIXELATE = 'PIXELATE',
   AI_ANALYZE = 'AI_ANALYZE',
   BORDER = 'BORDER',
-  ADJUST = 'ADJUST'
+  ADJUST = 'ADJUST',
+  NEURAL_EDIT = 'NEURAL_EDIT',
+  GRAIN = 'GRAIN'
 }
 
 export interface ImageMetadata {
@@ -26,6 +28,7 @@ export interface ImageMetadata {
 export interface HistoryItem {
   url: string;
   metadata: ImageMetadata;
+  action?: string;
 }
 
 export interface ProjectImage {
