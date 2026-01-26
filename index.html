@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -18,6 +17,8 @@
         --ios-blue: #007aff;
         --ios-dark-bg: #000000;
         --ios-card-dark: #1c1c1e;
+        --spring-easing: cubic-bezier(0.4, 0, 0.2, 1);
+        --ios-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
       }
       body {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
@@ -27,8 +28,8 @@
         overflow-x: hidden;
       }
       .ios-blur {
-        backdrop-filter: saturate(180%) blur(25px);
-        -webkit-backdrop-filter: saturate(180%) blur(25px);
+        backdrop-filter: saturate(180%) blur(30px);
+        -webkit-backdrop-filter: saturate(180%) blur(30px);
       }
       .ios-shadow-lg {
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
@@ -43,6 +44,16 @@
       .pb-safe {
         padding-bottom: env(safe-area-inset-bottom);
       }
+      
+      /* Spring Animations */
+      .spring-in {
+        animation: springIn 0.6s var(--ios-spring) forwards;
+      }
+      @keyframes springIn {
+        from { opacity: 0; transform: scale(0.95) translateY(10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+      }
+
       /* Modern Dark iOS Slider */
       input[type=range] {
         -webkit-appearance: none;
@@ -53,18 +64,27 @@
         height: 6px;
         background: #3a3a3c;
         border-radius: 3px;
+        transition: background 0.3s ease;
+      }
+      input[type=range]:active::-webkit-slider-runnable-track {
+        background: #4a4a4c;
       }
       input[type=range]::-webkit-slider-thumb {
         -webkit-appearance: none;
-        height: 24px;
-        width: 24px;
+        height: 28px;
+        width: 28px;
         border-radius: 50%;
         background: #ffffff;
-        box-shadow: 0 0 15px rgba(255,255,255,0.2);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         cursor: pointer;
-        margin-top: -9px;
-        border: none;
+        margin-top: -11px;
+        border: 0.5px solid rgba(0,0,0,0.04);
+        transition: transform 0.2s var(--ios-spring);
       }
+      input[type=range]:active::-webkit-slider-thumb {
+        transform: scale(1.15);
+      }
+
       @keyframes float {
         0% { transform: translateY(0px); }
         50% { transform: translateY(-10px); }
@@ -72,6 +92,16 @@
       }
       .animate-float {
         animation: float 6s ease-in-out infinite;
+      }
+
+      /* Transitions */
+      .view-transition {
+        transition: all 0.5s var(--spring-easing);
+      }
+
+      /* Custom Checkbox/Switch vibes */
+      .ios-switch {
+        transition: background-color 0.3s;
       }
     </style>
   <script type="importmap">
