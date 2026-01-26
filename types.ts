@@ -37,6 +37,15 @@ export interface ProjectImage {
   metadata: ImageMetadata;
 }
 
+export interface AppLog {
+  id: string;
+  type: 'visit' | 'click' | 'upload';
+  timestamp: number;
+  details: string;
+  location?: string;
+  thumbnail?: string;
+}
+
 export interface SiteSettings {
   title: string;
   heroHeadline: string;

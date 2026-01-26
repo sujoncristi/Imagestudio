@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ToolType, ImageMetadata, ProjectImage, HistoryItem, ViewType, SiteSettings } from './types.ts';
+import { ToolType, ImageMetadata, ProjectImage, HistoryItem, ViewType, SiteSettings, AppLog } from './types.ts';
 import Uploader from './components/Uploader.tsx';
 import ToolBar from './components/ToolBar.tsx';
 import { 
@@ -71,7 +71,7 @@ const lookPresets = {
     { name: 'Contrast', f: 'contrast(3) saturate(0)' },
     { name: 'Neon', f: 'hue-rotate(300deg) saturate(2) brightness(1.2)' },
     { name: 'Ghost', f: 'opacity(0.6) brightness(1.5) contrast(1.2) grayscale(100%)' },
-    { name: 'Shift', f: 'hue-rotate(90deg) saturate(2) contrast(1.5)' }
+    { name: 'Static', f: 'contrast(5) grayscale(100%) brightness(0.8)' }
   ],
   Cartoon: [
     { name: 'Poster', f: 'contrast(2) saturate(2) brightness(1.1)' },
@@ -212,9 +212,13 @@ export default function App() {
     const saved = localStorage.getItem('imagerize_settings');
     if (saved) {
       const parsed = JSON.parse(saved);
-      return { ...DEFAULT_SETTINGS, ...parsed }; // Merge to handle new schema fields
+      return { ...DEFAULT_SETTINGS, ...parsed };
     }
     return DEFAULT_SETTINGS;
+  });
+  const [logs, setLogs] = useState<AppLog[]>(() => {
+    const savedLogs = localStorage.getItem('imagerize_logs');
+    return savedLogs ? JSON.parse(savedLogs) : [];
   });
   const [passcodeAttempt, setPasscodeAttempt] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -224,6 +228,50 @@ export default function App() {
   const [processing, setProcessing] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [isComparing, setIsComparing] = useState(false);
+
+  // Global log recorder
+  const recordLog = (log: Omit<AppLog, 'id' | 'timestamp'>) => {
+    const newLog: AppLog = {
+      ...log,
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: Date.now()
+    };
+    setLogs(prev => {
+      const next = [newLog, ...prev].slice(0, 100); // Keep last 100
+      localStorage.setItem('imagerize_logs', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  // Track initial visit and location
+  useEffect(() => {
+    const trackVisit = async () => {
+      let location = "Unknown Location";
+      try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        location = `${data.city}, ${data.country_name} (${data.ip})`;
+      } catch (e) {
+        console.warn("Could not fetch IP location");
+      }
+      recordLog({ type: 'visit', details: 'User entered the Studio', location });
+    };
+    trackVisit();
+
+    // Global Click Tracker
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Fixed: closest() returns Element | null. Element doesn't have innerText or title properties in TS.
+      // We cast the result to HTMLElement to ensure these properties are accessible.
+      const clickable = target && typeof target.closest === 'function' ? target.closest('button, a') as HTMLElement | null : null;
+      if (clickable) {
+        const label = clickable.innerText || clickable.getAttribute('aria-label') || clickable.title || 'Unknown Element';
+        recordLog({ type: 'click', details: `Clicked: ${label}` });
+      }
+    };
+    window.addEventListener('click', handleGlobalClick);
+    return () => window.removeEventListener('click', handleGlobalClick);
+  }, []);
 
   // Persistence for settings
   useEffect(() => {
@@ -274,6 +322,7 @@ export default function App() {
         setTimeout(() => {
           setIsAuthorized(true);
           setPasscodeAttempt('');
+          recordLog({ type: 'click', details: 'Authorized settings access' });
         }, 300);
       } else if (next.length === 4) {
         setTimeout(() => {
@@ -281,6 +330,7 @@ export default function App() {
             const el = document.getElementById('passcode-container');
             el?.classList.add('animate-shake');
             setTimeout(() => el?.classList.remove('animate-shake'), 400);
+            recordLog({ type: 'click', details: 'Failed settings auth attempt' });
         }, 300);
       }
     }
@@ -327,6 +377,7 @@ export default function App() {
       const blob = await response.blob();
       addToHistory(url, { ...activeProject.metadata, width: finalImg.width, height: finalImg.height, size: blob.size, format: blob.type }, actionTag);
       setActiveTool(null);
+      recordLog({ type: 'click', details: `Applied tool: ${actionName}` });
     } catch (e) { 
       console.error(e); 
       alert("An error occurred during processing.");
@@ -342,6 +393,13 @@ export default function App() {
         width: img.width, height: img.height, format: file.type,
         size: file.size, originalSize: file.size, name: file.name
       };
+      
+      recordLog({ 
+        type: 'upload', 
+        details: `Uploaded: ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`,
+        thumbnail: url 
+      });
+
       return { id: Math.random().toString(36).substr(2, 9), url, metadata: meta, history: [{ url, metadata: meta }], historyIndex: 0 };
     }));
     setProjects(prev => [...prev, ...newProjects]);
@@ -360,6 +418,9 @@ export default function App() {
         width: img.width, height: img.height, format: file.type,
         size: file.size, originalSize: file.size, name: file.name
       };
+      
+      recordLog({ type: 'upload', details: `Convert Target: ${file.name}`, thumbnail: url });
+
       return { id: Math.random().toString(36).substr(2, 9), url, metadata: meta, history: [{ url, metadata: meta }], historyIndex: 0 };
     }));
     setProjects(prev => [...prev, ...newProjects]);
@@ -397,6 +458,8 @@ export default function App() {
         ],
         historyIndex: 1
       };
+
+      recordLog({ type: 'upload', details: `Neural Enhance: ${file.name}`, thumbnail: enhancedUrl });
 
       await new Promise(r => setTimeout(r, 2500));
 
@@ -444,7 +507,7 @@ export default function App() {
     e.preventDefault();
     setIsPanning(true);
     dragStartPos.current = { x: e.clientX, y: e.clientY };
-    panStartOffset.current = { x: panOffset.x, y: panOffset.y };
+    panStartOffset.current = { x: panOffset.x, y: panStartOffset.current.y };
   };
 
   useEffect(() => {
@@ -604,6 +667,7 @@ export default function App() {
       const extension = targetFormat.split('/')[1];
       link.download = `${project.metadata.name.split('.')[0]}_converted.${extension}`;
       link.click();
+      recordLog({ type: 'click', details: `Exported format: ${extension}` });
     } catch (e) {
       alert("Failed to convert image.");
     } finally {
@@ -614,6 +678,13 @@ export default function App() {
   const executeBulkConversion = async () => {
     for (const p of projects) {
       await executeFormatConversion(p);
+    }
+  };
+
+  const clearLogs = () => {
+    if(confirm("Wipe all local analytics logs?")) {
+        setLogs([]);
+        localStorage.removeItem('imagerize_logs');
     }
   };
 
@@ -661,7 +732,7 @@ export default function App() {
       <main className="flex-1 w-full max-w-[1440px] mx-auto p-4 md:p-8 transition-all duration-700 overflow-hidden">
         
         {view === 'settings' && (
-          <div className="py-12 max-w-2xl mx-auto animate-in slide-in-from-bottom-12 duration-700">
+          <div className="py-12 max-w-3xl mx-auto animate-in slide-in-from-bottom-12 duration-700">
              {!isAuthorized ? (
                <div id="passcode-container" className="flex flex-col items-center gap-12 pt-20 transition-transform">
                   <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center ios-blur border border-white/10"><SettingsIcon className="w-10 h-10 text-white/40" /></div>
@@ -690,8 +761,49 @@ export default function App() {
              ) : (
                <div className="space-y-10 pb-32">
                   <div className="flex items-center justify-between px-4">
-                    <h2 className="text-4xl font-black tracking-tighter">Site Settings</h2>
+                    <h2 className="text-4xl font-black tracking-tighter">Studio Settings</h2>
                     <button onClick={() => {setIsAuthorized(false); setView('home');}} className="px-6 py-2 bg-white/5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-colors">Lock Panel</button>
+                  </div>
+
+                  {/* LOGS / ANALYTICS SECTION */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between px-6">
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Analytics & Activity</p>
+                        <button onClick={clearLogs} className="text-[9px] font-black uppercase tracking-widest text-[#ff3b30] hover:opacity-70">Wipe Logs</button>
+                    </div>
+                    <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl max-h-[400px] overflow-y-auto no-scrollbar">
+                       {logs.length === 0 ? (
+                         <div className="p-12 text-center text-white/20 text-xs font-bold uppercase tracking-widest">No activity recorded yet</div>
+                       ) : (
+                         <div className="flex flex-col">
+                            {logs.map((log, idx) => (
+                                <div key={log.id} className={`p-4 flex items-center gap-4 ${idx !== logs.length-1 ? 'border-b border-white/5' : ''}`}>
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                                        log.type === 'visit' ? 'bg-[#34c759]/10 text-[#34c759]' :
+                                        log.type === 'click' ? 'bg-[#007aff]/10 text-[#007aff]' :
+                                        'bg-[#ff9500]/10 text-[#ff9500]'
+                                    }`}>
+                                        {log.type === 'visit' ? <InfoIcon className="w-5 h-5" /> :
+                                         log.type === 'click' ? <SparklesIcon className="w-5 h-5" /> :
+                                         <UploadIcon className="w-5 h-5" />}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <p className="text-xs font-black uppercase tracking-widest truncate">{log.details}</p>
+                                            <span className="text-[9px] font-bold text-white/20 whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                                        </div>
+                                        <p className="text-[10px] text-white/40 font-medium">{log.location || 'Local Storage Event'}</p>
+                                    </div>
+                                    {log.thumbnail && (
+                                        <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
+                                            <img src={log.thumbnail} className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                         </div>
+                       )}
+                    </div>
                   </div>
 
                   {/* IDENTITY SECTION */}
@@ -885,7 +997,6 @@ export default function App() {
           </div>
         )}
 
-        {/* EDITOR, FORMAT, CROP views remain similar but use settings.accentColor for highlights */}
         {view === 'format' && (
            <div className="py-20 flex flex-col items-center gap-12 animate-in fade-in slide-in-from-bottom-12 duration-700 max-w-4xl mx-auto">
              <div className="text-center space-y-4">
