@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ToolType, ImageMetadata, ProjectImage, HistoryItem, ViewType } from './types.ts';
+import { ToolType, ImageMetadata, ProjectImage, HistoryItem, ViewType, SiteSettings } from './types.ts';
 import Uploader from './components/Uploader.tsx';
 import ToolBar from './components/ToolBar.tsx';
 import { 
@@ -8,9 +8,18 @@ import {
   ZoomInIcon, ZoomOutIcon, InfoIcon, 
   EyeIcon, ResetIcon, RotateIcon, FilterIcon,
   ResizeIcon, CropIcon, AdjustmentsIcon, UploadIcon, MirrorIcon, PixelIcon, CompressIcon, MagicWandIcon,
-  GripVerticalIcon, ConvertIcon
+  GripVerticalIcon, ConvertIcon, SettingsIcon, ChevronRightIcon
 } from './components/Icons.tsx';
 import * as imageService from './services/imageService.ts';
+
+const DEFAULT_SETTINGS: SiteSettings = {
+  title: "Imagerize",
+  programmerName: "Sujon Roy",
+  programmerUrl: "https://facebook.com/sujonworld0",
+  programmerImage: "https://graph.facebook.com/sujonworld0/picture?type=large",
+  footerCopyright: "© 2024 IMAGERIZE STUDIO • CORE v5.2",
+  accentColor: "#007aff"
+};
 
 const lookPresets = {
   Modern: [
@@ -67,7 +76,7 @@ const lookPresets = {
   ]
 };
 
-const HeroVisual = () => {
+const HeroVisual = ({ accentColor }: { accentColor: string }) => {
   const [step, setStep] = useState(0);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   
@@ -104,11 +113,11 @@ const HeroVisual = () => {
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setMousePos({ x: 0, y: 0 })}
     >
-      <div className="absolute inset-0 bg-gradient-to-tr from-[#007aff]/30 via-[#5856d6]/10 to-[#af52de]/30 blur-[160px] rounded-full animate-pulse opacity-40 transition-all duration-1000 group-hover:opacity-60"></div>
+      <div className="absolute inset-0 blur-[160px] rounded-full animate-pulse opacity-40 transition-all duration-1000 group-hover:opacity-60" style={{ backgroundImage: `radial-gradient(circle at center, ${accentColor}, transparent)` }}></div>
       
       <div className="relative h-full w-full bg-[#0a0a0c] rounded-[4rem] p-3 border border-white/10 shadow-[0_32px_120px_-30px_rgba(0,0,0,1)] overflow-hidden flex items-center justify-center transition-all duration-1000 group-hover:border-white/20">
         <div className="absolute top-12 left-0 right-0 flex justify-center z-30 pointer-events-none">
-          <div className="bg-black/80 ios-blur px-8 py-3 rounded-full border border-white/10 text-[11px] font-black uppercase tracking-[0.5em] text-[#007aff] shadow-2xl transition-all duration-700 group-hover:tracking-[0.6em]">
+          <div className="bg-black/80 ios-blur px-8 py-3 rounded-full border border-white/10 text-[11px] font-black uppercase tracking-[0.5em] shadow-2xl transition-all duration-700 group-hover:tracking-[0.6em]" style={{ color: accentColor }}>
             {labels[step]}
           </div>
         </div>
@@ -122,8 +131,8 @@ const HeroVisual = () => {
           />
         ))}
         
-        <div className="absolute bottom-14 left-20 w-16 h-16 bg-white/5 ios-blur rounded-3xl border border-white/10 flex items-center justify-center shadow-3xl animate-float pointer-events-none z-20" style={{ transform: `translate(${mousePos.x * -40}px, ${mousePos.y * -40}px)` }}><AdjustmentsIcon className="text-[#007aff] w-8 h-8" /></div>
-        <div className="absolute top-24 right-20 w-14 h-14 bg-white/5 ios-blur rounded-2xl border border-white/10 flex items-center justify-center shadow-3xl animate-float pointer-events-none z-20" style={{animationDelay: '1.5s', transform: `translate(${mousePos.x * -30}px, ${mousePos.y * -30}px)` }}><CropIcon className="text-[#af52de] w-6 h-6" /></div>
+        <div className="absolute bottom-14 left-20 w-16 h-16 bg-white/5 ios-blur rounded-3xl border border-white/10 flex items-center justify-center shadow-3xl animate-float pointer-events-none z-20" style={{ transform: `translate(${mousePos.x * -40}px, ${mousePos.y * -40}px)` }}><AdjustmentsIcon className="w-8 h-8" style={{ color: accentColor }} /></div>
+        <div className="absolute top-24 right-20 w-14 h-14 bg-white/5 ios-blur rounded-2xl border border-white/10 flex items-center justify-center shadow-3xl animate-float pointer-events-none z-20" style={{animationDelay: '1.5s', transform: `translate(${mousePos.x * -30}px, ${mousePos.y * -30}px)` }}><CropIcon className="w-6 h-6 text-[#af52de]" /></div>
         
         <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none z-10 opacity-20 group-hover:opacity-30 transition-opacity"></div>
       </div>
@@ -131,7 +140,7 @@ const HeroVisual = () => {
   );
 };
 
-const ShowcaseSection = () => {
+const ShowcaseSection = ({ accentColor }: { accentColor: string }) => {
   const [sliderPos, setSliderPos] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -146,7 +155,7 @@ const ShowcaseSection = () => {
     <div className="w-full max-w-6xl mx-auto px-6 mb-32 animate-in fade-in duration-1000 delay-500">
       <div className="flex flex-col md:flex-row items-end justify-between mb-10 gap-6">
         <div className="space-y-2">
-          <h4 className="text-[#007aff] text-[11px] font-black tracking-[0.4em] uppercase">Neural Precision</h4>
+          <h4 className="text-[11px] font-black tracking-[0.4em] uppercase" style={{ color: accentColor }}>Neural Precision</h4>
           <h3 className="text-4xl font-black tracking-tighter">See the Difference</h3>
         </div>
         <p className="text-white/30 font-medium max-w-sm text-sm">Our 32-bit floating point processing engine preserves every bit of data while mastering colors.</p>
@@ -174,7 +183,6 @@ const ShowcaseSection = () => {
           />
         </div>
         
-        {/* Slider Line */}
         <div 
           className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_20px_rgba(255,255,255,0.5)] z-20 pointer-events-none"
           style={{ left: `${sliderPos}%` }}
@@ -185,7 +193,7 @@ const ShowcaseSection = () => {
         </div>
         
         <div className="absolute bottom-10 left-10 z-10 px-6 py-2 bg-black/40 ios-blur border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest">Baseline Raw</div>
-        <div className="absolute bottom-10 right-10 z-10 px-6 py-2 bg-[#007aff] border border-[#007aff]/50 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">Mastered Output</div>
+        <div className="absolute bottom-10 right-10 z-10 px-6 py-2 border rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl" style={{ backgroundColor: accentColor, borderColor: `${accentColor}80` }}>Mastered Output</div>
       </div>
     </div>
   );
@@ -193,12 +201,24 @@ const ShowcaseSection = () => {
 
 export default function App() {
   const [view, setView] = useState<ViewType>('home');
+  const [settings, setSettings] = useState<SiteSettings>(() => {
+    const saved = localStorage.getItem('imagerize_settings');
+    return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+  });
+  const [passcode, setPasscode] = useState('');
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [projects, setProjects] = useState<ProjectImage[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeTool, setActiveTool] = useState<ToolType | null>(null);
   const [processing, setProcessing] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [isComparing, setIsComparing] = useState(false);
+
+  // Persistence for settings
+  useEffect(() => {
+    localStorage.setItem('imagerize_settings', JSON.stringify(settings));
+    document.title = `${settings.title} - iOS Image Suite`;
+  }, [settings]);
 
   // Interaction State
   const [zoom, setZoom] = useState(1);
@@ -234,6 +254,21 @@ export default function App() {
   const [lookCategory, setLookCategory] = useState<'Modern' | 'Studio' | 'Vintage' | 'Cinematic' | 'Artistic' | 'Glitch' | 'Cartoon'>('Modern');
 
   const activeProject = projects[activeIndex] || null;
+
+  const handlePasscodeChange = (num: string) => {
+    if (passcode.length < 4) {
+      const next = passcode + num;
+      setPasscode(next);
+      if (next === '0000') {
+        setTimeout(() => {
+          setIsAuthorized(true);
+          setPasscode('');
+        }, 300);
+      } else if (next.length === 4) {
+        setTimeout(() => setPasscode(''), 500); // Reset on wrong code
+      }
+    }
+  };
 
   const updateActiveProject = (updated: ProjectImage) => {
     const newProjects = [...projects];
@@ -574,9 +609,9 @@ export default function App() {
           <div className="relative bg-[#1c1c1e]/90 ios-blur p-16 rounded-[4rem] flex flex-col items-center gap-10 border border-white/10 shadow-[0_0_100px_rgba(0,122,255,0.2)] spring-in">
             <div className="relative w-24 h-24">
               <div className="absolute inset-0 border-[6px] border-[#007aff]/10 rounded-full"></div>
-              <div className="absolute inset-0 border-[6px] border-[#007aff] border-t-transparent rounded-full animate-spin"></div>
+              <div className="absolute inset-0 border-[6px] border-t-transparent rounded-full animate-spin" style={{ borderColor: settings.accentColor, borderTopColor: 'transparent' }}></div>
             </div>
-            <p className="text-[#007aff] font-black text-2xl tracking-[0.2em] uppercase text-center min-w-[320px] leading-tight transition-all duration-300">
+            <p className="font-black text-2xl tracking-[0.2em] uppercase text-center min-w-[320px] leading-tight transition-all duration-300" style={{ color: settings.accentColor }}>
               {loadingMessage}
             </p>
           </div>
@@ -585,10 +620,10 @@ export default function App() {
 
       <header className="sticky top-0 z-40 bg-black/60 ios-blur border-b border-white/5 px-6 md:px-12 py-5 flex items-center justify-between transition-all duration-500">
         <div className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-all active:scale-95" onClick={() => {setView('home'); setActiveTool(null);}}>
-          <div className="w-11 h-11 bg-gradient-to-br from-[#007aff] to-[#5856d6] rounded-xl flex items-center justify-center shadow-xl shadow-[#007aff]/20">
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-xl shadow-black/40" style={{ backgroundColor: settings.accentColor }}>
             <SparklesIcon className="text-white w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-black tracking-tighter hidden sm:block">Imagerize</h1>
+          <h1 className="text-2xl font-black tracking-tighter hidden sm:block">{settings.title}</h1>
         </div>
         
         {view !== 'home' && (
@@ -598,8 +633,8 @@ export default function App() {
                 <button onMouseDown={() => setIsComparing(true)} onMouseUp={() => setIsComparing(false)} onMouseLeave={() => setIsComparing(false)} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 text-white/60 transition-all active:scale-90"><EyeIcon className="w-5 h-5" /></button>
                 <button onClick={() => { setZoom(1); setPanOffset({x:0, y:0}); }} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 text-white/60 transition-all active:scale-90"><ResetIcon className="w-5 h-5" /></button>
                 <div className="w-px h-6 bg-white/10 mx-1" />
-                <button onClick={undo} disabled={activeProject.historyIndex <= 0} className="w-10 h-10 rounded-full text-[#007aff] disabled:opacity-10 hover:bg-white/5 transition-all active:scale-90"><UndoIcon className="w-5 h-5" /></button>
-                <button onClick={redo} disabled={activeProject.historyIndex >= activeProject.history.length - 1} className="w-10 h-10 rounded-full text-[#007aff] disabled:opacity-10 hover:bg-white/5 transition-all active:scale-90"><RedoIcon className="w-5 h-5" /></button>
+                <button onClick={undo} disabled={activeProject.historyIndex <= 0} className="w-10 h-10 rounded-full disabled:opacity-10 hover:bg-white/5 transition-all active:scale-90" style={{ color: settings.accentColor }}><UndoIcon className="w-5 h-5" /></button>
+                <button onClick={redo} disabled={activeProject.historyIndex >= activeProject.history.length - 1} className="w-10 h-10 rounded-full disabled:opacity-10 hover:bg-white/5 transition-all active:scale-90" style={{ color: settings.accentColor }}><RedoIcon className="w-5 h-5" /></button>
               </div>
             )}
             <button onClick={() => setView('home')} className="bg-white text-black px-5 py-2 rounded-full text-[13px] font-bold active:scale-95 transition-all hover:bg-white/90">Studio</button>
@@ -609,21 +644,94 @@ export default function App() {
 
       <main className="flex-1 w-full max-w-[1440px] mx-auto p-4 md:p-8 transition-all duration-700 overflow-hidden">
         
+        {view === 'settings' && (
+          <div className="py-12 max-w-2xl mx-auto animate-in slide-in-from-bottom-12 duration-700">
+             {!isAuthorized ? (
+               <div className="flex flex-col items-center gap-12 pt-20">
+                  <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center ios-blur border border-white/10"><SettingsIcon className="w-10 h-10 text-white/40" /></div>
+                  <div className="text-center space-y-2">
+                    <h2 className="text-3xl font-black tracking-tight">Security Code</h2>
+                    <p className="text-white/40 font-medium">Enter your 4-digit passcode to modify site branding.</p>
+                  </div>
+                  <div className="flex gap-4">
+                    {[0, 1, 2, 3].map(i => (
+                      <div key={i} className={`w-4 h-4 rounded-full border border-white/20 transition-all duration-300 ${passcode.length > i ? 'bg-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'bg-transparent scale-100'}`}></div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0, 'DEL'].map((n, i) => (
+                      <button 
+                        key={i} 
+                        disabled={n === ''}
+                        onClick={() => n === 'DEL' ? setPasscode(p => p.slice(0, -1)) : handlePasscodeChange(n.toString())}
+                        className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl font-medium transition-all active:scale-90 ${n === '' ? 'opacity-0 pointer-events-none' : 'bg-white/5 hover:bg-white/10'}`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+               </div>
+             ) : (
+               <div className="space-y-12 pb-32">
+                  <div className="flex items-center justify-between px-4">
+                    <h2 className="text-4xl font-black tracking-tighter">Site Settings</h2>
+                    <button onClick={() => {setIsAuthorized(false); setView('home');}} className="px-6 py-2 bg-white/5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white/10">Lock</button>
+                  </div>
+
+                  <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
+                     <div className="p-6 border-b border-white/5 space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Website Title</label>
+                        <input value={settings.title} onChange={e => setSettings({...settings, title: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white focus:text-[#007aff] transition-colors" />
+                     </div>
+                     <div className="p-6 border-b border-white/5 space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Accent Color (Hex)</label>
+                        <div className="flex items-center gap-4">
+                          <input type="color" value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="w-10 h-10 bg-transparent rounded cursor-pointer" />
+                          <input value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="flex-1 bg-transparent text-xl font-bold py-1 outline-none text-white font-mono" />
+                        </div>
+                     </div>
+                     <div className="p-6 border-b border-white/5 space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Programmer Name</label>
+                        <input value={settings.programmerName} onChange={e => setSettings({...settings, programmerName: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
+                     </div>
+                     <div className="p-6 border-b border-white/5 space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Programmer Social URL</label>
+                        <input value={settings.programmerUrl} onChange={e => setSettings({...settings, programmerUrl: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white/50 focus:text-white" />
+                     </div>
+                     <div className="p-6 border-b border-white/5 space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Programmer Avatar URL</label>
+                        <input value={settings.programmerImage} onChange={e => setSettings({...settings, programmerImage: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white/50 focus:text-white" />
+                     </div>
+                     <div className="p-6 space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Footer Copyright</label>
+                        <input value={settings.footerCopyright} onChange={e => setSettings({...settings, footerCopyright: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
+                     </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <button onClick={() => {setSettings(DEFAULT_SETTINGS); alert("Settings reset to defaults.");}} className="flex-1 py-5 bg-white/5 border border-white/5 rounded-3xl font-bold uppercase text-xs tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Reset Default</button>
+                    <button onClick={() => setView('home')} className="flex-[2] py-5 rounded-3xl font-black uppercase text-xs tracking-widest shadow-2xl transition-all active:scale-95" style={{ backgroundColor: settings.accentColor }}>Save & Exit</button>
+                  </div>
+               </div>
+             )}
+          </div>
+        )}
+
         {view === 'home' && (
           <div className="py-4 flex flex-col items-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <HeroVisual />
+            <HeroVisual accentColor={settings.accentColor} />
             
             <div className="text-center space-y-6 mb-24 px-4">
               <h2 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] max-w-5xl mx-auto">
                 Next-Gen Suite. <br/>
-                <span className="bg-gradient-to-r from-[#007aff] via-[#af52de] to-[#ff2d55] bg-clip-text text-transparent">Studio Logic.</span>
+                <span className="bg-gradient-to-r from-white via-white/80 to-white/40 bg-clip-text text-transparent" style={{ backgroundImage: `linear-gradient(to right, ${settings.accentColor}, #af52de, #ff2d55)` }}>Studio Logic.</span>
               </h2>
               <p className="text-[#8e8e93] text-xl md:text-2xl font-medium max-w-2xl mx-auto leading-relaxed">
                 The ultimate pro workspace for high-fidelity image mastering, neural grading, and precision formatting.
               </p>
             </div>
 
-            <ShowcaseSection />
+            <ShowcaseSection accentColor={settings.accentColor} />
 
             {/* BENTO GRID */}
             <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-12 gap-8 px-6 mb-32">
@@ -631,14 +739,14 @@ export default function App() {
                 className="col-span-1 md:col-span-8 group relative p-12 bg-[#1c1c1e] rounded-[4rem] border border-white/5 shadow-[0_40px_80px_rgba(0,0,0,0.5)] cursor-pointer hover:scale-[1.01] active:scale-[0.98] transition-all duration-700 flex flex-col justify-end overflow-hidden min-h-[500px]"
                 onClick={() => setView('editor')}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-[#007aff]/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                <div className="absolute top-14 left-14 w-20 h-20 bg-[#007aff] rounded-3xl flex items-center justify-center shadow-2xl group-hover:rotate-3 transition-transform duration-500">
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" style={{ backgroundImage: `linear-gradient(to bottom right, ${settings.accentColor}26, transparent)` }}></div>
+                <div className="absolute top-14 left-14 w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl group-hover:rotate-3 transition-transform duration-500" style={{ backgroundColor: settings.accentColor }}>
                   <AdjustmentsIcon className="w-10 h-10 text-white" />
                 </div>
                 <div className="z-10">
                   <h3 className="text-5xl font-black tracking-tighter mb-4">Studio Master</h3>
                   <p className="text-white/40 font-bold mb-10 leading-snug max-w-md text-xl">Full non-destructive manual workflow for precision pixel manipulation.</p>
-                  <div className="inline-flex bg-white text-black px-10 py-5 rounded-full text-[12px] font-black uppercase tracking-[0.2em] shadow-2xl group-hover:bg-[#007aff] group-hover:text-white transition-all font-bold">Open Canvas</div>
+                  <div className="inline-flex bg-white text-black px-10 py-5 rounded-full text-[12px] font-black uppercase tracking-[0.2em] shadow-2xl group-hover:text-white transition-all font-bold" style={{ '--tw-hover-bg': settings.accentColor } as any} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = settings.accentColor} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}>Open Canvas</div>
                 </div>
               </div>
 
@@ -677,14 +785,14 @@ export default function App() {
               >
                 <div className="flex flex-col md:flex-row items-center gap-10">
                   <div className="w-20 h-20 bg-white/10 ios-blur rounded-[2.5rem] flex items-center justify-center shadow-3xl group-hover:-rotate-3 transition-transform border border-white/10">
-                    <ConvertIcon className="w-10 h-10 text-[#007aff]" />
+                    <ConvertIcon className="w-10 h-10" style={{ color: settings.accentColor }} />
                   </div>
                   <div className="text-center md:text-left z-10">
                     <h3 className="text-4xl font-black tracking-tighter mb-2">Converter</h3>
                     <p className="text-white/40 font-bold leading-snug text-lg max-w-[320px]">Batch switch between lossy and lossless studio formats.</p>
                   </div>
                 </div>
-                <div className="mt-8 md:mt-0 bg-[#007aff] text-white px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-xl group-hover:bg-white group-hover:text-[#007aff] transition-all font-bold">Format Lab</div>
+                <div className="mt-8 md:mt-0 text-white px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-xl group-hover:bg-white transition-all font-bold" style={{ backgroundColor: settings.accentColor }} onMouseEnter={(e) => e.currentTarget.style.color = settings.accentColor} onMouseLeave={(e) => e.currentTarget.style.color = 'white'}>Format Lab</div>
               </div>
             </div>
 
@@ -709,7 +817,7 @@ export default function App() {
         {view === 'format' && (
            <div className="py-20 flex flex-col items-center gap-12 animate-in fade-in slide-in-from-bottom-12 duration-700 max-w-4xl mx-auto">
              <div className="text-center space-y-4">
-                <div className="w-24 h-24 bg-[#007aff] rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-[0_20px_60px_rgba(0,122,255,0.4)] transition-transform active:scale-95">
+                <div className="w-24 h-24 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-2xl transition-transform active:scale-95" style={{ backgroundColor: settings.accentColor }}>
                   <ConvertIcon className="w-12 h-12 text-white" />
                 </div>
                 <h2 className="text-5xl font-black tracking-tight">Format Suite</h2>
@@ -717,17 +825,17 @@ export default function App() {
              </div>
 
              {projects.length === 0 ? (
-               <div className="w-full bg-[#1c1c1e] p-12 rounded-[4rem] border border-white/10 shadow-3xl text-center group cursor-pointer relative overflow-hidden transition-all hover:border-[#007aff]/50 active:scale-[0.99]">
+               <div className="w-full bg-[#1c1c1e] p-12 rounded-[4rem] border border-white/10 shadow-3xl text-center group cursor-pointer relative overflow-hidden transition-all active:scale-[0.99]" style={{ borderColor: `${settings.accentColor}20` }}>
                   <input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={(e) => handleFormatUpload(Array.from(e.target.files || []))} accept="image/*" />
                   <div className="flex flex-col items-center gap-8 py-10">
-                      <div className="w-20 h-20 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center group-hover:border-[#007aff] group-hover:scale-110 transition-all">
-                        <UploadIcon className="w-8 h-8 opacity-40 group-hover:opacity-100 text-[#007aff]" />
+                      <div className="w-20 h-20 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-all">
+                        <UploadIcon className="w-8 h-8 opacity-40 group-hover:opacity-100" style={{ color: settings.accentColor }} />
                       </div>
                       <div className="space-y-2">
-                        <p className="text-2xl font-black group-hover:text-[#007aff] transition-colors">Select assets to convert</p>
+                        <p className="text-2xl font-black transition-colors" style={{ color: settings.accentColor }}>Select assets to convert</p>
                         <p className="text-white/20 font-bold uppercase tracking-widest text-sm">PNG • JPG • WEBP</p>
                       </div>
-                      <button className="bg-white/5 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-white/10 group-hover:bg-[#007aff] group-hover:text-white transition-all font-bold">Import Photos</button>
+                      <button className="bg-white/5 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-white/10 group-hover:text-white transition-all font-bold" onMouseEnter={(e) => e.currentTarget.style.backgroundColor = settings.accentColor} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Import Photos</button>
                   </div>
                </div>
              ) : (
@@ -764,7 +872,8 @@ export default function App() {
                                <button 
                                  key={fmt}
                                  onClick={() => setTargetFormat(fmt)}
-                                 className={`py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${targetFormat === fmt ? 'bg-[#007aff] text-white shadow-lg' : 'bg-white/5 text-white/30 hover:text-white'}`}
+                                 className={`py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${targetFormat === fmt ? 'text-white shadow-lg' : 'bg-white/5 text-white/30 hover:text-white'}`}
+                                 style={{ backgroundColor: targetFormat === fmt ? settings.accentColor : '' }}
                                >
                                  {fmt.split('/')[1]}
                                </button>
@@ -785,7 +894,8 @@ export default function App() {
                        <div className="pt-4">
                          <button 
                            onClick={executeBulkConversion}
-                           className="w-full py-6 rounded-3xl bg-[#007aff] text-white font-black uppercase text-[12px] tracking-[0.2em] shadow-[0_20px_40px_rgba(0,122,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all font-bold"
+                           className="w-full py-6 rounded-3xl text-white font-black uppercase text-[12px] tracking-[0.2em] shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all font-bold"
+                           style={{ backgroundColor: settings.accentColor }}
                          >
                            Export Assets ({projects.length})
                          </button>
@@ -875,8 +985,9 @@ export default function App() {
                         onDragEnd={() => { setDraggedThumbnailIndex(null); setDragOverIndex(null); }}
                         onClick={() => { setActiveIndex(idx); setActiveTool(null); }}
                         className={`group relative w-20 h-20 rounded-[2.2rem] flex-shrink-0 border-4 transition-all duration-500 cursor-pointer overflow-visible ${
-                          activeIndex === idx ? 'border-[#007aff] scale-110 shadow-[0_20px_40px_rgba(0,122,255,0.4)] z-20' : 'border-transparent opacity-40 hover:opacity-100 z-10'
+                          activeIndex === idx ? 'scale-110 shadow-2xl z-20' : 'border-transparent opacity-40 hover:opacity-100 z-10'
                         } ${dragOverIndex === idx ? 'scale-125 border-white !opacity-100 ring-8 ring-white/10' : ''} ${draggedThumbnailIndex === idx ? 'opacity-0 scale-50 pointer-events-none' : ''}`}
+                        style={{ borderColor: activeIndex === idx ? settings.accentColor : 'transparent' }}
                       >
                         <div className="w-full h-full rounded-[1.8rem] overflow-hidden">
                             <img src={proj.url} className="w-full h-full object-cover transition-transform duration-700 pointer-events-none" />
@@ -961,7 +1072,7 @@ export default function App() {
                     {activeTool ? (
                       <div className="animate-in slide-in-from-right-8 duration-500 flex flex-col gap-8">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-2xl font-black uppercase tracking-widest text-[#007aff] transition-all">{activeTool}</h3>
+                          <h3 className="text-2xl font-black uppercase tracking-widest transition-all" style={{ color: settings.accentColor }}>{activeTool}</h3>
                           <button onClick={() => setActiveTool(null)} className="p-3 hover:bg-white/5 rounded-full transition-all active:rotate-90"><XIcon className="w-5 h-5 text-white/40" /></button>
                         </div>
                         {activeTool === ToolType.ADJUST && (
@@ -977,7 +1088,7 @@ export default function App() {
                             ))}
                             <div className="flex gap-4 pt-4">
                                <button onClick={() => {setBrightness(100); setContrast(100); setSaturate(100);}} className="flex-1 py-4 rounded-3xl bg-white/5 font-bold uppercase text-[11px] tracking-widest transition-all hover:bg-white/10 active:scale-95">Reset</button>
-                               <button onClick={() => applyTool((img) => imageService.applyFilter(img, `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)`), 'Baking Grade')} className="flex-[2] py-4 rounded-3xl bg-[#007aff] font-bold uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-all hover:bg-[#007aff]/90">Apply</button>
+                               <button onClick={() => applyTool((img) => imageService.applyFilter(img, `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)`), 'Baking Grade')} className="flex-[2] py-4 rounded-3xl text-white font-bold uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Apply</button>
                             </div>
                           </div>
                         )}
@@ -985,12 +1096,12 @@ export default function App() {
                           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="flex overflow-x-auto no-scrollbar gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner">
                               {(['Modern', 'Studio', 'Vintage', 'Cinematic', 'Artistic', 'Glitch', 'Cartoon'] as const).map(cat => (
-                                <button key={cat} onClick={() => setLookCategory(cat)} className={`flex-1 min-w-[80px] py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${lookCategory === cat ? 'bg-[#007aff] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>{cat}</button>
+                                <button key={cat} onClick={() => setLookCategory(cat)} className={`flex-1 min-w-[80px] py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${lookCategory === cat ? 'text-white shadow-lg' : 'text-white/30 hover:text-white'}`} style={{ backgroundColor: lookCategory === cat ? settings.accentColor : '' }}>{cat}</button>
                               ))}
                             </div>
                             <div className="grid grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto no-scrollbar pb-10">
                               {lookPresets[lookCategory as keyof typeof lookPresets].map((p) => (
-                                <button key={p.name} onClick={() => applyTool((img) => imageService.applyFilter(img, p.f), p.name)} className="flex flex-col items-center gap-3 group bg-black/20 p-3 rounded-[2rem] border border-white/5 hover:border-[#007aff] transition-all active:scale-95">
+                                <button key={p.name} onClick={() => applyTool((img) => imageService.applyFilter(img, p.f), p.name)} className="flex flex-col items-center gap-3 group bg-black/20 p-3 rounded-[2rem] border border-white/5 transition-all active:scale-95" style={{ '--hover-border': settings.accentColor } as any} onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
                                   <div className="w-full aspect-square rounded-2xl border-2 border-white/5 overflow-hidden transition-all duration-500 group-hover:scale-105">
                                     <img src={activeProject.url} className="w-full h-full object-cover" style={{filter: p.f}} />
                                   </div>
@@ -1063,14 +1174,14 @@ export default function App() {
                             <div className="grid grid-cols-2 gap-6">
                               <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Width</label>
-                                <input type="number" value={width} onChange={e => setWidth(e.target.value)} placeholder={activeProject.metadata.width.toString()} className="w-full bg-black/40 border border-white/10 rounded-3xl p-6 text-2xl font-black outline-none focus:border-[#007aff] transition-all tabular-nums text-white" />
+                                <input type="number" value={width} onChange={e => setWidth(e.target.value)} placeholder={activeProject.metadata.width.toString()} className="w-full bg-black/40 border border-white/10 rounded-3xl p-6 text-2xl font-black outline-none focus:border-[#007aff] transition-all tabular-nums text-white" style={{ borderColor: `${settings.accentColor}20` }} />
                               </div>
                               <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Height</label>
-                                <input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder={activeProject.metadata.height.toString()} className="w-full bg-black/40 border border-white/10 rounded-3xl p-6 text-2xl font-black outline-none focus:border-[#007aff] transition-all tabular-nums text-white" />
+                                <input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder={activeProject.metadata.height.toString()} className="w-full bg-black/40 border border-white/10 rounded-3xl p-6 text-2xl font-black outline-none focus:border-[#007aff] transition-all tabular-nums text-white" style={{ borderColor: `${settings.accentColor}20` }} />
                               </div>
                             </div>
-                            <button onClick={() => applyTool((img) => imageService.resizeImage(img, parseInt(width) || img.width, parseInt(height) || img.height), 'Resampling')} className="w-full py-6 rounded-3xl bg-[#007aff] font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#007aff]/90">Confirm Rescale</button>
+                            <button onClick={() => applyTool((img) => imageService.resizeImage(img, parseInt(width) || img.width, parseInt(height) || img.height), 'Resampling')} className="w-full py-6 rounded-3xl text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Confirm Rescale</button>
                           </div>
                         )}
                         {activeTool === ToolType.ROTATE && (
@@ -1086,17 +1197,17 @@ export default function App() {
                                     <button onClick={() => applyTool(img => imageService.rotateImage(img, 90), 'Rotate Right')} className="flex-1 py-4 bg-white/5 rounded-2xl flex flex-col items-center gap-2 hover:bg-white/10 transition-all active:scale-90"><RotateIcon className="w-5 h-5" /><span className="text-[9px] font-black uppercase">+90°</span></button>
                                  </div>
                               </div>
-                              <button onClick={() => applyTool(img => imageService.rotateImage(img, rotation), 'Fine Rotate')} className="w-full py-6 rounded-3xl bg-[#007aff] font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#007aff]/90">Apply Rotation</button>
+                              <button onClick={() => applyTool(img => imageService.rotateImage(img, rotation), 'Fine Rotate')} className="w-full py-6 rounded-3xl text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Apply Rotation</button>
                            </div>
                         )}
                         {activeTool === ToolType.MIRROR && (
                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                               <div className="grid grid-cols-2 gap-4">
-                                 <button onClick={() => applyTool(img => imageService.flipImage(img, 'horizontal'), 'Horizontal Flip')} className="py-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center gap-4 group hover:border-[#007aff] transition-all active:scale-95">
-                                    <MirrorIcon className="w-8 h-8 text-[#007aff] group-hover:scale-110 transition-transform" />
+                                 <button onClick={() => applyTool(img => imageService.flipImage(img, 'horizontal'), 'Horizontal Flip')} className="py-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center gap-4 group transition-all active:scale-95" onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
+                                    <MirrorIcon className="w-8 h-8 group-hover:scale-110 transition-transform" style={{ color: settings.accentColor }} />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Horizontal</span>
                                  </button>
-                                 <button onClick={() => applyTool(img => imageService.flipImage(img, 'vertical'), 'Vertical Flip')} className="py-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center gap-4 group hover:border-[#af52de] transition-all active:scale-95">
+                                 <button onClick={() => applyTool(img => imageService.flipImage(img, 'vertical'), 'Vertical Flip')} className="py-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center gap-4 group transition-all active:scale-95" onMouseEnter={e => e.currentTarget.style.borderColor = '#af52de'} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
                                     <MirrorIcon className="w-8 h-8 text-[#af52de] rotate-90 group-hover:scale-110 transition-transform" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Vertical</span>
                                  </button>
@@ -1131,7 +1242,7 @@ export default function App() {
                     ) : (
                       <div className="h-[400px] flex flex-col items-center justify-center text-center gap-6 animate-in fade-in duration-1000">
                          <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center border border-white/5 group transition-all duration-500 hover:rotate-6">
-                            <SparklesIcon className="w-8 h-8 text-white/10 group-hover:text-[#007aff] transition-colors" />
+                            <SparklesIcon className="w-8 h-8 text-white/10 transition-colors" style={{ '--group-hover-color': settings.accentColor } as any} onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''} />
                          </div>
                          <div className="space-y-2">
                            <h4 className="font-black uppercase tracking-[0.3em] text-[12px] text-white/40">Studio Session</h4>
@@ -1146,10 +1257,10 @@ export default function App() {
                        <h3 className="text-2xl font-black truncate max-w-[200px] mb-1">{activeProject.metadata.name}</h3>
                        <div className="flex gap-2">
                          <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 bg-white/5 rounded-full text-white/40 tabular-nums">{activeProject.metadata.width}×{activeProject.metadata.height}</span>
-                         <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 bg-[#007aff]/10 rounded-full text-[#007aff] tabular-nums">{(activeProject.metadata.size / 1024 / 1024).toFixed(2)} MB</span>
+                         <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full tabular-nums" style={{ color: settings.accentColor, backgroundColor: `${settings.accentColor}15` }}>{(activeProject.metadata.size / 1024 / 1024).toFixed(2)} MB</span>
                        </div>
                     </div>
-                    <a href={activeProject.url} download={`imagerize_${activeProject.metadata.name}`} className="bg-white text-black px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl hover:bg-[#007aff] hover:text-white active:scale-95 transition-all font-bold">Export</a>
+                    <a href={activeProject.url} download={`imagerize_${activeProject.metadata.name}`} className="bg-white text-black px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all font-bold" onMouseEnter={e => {e.currentTarget.style.backgroundColor = settings.accentColor; e.currentTarget.style.color = 'white'}} onMouseLeave={e => {e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = 'black'}}>Export</a>
                   </div>
                 </div>
               </>
@@ -1162,29 +1273,32 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start justify-between gap-16">
           <div className="flex flex-col items-start gap-6 max-w-sm">
              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#007aff] rounded-xl flex items-center justify-center shadow-2xl"><SparklesIcon className="w-5 h-5 text-white" /></div>
-                <h4 className="text-2xl font-black tracking-tighter">IMAGERIZE</h4>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-2xl" style={{ backgroundColor: settings.accentColor }}><SparklesIcon className="w-5 h-5 text-white" /></div>
+                <h4 className="text-2xl font-black tracking-tighter uppercase">{settings.title}</h4>
              </div>
              <p className="text-white/20 font-medium leading-relaxed text-sm">Crafted with a commitment to absolute pixel fidelity and the legendary iOS aesthetic.</p>
-             <p className="text-[11px] font-black uppercase tracking-[0.4em] text-white/10 pt-4">© 2024 IMAGERIZE STUDIO • CORE v5.2</p>
+             <p className="text-[11px] font-black uppercase tracking-[0.4em] text-white/10 pt-4">{settings.footerCopyright}</p>
           </div>
           
           <div className="flex flex-col items-center md:items-end gap-6 text-center md:text-right">
-             <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#007aff]">Lead Programmer</p>
-             <a href="https://facebook.com/sujonworld0" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 hover:scale-105 transition-all bg-white/5 p-4 rounded-3xl border border-white/10 hover:border-[#007aff]/50">
+             <div className="flex items-center gap-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Lead Programmer</p>
+                <button onClick={() => setView('settings')} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><SettingsIcon className="w-4 h-4 text-white/40" /></button>
+             </div>
+             <a href={settings.programmerUrl} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 hover:scale-105 transition-all bg-white/5 p-4 rounded-3xl border border-white/10" style={{ '--hover-border': settings.accentColor } as any} onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
                 <div className="text-right">
-                   <span className="block text-2xl font-black tracking-tighter text-white">Sujon Roy</span>
+                   <span className="block text-2xl font-black tracking-tighter text-white">{settings.programmerName}</span>
                    <span className="block text-[10px] font-black uppercase tracking-[0.1em] text-white/30">Founder & Studio Head</span>
                 </div>
-                <div className="w-14 h-14 rounded-2xl border border-white/20 overflow-hidden shadow-2xl transition-transform group-hover:rotate-6"><img src="https://graph.facebook.com/sujonworld0/picture?type=large" className="w-full h-full object-cover" alt="Sujon Roy" /></div>
+                <div className="w-14 h-14 rounded-2xl border border-white/20 overflow-hidden shadow-2xl transition-transform group-hover:rotate-6"><img src={settings.programmerImage} className="w-full h-full object-cover" alt={settings.programmerName} /></div>
              </a>
           </div>
 
           <div className="grid grid-cols-2 gap-x-12 gap-y-6 text-[11px] font-black uppercase tracking-[0.4em] text-white/20">
-            <span className="cursor-pointer hover:text-[#007aff] transition-all">Privacy</span>
-            <span className="cursor-pointer hover:text-[#007aff] transition-all">Security</span>
-            <span className="cursor-pointer hover:text-[#007aff] transition-all">Cookies</span>
-            <span className="cursor-pointer hover:text-[#007aff] transition-all">Contact</span>
+            <span className="cursor-pointer transition-all hover:text-white" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''}>Privacy</span>
+            <span className="cursor-pointer transition-all hover:text-white" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''}>Security</span>
+            <span className="cursor-pointer transition-all hover:text-white" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''}>Cookies</span>
+            <span className="cursor-pointer transition-all hover:text-white" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''}>Contact</span>
           </div>
         </div>
       </footer>

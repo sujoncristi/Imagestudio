@@ -37,4 +37,13 @@ export interface ProjectImage {
   metadata: ImageMetadata;
 }
 
-export type ViewType = 'home' | 'editor' | 'enhance' | 'crop' | 'format';
+export interface SiteSettings {
+  title: string;
+  programmerName: string;
+  programmerUrl: string;
+  programmerImage: string;
+  footerCopyright: string;
+  accentColor: string;
+}
+
+export type ViewType = 'home' | 'editor' | 'enhance' | 'crop' | 'format' | 'settings';
