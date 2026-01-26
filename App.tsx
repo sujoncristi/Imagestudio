@@ -17,37 +17,53 @@ const lookPresets = {
     { name: 'Vivid', f: 'saturate(1.4) contrast(1.1) brightness(1.05)' },
     { name: 'Dramatic', f: 'contrast(1.4) brightness(0.9) saturate(0.8)' },
     { name: 'Mono', f: 'grayscale(100%) contrast(1.2) brightness(1.1)' },
-    { name: 'Clean', f: 'brightness(1.05) saturate(1.1)' }
+    { name: 'Clean', f: 'brightness(1.05) saturate(1.1)' },
+    { name: 'Pure', f: 'brightness(1.1) contrast(1.05) saturate(0.9)' }
   ],
   Studio: [
     { name: 'Portrait', f: 'brightness(1.05) contrast(1.05) saturate(1.1)' },
     { name: 'Commercial', f: 'contrast(1.2) saturate(1.3)' },
     { name: 'Fashion', f: 'brightness(1.1) contrast(1.1) saturate(0.9) sepia(0.05)' },
-    { name: 'Product', f: 'brightness(1.02) contrast(1.1) saturate(1.2)' }
+    { name: 'Product', f: 'brightness(1.02) contrast(1.1) saturate(1.2)' },
+    { name: 'High Key', f: 'brightness(1.3) contrast(0.9) saturate(1.1)' }
   ],
   Vintage: [
     { name: 'Sepia', f: 'sepia(100%) brightness(0.9) contrast(1.1)' },
     { name: '70s Film', f: 'sepia(0.3) saturate(1.2) contrast(1.1) brightness(1.05) hue-rotate(-10deg)' },
     { name: 'Noir', f: 'grayscale(100%) contrast(1.5) brightness(0.8)' },
-    { name: 'Antique', f: 'sepia(0.6) contrast(0.9) brightness(1.1)' }
+    { name: 'Antique', f: 'sepia(0.6) contrast(0.9) brightness(1.1)' },
+    { name: 'Grainy', f: 'contrast(1.2) brightness(0.9) saturate(0.5)' }
+  ],
+  Cinematic: [
+    { name: 'Blockbuster', f: 'hue-rotate(-10deg) saturate(1.5) contrast(1.2)' },
+    { name: 'Indie', f: 'sepia(0.2) saturate(0.8) contrast(0.9) brightness(1.1)' },
+    { name: 'Documentary', f: 'saturate(1.1) contrast(1.1) brightness(1.0)' },
+    { name: 'Thriller', f: 'hue-rotate(180deg) saturate(0.5) contrast(1.4) brightness(0.8)' },
+    { name: 'Romance', f: 'saturate(1.4) brightness(1.1) sepia(0.1) blur(0.2px)' },
+    { name: 'Western', f: 'sepia(0.5) contrast(1.3) saturate(1.2) brightness(0.9)' }
   ],
   Artistic: [
     { name: 'Cyber', f: 'hue-rotate(180deg) saturate(2) contrast(1.2)' },
     { name: 'Ethereal', f: 'brightness(1.2) saturate(0.5) blur(0.5px) contrast(0.9)' },
     { name: 'Acid', f: 'hue-rotate(90deg) saturate(3) invert(0.1)' },
-    { name: 'Velvet', f: 'saturate(1.5) contrast(1.3) hue-rotate(-20deg)' }
+    { name: 'Velvet', f: 'saturate(1.5) contrast(1.3) hue-rotate(-20deg)' },
+    { name: 'Dream', f: 'brightness(1.1) saturate(0.7) blur(1px)' }
   ],
   Glitch: [
     { name: 'Shift', f: 'hue-rotate(240deg) saturate(1.5) contrast(1.5)' },
     { name: 'Invert', f: 'invert(100%)' },
     { name: 'Contrast', f: 'contrast(3) saturate(0)' },
-    { name: 'Neon', f: 'hue-rotate(300deg) saturate(2) brightness(1.2)' }
+    { name: 'Neon', f: 'hue-rotate(300deg) saturate(2) brightness(1.2)' },
+    { name: 'Ghost', f: 'opacity(0.6) brightness(1.5) contrast(1.2) grayscale(100%)' },
+    { name: 'Static', f: 'contrast(5) grayscale(100%) brightness(0.8)' }
   ],
   Cartoon: [
     { name: 'Poster', f: 'contrast(2) saturate(2) brightness(1.1)' },
     { name: 'Outline', f: 'grayscale(100%) contrast(5) invert(100%)' },
     { name: 'Vibrant', f: 'saturate(3) contrast(1.1)' },
-    { name: 'Muted', f: 'saturate(0.4) contrast(1.4) brightness(1.2)' }
+    { name: 'Muted', f: 'saturate(0.4) contrast(1.4) brightness(1.2)' },
+    { name: 'Pop', f: 'saturate(4) contrast(1.2) brightness(1.05)' },
+    { name: 'Sticker', f: 'saturate(2.5) brightness(1.3) contrast(0.9)' }
   ]
 };
 
@@ -215,7 +231,7 @@ export default function App() {
   const [pixelScale, setPixelScale] = useState(0.1);
   const [compressQuality, setCompressQuality] = useState(0.8);
 
-  const [lookCategory, setLookCategory] = useState<'Modern' | 'Studio' | 'Vintage' | 'Artistic' | 'Glitch' | 'Cartoon'>('Modern');
+  const [lookCategory, setLookCategory] = useState<'Modern' | 'Studio' | 'Vintage' | 'Cinematic' | 'Artistic' | 'Glitch' | 'Cartoon'>('Modern');
 
   const activeProject = projects[activeIndex] || null;
 
@@ -711,7 +727,7 @@ export default function App() {
                         <p className="text-2xl font-black group-hover:text-[#007aff] transition-colors">Select assets to convert</p>
                         <p className="text-white/20 font-bold uppercase tracking-widest text-sm">PNG • JPG • WEBP</p>
                       </div>
-                      <button className="bg-white/5 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-white/10 group-hover:bg-[#007aff] group-hover:text-white transition-all">Import Photos</button>
+                      <button className="bg-white/5 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-white/10 group-hover:bg-[#007aff] group-hover:text-white transition-all font-bold">Import Photos</button>
                   </div>
                </div>
              ) : (
@@ -968,7 +984,7 @@ export default function App() {
                         {activeTool === ToolType.FILTER && (
                           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="flex overflow-x-auto no-scrollbar gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner">
-                              {(['Modern', 'Studio', 'Vintage', 'Artistic', 'Glitch', 'Cartoon'] as const).map(cat => (
+                              {(['Modern', 'Studio', 'Vintage', 'Cinematic', 'Artistic', 'Glitch', 'Cartoon'] as const).map(cat => (
                                 <button key={cat} onClick={() => setLookCategory(cat)} className={`flex-1 min-w-[80px] py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${lookCategory === cat ? 'bg-[#007aff] text-white shadow-lg' : 'text-white/30 hover:text-white'}`}>{cat}</button>
                               ))}
                             </div>
@@ -983,6 +999,133 @@ export default function App() {
                               ))}
                             </div>
                           </div>
+                        )}
+                        {activeTool === ToolType.CROP && (
+                           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                             <div className="space-y-6">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 px-2">Numerical Inputs (px)</p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {[
+                                        { label: 'X', key: 'x' as const },
+                                        { label: 'Y', key: 'y' as const },
+                                        { label: 'Width', key: 'w' as const },
+                                        { label: 'Height', key: 'h' as const }
+                                    ].map(field => (
+                                        <div key={field.key} className="space-y-1">
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-white/20 pl-2">{field.label}</label>
+                                            <input 
+                                                type="number" 
+                                                value={getCropDisplayValue(field.key)} 
+                                                onChange={(e) => handleManualCropChange(field.key, parseInt(e.target.value) || 0)}
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl py-3 px-4 text-sm font-bold focus:border-[#af52de] outline-none transition-colors tabular-nums text-white"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                             </div>
+                             <div className="space-y-4">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 px-2">Aspect Ratio Presets</p>
+                                <div className="grid grid-cols-3 gap-3">
+                                   {[
+                                     { label: 'Free', r: null },
+                                     { label: 'Square', r: 1 },
+                                     { label: '4:5', r: 0.8 },
+                                     { label: '9:16', r: 0.5625 },
+                                     { label: '3:4', r: 0.75 },
+                                     { label: '16:9', r: 1.777 }
+                                   ].map(ratio => (
+                                     <button 
+                                       key={ratio.label} 
+                                       className="py-4 bg-white/5 rounded-2xl text-[11px] font-black uppercase hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-white/5"
+                                       onClick={() => {
+                                          if (ratio.r) {
+                                            const imgRatio = activeProject.metadata.width / activeProject.metadata.height;
+                                            let w = 80;
+                                            let h = (80 / ratio.r) * imgRatio;
+                                            if (h > 90) {
+                                                h = 80;
+                                                w = (80 * ratio.r) / imgRatio;
+                                            }
+                                            setCropBox({ x: (100 - w) / 2, y: (100 - h) / 2, w, h });
+                                          }
+                                       }}
+                                     >
+                                       {ratio.label}
+                                     </button>
+                                   ))}
+                                </div>
+                             </div>
+                             <button onClick={() => applyTool((img) => imageService.cropImage(img, (cropBox.x/100)*img.width, (cropBox.y/100)*img.height, (cropBox.w/100)*img.width, (cropBox.h/100)*img.height), 'Studio Reframe')} className="w-full py-6 rounded-3xl bg-[#af52de] font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#af52de]/90">Apply Reframe</button>
+                           </div>
+                        )}
+                        {activeTool === ToolType.RESIZE && (
+                          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="grid grid-cols-2 gap-6">
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Width</label>
+                                <input type="number" value={width} onChange={e => setWidth(e.target.value)} placeholder={activeProject.metadata.width.toString()} className="w-full bg-black/40 border border-white/10 rounded-3xl p-6 text-2xl font-black outline-none focus:border-[#007aff] transition-all tabular-nums text-white" />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Height</label>
+                                <input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder={activeProject.metadata.height.toString()} className="w-full bg-black/40 border border-white/10 rounded-3xl p-6 text-2xl font-black outline-none focus:border-[#007aff] transition-all tabular-nums text-white" />
+                              </div>
+                            </div>
+                            <button onClick={() => applyTool((img) => imageService.resizeImage(img, parseInt(width) || img.width, parseInt(height) || img.height), 'Resampling')} className="w-full py-6 rounded-3xl bg-[#007aff] font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#007aff]/90">Confirm Rescale</button>
+                          </div>
+                        )}
+                        {activeTool === ToolType.ROTATE && (
+                           <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                              <div className="space-y-6">
+                                 <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
+                                    <span>Precision Rotation</span>
+                                    <span className="text-white tabular-nums">{rotation}°</span>
+                                 </div>
+                                 <input type="range" min="-45" max="45" value={rotation} onChange={e => setRotation(parseInt(e.target.value))} className="w-full" />
+                                 <div className="flex gap-4">
+                                    <button onClick={() => applyTool(img => imageService.rotateImage(img, -90), 'Rotate Left')} className="flex-1 py-4 bg-white/5 rounded-2xl flex flex-col items-center gap-2 hover:bg-white/10 transition-all active:scale-90"><RotateIcon className="w-5 h-5 -scale-x-100" /><span className="text-[9px] font-black uppercase">-90°</span></button>
+                                    <button onClick={() => applyTool(img => imageService.rotateImage(img, 90), 'Rotate Right')} className="flex-1 py-4 bg-white/5 rounded-2xl flex flex-col items-center gap-2 hover:bg-white/10 transition-all active:scale-90"><RotateIcon className="w-5 h-5" /><span className="text-[9px] font-black uppercase">+90°</span></button>
+                                 </div>
+                              </div>
+                              <button onClick={() => applyTool(img => imageService.rotateImage(img, rotation), 'Fine Rotate')} className="w-full py-6 rounded-3xl bg-[#007aff] font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#007aff]/90">Apply Rotation</button>
+                           </div>
+                        )}
+                        {activeTool === ToolType.MIRROR && (
+                           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                              <div className="grid grid-cols-2 gap-4">
+                                 <button onClick={() => applyTool(img => imageService.flipImage(img, 'horizontal'), 'Horizontal Flip')} className="py-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center gap-4 group hover:border-[#007aff] transition-all active:scale-95">
+                                    <MirrorIcon className="w-8 h-8 text-[#007aff] group-hover:scale-110 transition-transform" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Horizontal</span>
+                                 </button>
+                                 <button onClick={() => applyTool(img => imageService.flipImage(img, 'vertical'), 'Vertical Flip')} className="py-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center gap-4 group hover:border-[#af52de] transition-all active:scale-95">
+                                    <MirrorIcon className="w-8 h-8 text-[#af52de] rotate-90 group-hover:scale-110 transition-transform" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Vertical</span>
+                                 </button>
+                              </div>
+                           </div>
+                        )}
+                        {activeTool === ToolType.COMPRESS && (
+                           <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                              <div className="space-y-4">
+                                 <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
+                                    <span>Quality Profile</span>
+                                    <span className="text-white tabular-nums">{Math.round(compressQuality*100)}%</span>
+                                 </div>
+                                 <input type="range" min="0.1" max="1.0" step="0.05" value={compressQuality} onChange={e => setCompressQuality(parseFloat(e.target.value))} className="w-full" />
+                              </div>
+                              <button onClick={() => applyTool(img => imageService.compressImage(img, compressQuality), 'Shrinking')} className="w-full py-6 rounded-3xl bg-[#34c759] text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#34c759]/90">Execute Compression</button>
+                           </div>
+                        )}
+                        {activeTool === ToolType.PIXELATE && (
+                           <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                              <div className="space-y-4">
+                                 <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
+                                    <span>Pixel Density</span>
+                                    <span className="text-white tabular-nums">{Math.round(pixelScale*100)}%</span>
+                                 </div>
+                                 <input type="range" min="0.01" max="0.5" step="0.01" value={pixelScale} onChange={e => setPixelScale(parseFloat(e.target.value))} className="w-full" />
+                              </div>
+                              <button onClick={() => applyTool(img => imageService.pixelateImage(img, pixelScale), 'Retro Engine')} className="w-full py-6 rounded-3xl bg-[#ff9500] text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#ff9500]/90">Apply Pixelation</button>
+                           </div>
                         )}
                       </div>
                     ) : (
@@ -1052,4 +1195,3 @@ export default function App() {
     </div>
   );
 }
-
