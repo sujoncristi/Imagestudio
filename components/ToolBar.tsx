@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { ToolType } from '../types.ts';
 import { 
-  ResizeIcon, CropIcon, RotateIcon, SparklesIcon, 
-  MirrorIcon, BWIcon, PixelIcon, CompressIcon, FilterIcon, AdjustmentsIcon, MagicWandIcon, GrainIcon
+  ResizeIcon, CropIcon, RotateIcon, 
+  MirrorIcon, BWIcon, PixelIcon, CompressIcon, FilterIcon, AdjustmentsIcon, GrainIcon
 } from './Icons.tsx';
 
 interface ToolBarProps {
@@ -17,7 +17,6 @@ const ToolBar: React.FC<ToolBarProps> = ({ activeTool, onSelectTool }) => {
   const tools = [
     { id: ToolType.ADJUST, label: 'Adjust', icon: AdjustmentsIcon, tooltip: 'Grade Colors' },
     { id: ToolType.FILTER, label: 'Look', icon: FilterIcon, tooltip: 'Artistic Presets' },
-    { id: ToolType.NEURAL_EDIT, label: 'GenAI', icon: MagicWandIcon, tooltip: 'Neural Modification' },
     { id: ToolType.CROP, label: 'Crop', icon: CropIcon, tooltip: 'Reframing' },
     { id: ToolType.RESIZE, label: 'Resize', icon: ResizeIcon, tooltip: 'Scale Dimensions' },
     { id: ToolType.GRAIN, label: 'Texture', icon: GrainIcon, tooltip: 'Analog Grain' },
@@ -26,7 +25,6 @@ const ToolBar: React.FC<ToolBarProps> = ({ activeTool, onSelectTool }) => {
     { id: ToolType.MIRROR, label: 'Flip', icon: MirrorIcon, tooltip: 'Mirror Flip' },
     { id: ToolType.COMPRESS, label: 'Shrink', icon: CompressIcon, tooltip: 'Minimize Size' },
     { id: ToolType.PIXELATE, label: '8-Bit', icon: PixelIcon, tooltip: 'Retro Pixels' },
-    { id: ToolType.AI_ANALYZE, label: 'Expert', icon: SparklesIcon, tooltip: 'AI Insights' },
   ];
 
   return (
