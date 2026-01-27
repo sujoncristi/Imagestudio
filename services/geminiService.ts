@@ -1,17 +1,35 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-export async function analyzeImage(imageBase64: string, mimeType: string = 'image/png') {
+// Helper function to convert a URL (blob or remote) to base64 for Gemini inlineData
+async function fileToData(url: string): Promise<{ data: string, mimeType: string }> {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64data = (reader.result as string).split(',')[1];
+      resolve({ data: base64data, mimeType: blob.type });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+export async function analyzeImage(imageUrl: string, mimeType: string = 'image/png') {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
+  // Fix: Ensure we pass base64 data from the URL to Gemini
+  const { data, mimeType: detectedMimeType } = await fileToData(imageUrl);
+
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: {
       parts: [
         {
           inlineData: {
-            mimeType: mimeType,
-            data: imageBase64.split(',')[1],
+            mimeType: detectedMimeType || mimeType,
+            data: data,
           },
         },
         {
@@ -74,17 +92,20 @@ export async function analyzeImage(imageBase64: string, mimeType: string = 'imag
   return response.text;
 }
 
-export async function neuralEdit(imageBase64: string, prompt: string, mimeType: string = 'image/png') {
+export async function neuralEdit(imageUrl: string, prompt: string, mimeType: string = 'image/png') {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
+  // Fix: Ensure we pass base64 data from the URL to Gemini
+  const { data, mimeType: detectedMimeType } = await fileToData(imageUrl);
+
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
     contents: {
       parts: [
         {
           inlineData: {
-            mimeType: mimeType,
-            data: imageBase64.split(',')[1],
+            mimeType: detectedMimeType || mimeType,
+            data: data,
           },
         },
         {

@@ -56,7 +56,7 @@ export const addBorder = async (
   
   ctx.drawImage(img, 0, 0);
   ctx.strokeStyle = color;
-  ctx.lineWidth = pxThickness * 2; // Stroke is centered, so double it for inner-feeling border
+  ctx.lineWidth = pxThickness * 2; // Stroke is centered
   ctx.strokeRect(0, 0, img.width, img.height);
   
   return canvas.toDataURL(format);
@@ -97,6 +97,7 @@ export const compressImage = async (
   if (!ctx) throw new Error('Could not get canvas context');
 
   ctx.drawImage(img, 0, 0);
+  // Fix: Corrected typo 'toToDataURL' to 'toDataURL'
   return canvas.toDataURL(format, quality);
 };
 
@@ -176,5 +177,32 @@ export const pixelateImage = async (
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(tempCanvas, 0, 0, w, h, 0, 0, canvas.width, canvas.height);
   
+  return canvas.toDataURL(format);
+};
+
+export const addGrain = async (
+  img: HTMLImageElement,
+  amount: number, // 0 to 100
+  format: string = 'image/png'
+): Promise<string> => {
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not get canvas context');
+
+  ctx.drawImage(img, 0, 0);
+  
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  
+  for (let i = 0; i < data.length; i += 4) {
+    const noise = (Math.random() - 0.5) * (amount * 2.55);
+    data[i] = Math.min(255, Math.max(0, data[i] + noise));
+    data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
+    data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
+  }
+  
+  ctx.putImageData(imageData, 0, 0);
   return canvas.toDataURL(format);
 };

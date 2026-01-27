@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { ToolType } from '../types.ts';
 import { 
   ResizeIcon, CropIcon, RotateIcon, 
-  MirrorIcon, BWIcon, PixelIcon, CompressIcon, FilterIcon, AdjustmentsIcon, GrainIcon
+  MirrorIcon, BWIcon, PixelIcon, CompressIcon, FilterIcon, AdjustmentsIcon, GrainIcon, BorderIcon
 } from './Icons.tsx';
 
 interface ToolBarProps {
@@ -15,14 +16,16 @@ const ToolBar: React.FC<ToolBarProps> = ({ activeTool, onSelectTool }) => {
 
   const tools = [
     { id: ToolType.ADJUST, label: 'Adjust', icon: AdjustmentsIcon, tooltip: 'Grade Colors' },
-    { id: ToolType.FILTER, label: 'Look', icon: FilterIcon, tooltip: 'Artistic Presets' },
+    { id: ToolType.FILTER, label: 'Filter', icon: FilterIcon, tooltip: 'Artistic Looks' },
     { id: ToolType.CROP, label: 'Crop', icon: CropIcon, tooltip: 'Reframing' },
-    { id: ToolType.RESIZE, label: 'Resize', icon: ResizeIcon, tooltip: 'Scale Dimensions' },
-    { id: ToolType.BW, label: 'Mono', icon: BWIcon, tooltip: 'Black & White' },
+    { id: ToolType.RESIZE, label: 'Resize', icon: ResizeIcon, tooltip: 'Scale Assets' },
+    { id: ToolType.BW, label: 'Mono', icon: BWIcon, tooltip: 'Monochrome' },
     { id: ToolType.ROTATE, label: 'Rotate', icon: RotateIcon, tooltip: 'Rotate 90°' },
-    { id: ToolType.MIRROR, label: 'Flip', icon: MirrorIcon, tooltip: 'Mirror Assets' },
-    { id: ToolType.COMPRESS, label: 'Shrink', icon: CompressIcon, tooltip: 'Minimize Size' },
-    { id: ToolType.PIXELATE, label: '8-Bit', icon: PixelIcon, tooltip: 'Retro Style' },
+    { id: ToolType.MIRROR, label: 'Flip', icon: MirrorIcon, tooltip: 'Mirror' },
+    { id: ToolType.COMPRESS, label: 'Shrink', icon: CompressIcon, tooltip: 'Optimize' },
+    { id: ToolType.PIXELATE, label: '8-Bit', icon: PixelIcon, tooltip: 'Pixelize' },
+    { id: ToolType.GRAIN, label: 'Grain', icon: GrainIcon, tooltip: 'Film Noise' },
+    { id: ToolType.BORDER, label: 'Frame', icon: BorderIcon, tooltip: 'Add Borders' },
   ];
 
   return (
