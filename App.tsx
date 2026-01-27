@@ -8,14 +8,14 @@ import {
   ZoomInIcon, ZoomOutIcon, InfoIcon, 
   EyeIcon, ResetIcon, RotateIcon, FilterIcon,
   ResizeIcon, CropIcon, AdjustmentsIcon, UploadIcon, MirrorIcon, PixelIcon, CompressIcon, MagicWandIcon,
-  GripVerticalIcon, ConvertIcon, SettingsIcon, ChevronRightIcon
+  GripVerticalIcon, ConvertIcon, SettingsIcon, ChevronRightIcon, BWIcon, BorderIcon
 } from './components/Icons.tsx';
 import * as imageService from './services/imageService.ts';
 
 const DEFAULT_SETTINGS: SiteSettings = {
   title: "Imagerize",
-  heroHeadline: "Next-Gen Suite.",
-  heroSubheadline: "Studio Logic.",
+  heroHeadline: "Precision Suite.",
+  heroSubheadline: "Creative Logic.",
   heroDescription: "The ultimate pro workspace for high-fidelity image mastering, neural grading, and precision formatting.",
   programmerName: "Sujon Roy",
   programmerRole: "Founder & Studio Head",
@@ -88,7 +88,7 @@ const HeroVisual = ({ accentColor }: { accentColor: string }) => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   
   useEffect(() => {
-    const timer = setInterval(() => setStep((s) => (s + 1) % 4), 4000);
+    const timer = setInterval(() => setStep((s) => (s + 1) % 4), 6000);
     return () => clearInterval(timer);
   }, []);
 
@@ -101,8 +101,8 @@ const HeroVisual = ({ accentColor }: { accentColor: string }) => {
   
   const getStyle = (s: number) => {
     const isMain = s === step;
-    const parallaxX = mousePos.x * 20;
-    const parallaxY = mousePos.y * 20;
+    const parallaxX = mousePos.x * 40;
+    const parallaxY = mousePos.y * 40;
     
     switch(s) {
       case 1: return { filter: 'brightness(1.1) saturate(1.4) contrast(1.1)', opacity: isMain ? 1 : 0, transform: isMain ? `translate(${parallaxX}px, ${parallaxY}px) scale(1)` : 'scale(1.1) rotate(2deg)' };
@@ -112,19 +112,17 @@ const HeroVisual = ({ accentColor }: { accentColor: string }) => {
     }
   };
 
-  const labels = ["RAW CAPTURE", "STUDIO VIVID", "NOIR MONO", "FILM CLASSIC"];
+  const labels = ["RAW FIDELITY", "NEURAL POLISH", "MONO PRECISION", "CLASSIC FILM"];
 
   return (
     <div 
-      className="relative w-full max-w-5xl mx-auto aspect-[2.4/1] mb-12 px-4 group cursor-default"
+      className="relative w-full max-w-6xl mx-auto aspect-[2.4/1] mb-12 px-4 group cursor-default perspective-1000"
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setMousePos({ x: 0, y: 0 })}
     >
-      <div className="absolute inset-0 blur-[160px] rounded-full animate-pulse opacity-40 transition-all duration-1000 group-hover:opacity-60" style={{ backgroundImage: `radial-gradient(circle at center, ${accentColor}, transparent)` }}></div>
-      
-      <div className="relative h-full w-full bg-[#0a0a0c] rounded-[4rem] p-3 border border-white/10 shadow-[0_32px_120px_-30px_rgba(0,0,0,1)] overflow-hidden flex items-center justify-center transition-all duration-1000 group-hover:border-white/20">
+      <div className="relative h-full w-full bg-[#0a0a0c]/40 ios-blur rounded-[4rem] p-4 border border-white/5 shadow-[0_60px_100px_-20px_rgba(0,0,0,1)] overflow-hidden flex items-center justify-center transition-all duration-1000 group-hover:border-white/10">
         <div className="absolute top-12 left-0 right-0 flex justify-center z-30 pointer-events-none">
-          <div className="bg-black/80 ios-blur px-8 py-3 rounded-full border border-white/10 text-[11px] font-black uppercase tracking-[0.5em] shadow-2xl transition-all duration-700 group-hover:tracking-[0.6em]" style={{ color: accentColor }}>
+          <div className="bg-black/90 ios-blur px-12 py-4 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-[0.8em] shadow-2xl transition-all duration-700 group-hover:tracking-[1em]" style={{ color: accentColor }}>
             {labels[step]}
           </div>
         </div>
@@ -132,113 +130,53 @@ const HeroVisual = ({ accentColor }: { accentColor: string }) => {
         {[0, 1, 2, 3].map((s) => (
            <img 
             key={s}
-            src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop" 
-            className="absolute inset-3 w-[calc(100%-1.5rem)] h-[calc(100%-1.5rem)] object-cover rounded-[3.2rem] transition-all duration-[1500ms] cubic-bezier(0.19, 1, 0.22, 1)" 
+            src="https://images.unsplash.com/photo-1542332213-31f87348057f?q=80&w=1600&auto=format&fit=crop" 
+            className="absolute inset-4 w-[calc(100%-2rem)] h-[calc(100%-2rem)] object-cover rounded-[3.5rem] transition-all duration-[2500ms] cubic-bezier(0.19, 1, 0.22, 1)" 
             style={getStyle(s)} 
           />
         ))}
         
-        <div className="absolute bottom-14 left-20 w-16 h-16 bg-white/5 ios-blur rounded-3xl border border-white/10 flex items-center justify-center shadow-3xl animate-float pointer-events-none z-20" style={{ transform: `translate(${mousePos.x * -40}px, ${mousePos.y * -40}px)` }}><AdjustmentsIcon className="w-8 h-8" style={{ color: accentColor }} /></div>
-        <div className="absolute top-24 right-20 w-14 h-14 bg-white/5 ios-blur rounded-2xl border border-white/10 flex items-center justify-center shadow-3xl animate-float pointer-events-none z-20" style={{animationDelay: '1.5s', transform: `translate(${mousePos.x * -30}px, ${mousePos.y * -30}px)` }}><CropIcon className="w-6 h-6 text-[#af52de]" /></div>
+        {/* Interactive Floating Layers */}
+        <div className="absolute bottom-20 left-32 w-24 h-24 bg-white/5 ios-blur rounded-3xl border border-white/10 flex items-center justify-center shadow-3xl animate-float pointer-events-none z-20" style={{ transform: `translate(${mousePos.x * -80}px, ${mousePos.y * -80}px)` }}><AdjustmentsIcon className="w-12 h-12" style={{ color: accentColor }} /></div>
+        <div className="absolute top-32 right-32 w-20 h-20 bg-white/5 ios-blur rounded-[2rem] border border-white/10 flex items-center justify-center shadow-3xl animate-float pointer-events-none z-20" style={{animationDelay: '2.5s', transform: `translate(${mousePos.x * -50}px, ${mousePos.y * -50}px)` }}><CropIcon className="w-10 h-10 text-[#af52de]" /></div>
+        <div className="absolute bottom-40 right-48 w-14 h-14 bg-white/5 ios-blur rounded-2xl border border-white/10 flex items-center justify-center shadow-3xl animate-float pointer-events-none z-20" style={{animationDelay: '1.2s', transform: `translate(${mousePos.x * -110}px, ${mousePos.y * -110}px)` }}><SparklesIcon className="w-7 h-7 text-white/50" /></div>
         
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none z-10 opacity-20 group-hover:opacity-30 transition-opacity"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/20 pointer-events-none z-10 opacity-30"></div>
       </div>
     </div>
   );
 };
 
-const ShowcaseSection = ({ accentColor }: { accentColor: string }) => {
-  const [sliderPos, setSliderPos] = useState(50);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    setSliderPos(Math.min(Math.max(x, 0), 100));
-  };
-
-  return (
-    <div className="w-full max-w-6xl mx-auto px-6 mb-32 animate-in fade-in duration-1000 delay-500">
-      <div className="flex flex-col md:flex-row items-end justify-between mb-10 gap-6">
-        <div className="space-y-2">
-          <h4 className="text-[11px] font-black tracking-[0.4em] uppercase" style={{ color: accentColor }}>Neural Precision</h4>
-          <h3 className="text-4xl font-black tracking-tighter">See the Difference</h3>
-        </div>
-        <p className="text-white/30 font-medium max-w-sm text-sm">Our 32-bit floating point processing engine preserves every bit of data while mastering colors.</p>
-      </div>
-      
-      <div 
-        ref={containerRef}
-        className="relative aspect-[21/9] rounded-[4rem] overflow-hidden border border-white/5 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] cursor-ew-resize group"
-        onMouseMove={handleMouseMove}
-      >
-        <img 
-          src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200&auto=format&fit=crop" 
-          className="absolute inset-0 w-full h-full object-cover filter saturate-[2] contrast-[1.2] brightness-[1.1]" 
-          alt="After"
-        />
-        <div 
-          className="absolute inset-0 w-full h-full overflow-hidden" 
-          style={{ width: `${sliderPos}%` }}
-        >
-          <img 
-            src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200&auto=format&fit=crop" 
-            className="absolute inset-0 w-[100vw] h-full object-cover grayscale" 
-            alt="Before"
-            style={{ width: containerRef.current?.offsetWidth || '1000px' }}
-          />
-        </div>
-        
-        <div 
-          className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_20px_rgba(255,255,255,0.5)] z-20 pointer-events-none"
-          style={{ left: `${sliderPos}%` }}
-        >
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-2xl">
-            <MirrorIcon className="w-5 h-5 text-black" />
-          </div>
-        </div>
-        
-        <div className="absolute bottom-10 left-10 z-10 px-6 py-2 bg-black/40 ios-blur border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest">Baseline Raw</div>
-        <div className="absolute bottom-10 right-10 z-10 px-6 py-2 border rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl" style={{ backgroundColor: accentColor, borderColor: `${accentColor}80` }}>Mastered Output</div>
-      </div>
-    </div>
-  );
-};
-
-// New Activity Map Component
 const ActivityMap = ({ logs, accentColor }: { logs: AppLog[], accentColor: string }) => {
   return (
-    <div className="relative w-full aspect-[2/1] bg-black/40 rounded-3xl overflow-hidden border border-white/5 group">
+    <div className="relative w-full aspect-[2/1] bg-[#0c0c0e]/90 ios-blur rounded-[3.5rem] overflow-hidden border border-white/5 group shadow-2xl">
+      <div className="absolute inset-0 opacity-5" style={{ backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`, backgroundSize: '24px 24px' }}></div>
       <svg className="w-full h-full opacity-20" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M150 150Q250 50 400 200T650 150" stroke="white" strokeWidth="0.5" strokeDasharray="4 4" />
-        <path d="M100 250Q300 350 500 200T750 250" stroke="white" strokeWidth="0.5" strokeDasharray="4 4" />
-        <circle cx="200" cy="180" r="2" fill="white" />
-        <circle cx="450" cy="220" r="2" fill="white" />
-        <circle cx="600" cy="120" r="2" fill="white" />
+        <path d="M100 200Q200 100 400 200T700 200" stroke="white" strokeWidth="0.5" strokeDasharray="8 8" />
+        <path d="M50 300Q300 400 500 200T750 100" stroke="white" strokeWidth="0.5" strokeDasharray="8 8" />
+        <circle cx="150" cy="180" r="3" fill="white" className="animate-pulse" />
+        <circle cx="500" cy="220" r="3" fill="white" className="animate-pulse" style={{animationDelay: '0.7s'}} />
+        <circle cx="650" cy="130" r="3" fill="white" className="animate-pulse" style={{animationDelay: '1.4s'}} />
       </svg>
-      <div className="absolute inset-0 p-6 flex flex-col justify-between">
+      <div className="absolute inset-0 p-10 flex flex-col justify-between">
         <div className="flex justify-between items-start">
-           <div>
-              <h5 className="text-[10px] font-black uppercase tracking-widest text-white/40">Global Pulse</h5>
-              <p className="text-xl font-black">Live Activity</p>
+           <div className="space-y-1">
+              <h5 className="text-[9px] font-black uppercase tracking-[0.5em] text-white/20">Studio Network</h5>
+              <p className="text-3xl font-black tracking-tighter">Global Signal</p>
            </div>
-           <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">Real-time Stream</span>
+           <div className="flex items-center gap-4 px-5 py-2.5 bg-green-500/5 border border-green-500/20 rounded-full shadow-lg">
+              <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(34,197,94,0.6)]"></div>
+              <span className="text-[11px] font-black text-green-500 uppercase tracking-[0.2em]">Telemetry Active</span>
            </div>
         </div>
-        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+        <div className="flex gap-5 overflow-x-auto no-scrollbar pb-2">
            {logs.slice(0, 5).map((log, i) => (
-             <div key={log.id} className="min-w-[140px] p-3 bg-black/60 ios-blur border border-white/10 rounded-2xl animate-in slide-in-from-right-4" style={{animationDelay: `${i*100}ms`}}>
-                <p className="text-[8px] font-black uppercase text-white/30 mb-1">{log.location?.split(',')[0] || 'Studio'}</p>
-                <p className="text-[10px] font-bold truncate">{log.details}</p>
+             <div key={log.id} className="min-w-[180px] p-5 bg-black/60 ios-blur border border-white/10 rounded-[2rem] animate-in slide-in-from-right-8 shadow-2xl" style={{animationDelay: `${i*150}ms`}}>
+                <p className="text-[10px] font-black uppercase text-white/20 mb-2 tracking-widest">{log.location?.split(',')[0] || 'Studio-Local'}</p>
+                <p className="text-[13px] font-bold truncate text-white/90">{log.details}</p>
              </div>
            ))}
         </div>
-      </div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-         <div className="w-32 h-32 rounded-full border border-white/5 animate-ping opacity-20"></div>
       </div>
     </div>
   );
@@ -249,8 +187,10 @@ export default function App() {
   const [settings, setSettings] = useState<SiteSettings>(() => {
     const saved = localStorage.getItem('imagerize_settings');
     if (saved) {
-      const parsed = JSON.parse(saved);
-      return { ...DEFAULT_SETTINGS, ...parsed };
+      try {
+        const parsed = JSON.parse(saved);
+        return { ...DEFAULT_SETTINGS, ...parsed };
+      } catch(e) { return DEFAULT_SETTINGS; }
     }
     return DEFAULT_SETTINGS;
   });
@@ -267,13 +207,11 @@ export default function App() {
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [isComparing, setIsComparing] = useState(false);
 
-  // Advanced Global Log Recorder
   const recordLog = (log: Omit<AppLog, 'id' | 'timestamp' | 'browser' | 'os' | 'screenSize' | 'deviceType'>) => {
     const ua = navigator.userAgent;
     const getOS = () => {
         if (ua.indexOf("Win") !== -1) return "Windows";
         if (ua.indexOf("Mac") !== -1) return "macOS";
-        if (ua.indexOf("Linux") !== -1) return "Linux";
         if (ua.indexOf("Android") !== -1) return "Android";
         if (ua.indexOf("like Mac") !== -1) return "iOS";
         return "Unknown OS";
@@ -283,7 +221,7 @@ export default function App() {
       ...log,
       id: Math.random().toString(36).substr(2, 9),
       timestamp: Date.now(),
-      browser: ua.includes("Chrome") ? "Chrome" : ua.includes("Firefox") ? "Firefox" : ua.includes("Safari") ? "Safari" : "Other",
+      browser: ua.includes("Chrome") ? "Chrome" : ua.includes("Firefox") ? "Firefox" : ua.includes("Safari") ? "Safari" : "Engine",
       os: getOS(),
       screenSize: `${window.screen.width}x${window.screen.height}`,
       deviceType: /Mobile|Android|iPhone/i.test(ua) ? "Mobile" : "Desktop"
@@ -296,29 +234,38 @@ export default function App() {
     });
   };
 
-  // Telemetry Fetching
+  const analyticsStats = useMemo(() => ({
+    totalUploads: logs.filter(l => l.type === 'upload').length,
+    totalInteractions: logs.filter(l => l.type === 'click').length,
+    secureVisits: logs.filter(l => l.type === 'visit' || l.type === 'security').length,
+  }), [logs]);
+
+  const clearLogs = () => {
+    if (confirm("Purge system telemetry? All session data will be permanently erased.")) {
+      setLogs([]);
+      localStorage.removeItem('imagerize_logs');
+      recordLog({ type: 'security', details: 'Telemetry Purged' });
+    }
+  };
+
   useEffect(() => {
     const initTelemetry = async () => {
-      let location = "Unknown Studio";
+      let location = "Global Gateway";
       try {
         const response = await fetch('https://ipapi.co/json/');
         const data = await response.json();
         location = `${data.city}, ${data.country_name}`;
-      } catch (e) { console.warn("Privacy: Location masked"); }
-      
-      recordLog({ 
-        type: 'visit', 
-        details: 'Secure Studio Entry', 
-        location 
-      });
+      } catch (e) { console.warn("Privacy check: masked"); }
+      recordLog({ type: 'visit', details: 'Secure Session Initiated', location });
     };
     initTelemetry();
 
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const clickable = target && typeof target.closest === 'function' ? target.closest('button, a') as HTMLElement | null : null;
+      // Fixed: Casting to HTMLElement for TypeScript properties
+      const clickable = target && typeof target.closest === 'function' ? (target.closest('button, a') as HTMLElement | null) : null;
       if (clickable) {
-        const label = clickable.innerText.trim().slice(0, 20) || clickable.title || 'Control Action';
+        const label = clickable.innerText.trim().slice(0, 30) || clickable.title || 'Control Trigger';
         recordLog({ type: 'click', details: `Interaction: ${label}` });
       }
     };
@@ -326,13 +273,12 @@ export default function App() {
     return () => window.removeEventListener('click', handleGlobalClick);
   }, []);
 
-  // Persistence
   useEffect(() => {
     localStorage.setItem('imagerize_settings', JSON.stringify(settings));
-    document.title = `${settings.title} | Control Center`;
+    document.title = `${settings.title} | Studio Suite`;
   }, [settings]);
 
-  // Interaction State
+  // Editor Interaction State
   const [zoom, setZoom] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -340,29 +286,15 @@ export default function App() {
   const panStartOffset = useRef({ x: 0, y: 0 });
   const previewContainerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  const [draggedThumbnailIndex, setDraggedThumbnailIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   
-  // Crop specific State
+  // Advanced Tool States
   const [cropBox, setCropBox] = useState({ x: 10, y: 10, w: 80, h: 80 });
-  const [activeCropHandle, setActiveCropHandle] = useState<string | null>(null);
-  const cropStartPos = useRef({ x: 0, y: 0 });
-  const initialCropBox = useRef({ x: 0, y: 0, w: 0, h: 0 });
-
-  // Formatting State
-  const [targetFormat, setTargetFormat] = useState<string>('image/jpeg');
-  const [formatQuality, setFormatQuality] = useState(0.9);
-
-  // Tool specific State
-  const [width, setWidth] = useState<string>('');
-  const [height, setHeight] = useState<string>('');
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
   const [saturate, setSaturate] = useState(100);
   const [rotation, setRotation] = useState(0);
   const [pixelScale, setPixelScale] = useState(0.1);
   const [compressQuality, setCompressQuality] = useState(0.8);
-
   const [lookCategory, setLookCategory] = useState<'Modern' | 'Studio' | 'Vintage' | 'Cinematic' | 'Artistic' | 'Glitch' | 'Cartoon'>('Modern');
 
   const activeProject = projects[activeIndex] || null;
@@ -375,7 +307,7 @@ export default function App() {
         setTimeout(() => {
           setIsAuthorized(true);
           setPasscodeAttempt('');
-          recordLog({ type: 'security', details: 'Authorized Control Access' });
+          recordLog({ type: 'security', details: 'Vault Authorization Granted' });
         }, 300);
       } else if (next.length === 4) {
         setTimeout(() => {
@@ -383,43 +315,16 @@ export default function App() {
             const el = document.getElementById('passcode-container');
             el?.classList.add('animate-shake');
             setTimeout(() => el?.classList.remove('animate-shake'), 400);
-            recordLog({ type: 'security', details: 'Failed Access Attempt' });
+            recordLog({ type: 'security', details: 'Vault Auth Failure' });
         }, 300);
       }
     }
   };
 
-  const updateActiveProject = (updated: ProjectImage) => {
-    const newProjects = [...projects];
-    newProjects[activeIndex] = updated;
-    setProjects(newProjects);
-  };
-
-  const addToHistory = (url: string, meta: ImageMetadata, action?: string) => {
-    if (!activeProject) return;
-    const newHistory = activeProject.history.slice(0, activeProject.historyIndex + 1);
-    newHistory.push({ url, metadata: meta, action });
-    updateActiveProject({ ...activeProject, url, metadata: meta, history: newHistory, historyIndex: newHistory.length - 1 });
-  };
-
-  const undo = () => {
-    if (!activeProject || activeProject.historyIndex <= 0) return;
-    const idx = activeProject.historyIndex - 1;
-    const prev = activeProject.history[idx];
-    updateActiveProject({ ...activeProject, url: prev.url, metadata: prev.metadata, historyIndex: idx });
-  };
-
-  const redo = () => {
-    if (!activeProject || activeProject.historyIndex >= activeProject.history.length - 1) return;
-    const idx = activeProject.historyIndex + 1;
-    const next = activeProject.history[idx];
-    updateActiveProject({ ...activeProject, url: next.url, metadata: next.metadata, historyIndex: idx });
-  };
-
   const startTask = (msg: string) => { setProcessing(true); setLoadingMessage(msg); };
   const endTask = () => { setProcessing(false); setLoadingMessage(''); };
 
-  const applyTool = async (task: (img: HTMLImageElement) => Promise<string>, actionName: string, actionTag?: string) => {
+  const applyTool = async (task: (img: HTMLImageElement) => Promise<string>, actionName: string) => {
     if (!activeProject) return;
     startTask(`${actionName}...`);
     try {
@@ -428,17 +333,24 @@ export default function App() {
       const finalImg = await imageService.loadImage(url);
       const response = await fetch(url);
       const blob = await response.blob();
-      addToHistory(url, { ...activeProject.metadata, width: finalImg.width, height: finalImg.height, size: blob.size, format: blob.type }, actionTag);
+      
+      const updatedHistory = activeProject.history.slice(0, activeProject.historyIndex + 1);
+      const newMeta = { ...activeProject.metadata, width: finalImg.width, height: finalImg.height, size: blob.size, format: blob.type };
+      updatedHistory.push({ url, metadata: newMeta, action: actionName });
+      
+      const newProjects = [...projects];
+      newProjects[activeIndex] = { ...activeProject, url, metadata: newMeta, history: updatedHistory, historyIndex: updatedHistory.length - 1 };
+      setProjects(newProjects);
       setActiveTool(null);
-      recordLog({ type: 'click', details: `Engine: ${actionName}` });
+      recordLog({ type: 'click', details: `Orchestrated: ${actionName}` });
     } catch (e) { 
       console.error(e); 
-      alert("An error occurred during processing.");
+      alert("Asset processing failed.");
     } finally { endTask(); }
   };
 
   const handleUpload = async (files: File[]) => {
-    startTask('Preparing Studio...');
+    startTask('Initializing Suite...');
     const newProjects: ProjectImage[] = await Promise.all(files.map(async (file) => {
       const url = URL.createObjectURL(file);
       const img = await imageService.loadImage(url);
@@ -446,13 +358,7 @@ export default function App() {
         width: img.width, height: img.height, format: file.type,
         size: file.size, originalSize: file.size, name: file.name
       };
-      
-      recordLog({ 
-        type: 'upload', 
-        details: `Import: ${file.name}`,
-        thumbnail: url 
-      });
-
+      recordLog({ type: 'upload', details: `Import: ${file.name}`, thumbnail: url });
       return { id: Math.random().toString(36).substr(2, 9), url, metadata: meta, history: [{ url, metadata: meta }], historyIndex: 0 };
     }));
     setProjects(prev => [...prev, ...newProjects]);
@@ -461,358 +367,171 @@ export default function App() {
     endTask();
   };
 
-  const handleFormatUpload = async (files: File[]) => {
-    if (files.length === 0) return;
-    startTask('Initializing Format Converter...');
-    const newProjects: ProjectImage[] = await Promise.all(files.map(async (file) => {
-      const url = URL.createObjectURL(file);
-      const img = await imageService.loadImage(url);
-      const meta: ImageMetadata = {
-        width: img.width, height: img.height, format: file.type,
-        size: file.size, originalSize: file.size, name: file.name
-      };
-      
-      recordLog({ type: 'upload', details: `Transcode Input: ${file.name}`, thumbnail: url });
-
-      return { id: Math.random().toString(36).substr(2, 9), url, metadata: meta, history: [{ url, metadata: meta }], historyIndex: 0 };
-    }));
-    setProjects(prev => [...prev, ...newProjects]);
-    setActiveIndex(projects.length);
-    endTask();
-  };
-
-  const handleAutoEnhance = async (files: File[]) => {
-    if (files.length === 0) return;
-    const file = files[0];
-    startTask('Intelligent Analysis...');
-    setTimeout(() => setLoadingMessage('Balancing Tones...'), 1000);
-    setTimeout(() => setLoadingMessage('Polishing Highlights...'), 2000);
-    
-    try {
-      const originalUrl = URL.createObjectURL(file);
-      const img = await imageService.loadImage(originalUrl);
-      
-      const enhancedUrl = await imageService.applyFilter(img, 'brightness(1.05) contrast(1.15) saturate(1.25)');
-      const finalImg = await imageService.loadImage(enhancedUrl);
-      const finalBlob = await (await fetch(enhancedUrl)).blob();
-
-      const meta: ImageMetadata = {
-        width: finalImg.width, height: finalImg.height, format: finalBlob.type,
-        size: finalBlob.size, originalSize: file.size, name: `Enhanced_${file.name}`
-      };
-
-      const newProject: ProjectImage = {
-        id: Math.random().toString(36).substr(2, 9),
-        url: enhancedUrl,
-        metadata: meta,
-        history: [
-          { url: originalUrl, metadata: { ...meta, width: img.width, height: img.height, size: file.size, format: file.type } },
-          { url: enhancedUrl, metadata: meta, action: 'Auto Enhance' }
-        ],
-        historyIndex: 1
-      };
-
-      recordLog({ type: 'upload', details: `Neural AI Polish: ${file.name}`, thumbnail: enhancedUrl });
-
-      await new Promise(r => setTimeout(r, 2500));
-
-      setProjects(prev => [...prev, newProject]);
-      setActiveIndex(projects.length);
-      setView('editor');
-    } catch (e) {
-      alert("Auto enhance failed.");
-    } finally {
-      endTask();
-    }
-  };
-
-  const handleCropOnlyUpload = async (files: File[]) => {
-    if (files.length === 0) return;
-    const file = files[0];
-    startTask('Initializing Crop...');
-    try {
-      const url = URL.createObjectURL(file);
-      const img = await imageService.loadImage(url);
-      const meta: ImageMetadata = {
-        width: img.width, height: img.height, format: file.type,
-        size: file.size, originalSize: file.size, name: `Crop_${file.name}`
-      };
-      const newProject: ProjectImage = {
-        id: Math.random().toString(36).substr(2, 9),
-        url,
-        metadata: meta,
-        history: [{ url, metadata: meta }],
-        historyIndex: 0
-      };
-      setProjects([newProject]);
-      setActiveIndex(0);
-      setActiveTool(ToolType.CROP);
-      setView('editor');
-    } catch (e) {
-      alert("Failed to load image for cropping.");
-    } finally {
-      endTask();
-    }
-  };
-
-  const handleImageMouseDown = (e: React.MouseEvent) => {
-    if (activeTool === ToolType.CROP) return;
-    e.preventDefault();
-    setIsPanning(true);
-    dragStartPos.current = { x: e.clientX, y: e.clientY };
-    panStartOffset.current = { x: panOffset.x, y: panOffset.y };
-  };
-
-  useEffect(() => {
-    const handleGlobalMouseUp = () => {
-      setIsPanning(false);
-      setActiveCropHandle(null);
-    };
-    
-    const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (isPanning) {
-        const dx = e.clientX - dragStartPos.current.x;
-        const dy = e.clientY - dragStartPos.current.y;
-        
-        window.requestAnimationFrame(() => {
-          setPanOffset({ 
-            x: panStartOffset.current.x + dx, 
-            y: panStartOffset.current.y + dy 
-          });
-        });
-      } else if (activeCropHandle && imageRef.current) {
-        const rect = imageRef.current.getBoundingClientRect();
-        const mouseX = ((e.clientX - rect.left) / rect.width) * 100;
-        const mouseY = ((e.clientY - rect.top) / rect.height) * 100;
-        
-        const dx = mouseX - cropStartPos.current.x;
-        const dy = mouseY - cropStartPos.current.y;
-        
-        window.requestAnimationFrame(() => {
-          let { x, y, w, h } = initialCropBox.current;
-          
-          if (activeCropHandle === 'move') {
-            x = Math.max(0, Math.min(100 - w, x + dx));
-            y = Math.max(0, Math.min(100 - h, y + dy));
-          } else {
-            if (activeCropHandle.includes('top')) {
-              const newY = Math.max(0, Math.min(y + h - 5, y + dy));
-              h = h + (y - newY);
-              y = newY;
-            }
-            if (activeCropHandle.includes('bottom')) {
-              h = Math.max(5, Math.min(100 - y, h + dy));
-            }
-            if (activeCropHandle.includes('left')) {
-              const newX = Math.max(0, Math.min(x + w - 5, x + dx));
-              w = w + (x - newX);
-              x = newX;
-            }
-            if (activeCropHandle.includes('right')) {
-              w = Math.max(5, Math.min(100 - x, w + dx));
-            }
-          }
-          setCropBox({ x, y, w, h });
-        });
-      }
-    };
-    
-    window.addEventListener('mouseup', handleGlobalMouseUp);
-    window.addEventListener('mousemove', handleGlobalMouseMove);
-    return () => {
-      window.removeEventListener('mouseup', handleGlobalMouseUp);
-      window.removeEventListener('mousemove', handleGlobalMouseMove);
-    };
-  }, [isPanning, activeCropHandle]);
-
-  const adjustZoom = (delta: number) => {
-    setZoom(prev => {
-      const next = Math.max(0.5, Math.min(5, prev + delta));
-      if (next <= 1) {
-        setPanOffset({ x: 0, y: 0 });
-      }
-      return next;
-    });
-  };
-
-  const handleThumbnailDragStart = (e: React.DragEvent, index: number) => {
-    setDraggedThumbnailIndex(index);
-    e.dataTransfer.setData('thumbnailIndex', index.toString());
-    e.dataTransfer.effectAllowed = 'move';
-    const ghost = new Image();
-    ghost.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; 
-    e.dataTransfer.setDragImage(ghost, 0, 0);
-  };
-
-  const handleThumbnailDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (dragOverIndex !== index) {
-      setDragOverIndex(index);
-    }
-  };
-
-  const handleThumbnailDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    const dragIndexStr = e.dataTransfer.getData('thumbnailIndex');
-    if (!dragIndexStr) return;
-    const dragIndex = parseInt(dragIndexStr);
-    
-    if (dragIndex === dropIndex) {
-      setDraggedThumbnailIndex(null);
-      setDragOverIndex(null);
-      return;
-    }
-
-    const newProjects = [...projects];
-    const [removed] = newProjects.splice(dragIndex, 1);
-    newProjects.splice(dropIndex, 0, removed);
-    
-    const activeProjectId = projects[activeIndex]?.id;
-    const newActiveIndex = newProjects.findIndex(p => p.id === activeProjectId);
-    
-    setProjects(newProjects);
-    setActiveIndex(newActiveIndex === -1 ? 0 : newActiveIndex);
-    setDraggedThumbnailIndex(null);
-    setDragOverIndex(null);
-  };
-
-  const handleCropHandleMouseDown = (e: React.MouseEvent, handle: string) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (!imageRef.current) return;
-    
-    const rect = imageRef.current.getBoundingClientRect();
-    const mouseX = ((e.clientX - rect.left) / rect.width) * 100;
-    const mouseY = ((e.clientY - rect.top) / rect.height) * 100;
-    
-    setActiveCropHandle(handle);
-    cropStartPos.current = { x: mouseX, y: mouseY };
-    initialCropBox.current = { ...cropBox };
-  };
-
-  const handleManualCropChange = (key: keyof typeof cropBox, value: number) => {
-    if (!activeProject) return;
-    let newValue = value;
-    if (key === 'x' || key === 'w') {
-        newValue = (value / activeProject.metadata.width) * 100;
-    } else {
-        newValue = (value / activeProject.metadata.height) * 100;
-    }
-    setCropBox(prev => ({ ...prev, [key]: Math.max(0, Math.min(100, newValue)) }));
-  };
-
-  const getCropDisplayValue = (key: keyof typeof cropBox) => {
-    if (!activeProject) return 0;
-    if (key === 'x' || key === 'w') {
-        return Math.round((cropBox[key] / 100) * activeProject.metadata.width);
-    } else {
-        return Math.round((cropBox[key] / 100) * activeProject.metadata.height);
-    }
-  };
-
-  const executeFormatConversion = async (project: ProjectImage) => {
-    startTask(`Converting ${project.metadata.name}...`);
-    try {
-      const img = await imageService.loadImage(project.url);
-      const convertedUrl = await imageService.compressImage(img, formatQuality, targetFormat);
-      const link = document.createElement('a');
-      link.href = convertedUrl;
-      const extension = targetFormat.split('/')[1];
-      link.download = `${project.metadata.name.split('.')[0]}_converted.${extension}`;
-      link.click();
-      recordLog({ type: 'click', details: `Export: ${extension}` });
-    } catch (e) {
-      alert("Failed to convert image.");
-    } finally {
-      endTask();
-    }
-  };
-
-  const executeBulkConversion = async () => {
-    for (const p of projects) {
-      await executeFormatConversion(p);
-    }
-  };
-
-  const clearLogs = () => {
-    if(confirm("Factory Reset Analytics? All session history will be wiped.")) {
-        setLogs([]);
-        localStorage.removeItem('imagerize_logs');
-    }
-  };
-
-  const analyticsStats = useMemo(() => {
-    return {
-        totalUploads: logs.filter(l => l.type === 'upload').length,
-        totalInteractions: logs.filter(l => l.type === 'click').length,
-        secureVisits: logs.filter(l => l.type === 'visit').length,
-    }
-  }, [logs]);
-
   return (
     <div className="min-h-screen bg-black text-white flex flex-col font-sans selection:bg-[#007aff]/30 overflow-x-hidden">
+      
+      {/* Premium Mesh Background */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+         <div className="absolute top-[-15%] left-[-15%] w-[60%] h-[60%] rounded-full blur-[200px] opacity-10 animate-pulse" style={{ backgroundColor: settings.accentColor }}></div>
+         <div className="absolute bottom-[-15%] right-[-15%] w-[60%] h-[60%] rounded-full blur-[200px] opacity-10 animate-pulse" style={{ backgroundColor: '#af52de', animationDelay: '2s' }}></div>
+         <div className="absolute top-[20%] right-[10%] w-[40%] h-[40%] rounded-full blur-[180px] opacity-5" style={{ backgroundColor: '#ff375f' }}></div>
+      </div>
+
       {processing && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center animate-in fade-in duration-300">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-2xl"></div>
-          <div className="relative bg-[#1c1c1e]/90 ios-blur p-16 rounded-[4rem] flex flex-col items-center gap-10 border border-white/10 shadow-[0_0_100px_rgba(0,122,255,0.2)] spring-in">
-            <div className="relative w-24 h-24">
-              <div className="absolute inset-0 border-[6px] border-[#007aff]/10 rounded-full"></div>
-              <div className="absolute inset-0 border-[6px] border-t-transparent rounded-full animate-spin" style={{ borderColor: settings.accentColor, borderTopColor: 'transparent' }}></div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center animate-in fade-in duration-500">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-3xl"></div>
+          <div className="relative bg-[#1c1c1e]/90 ios-blur p-20 rounded-[5rem] flex flex-col items-center gap-12 border border-white/10 shadow-[0_0_150px_rgba(0,122,255,0.15)] spring-in">
+            <div className="relative w-28 h-28">
+              <div className="absolute inset-0 border-[8px] border-white/5 rounded-full"></div>
+              <div className="absolute inset-0 border-[8px] border-t-transparent rounded-full animate-spin" style={{ borderColor: settings.accentColor, borderTopColor: 'transparent' }}></div>
             </div>
-            <p className="font-black text-2xl tracking-[0.2em] uppercase text-center min-w-[320px] leading-tight transition-all duration-300" style={{ color: settings.accentColor }}>
+            <p className="font-black text-3xl tracking-[0.4em] uppercase text-center min-w-[360px] leading-tight transition-all duration-300" style={{ color: settings.accentColor }}>
               {loadingMessage}
             </p>
           </div>
         </div>
       )}
 
-      <header className="sticky top-0 z-40 bg-black/60 ios-blur border-b border-white/5 px-6 md:px-12 py-5 flex items-center justify-between transition-all duration-500">
-        <div className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-all active:scale-95" onClick={() => {setView('home'); setActiveTool(null);}}>
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-xl shadow-black/40" style={{ backgroundColor: settings.accentColor }}>
-            <SparklesIcon className="text-white w-6 h-6" />
+      <header className="sticky top-0 z-40 bg-black/40 ios-blur border-b border-white/5 px-8 md:px-16 py-6 flex items-center justify-between transition-all duration-500">
+        <div className="flex items-center gap-5 cursor-pointer group" onClick={() => {setView('home'); setActiveTool(null);}}>
+          <div className="w-12 h-12 rounded-[1.25rem] flex items-center justify-center shadow-[0_15px_40px_-5px_rgba(0,0,0,0.5)] transition-transform group-hover:scale-110 active:scale-95" style={{ backgroundColor: settings.accentColor }}>
+            <SparklesIcon className="text-white w-7 h-7" />
           </div>
-          <h1 className="text-2xl font-black tracking-tighter hidden sm:block uppercase">{settings.title}</h1>
+          <h1 className="text-3xl font-black tracking-tighter hidden sm:block uppercase">{settings.title}</h1>
         </div>
         
-        {view !== 'home' && (
-          <div className="flex items-center gap-3 md:gap-4 spring-in">
-            {view === 'editor' && activeProject && (
-              <div className="flex items-center bg-white/5 rounded-full p-1 border border-white/10 shadow-inner">
-                <button onMouseDown={() => setIsComparing(true)} onMouseUp={() => setIsComparing(false)} onMouseLeave={() => setIsComparing(false)} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 text-white/60 transition-all active:scale-90"><EyeIcon className="w-5 h-5" /></button>
-                <button onClick={() => { setZoom(1); setPanOffset({x:0, y:0}); }} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 text-white/60 transition-all active:scale-90"><ResetIcon className="w-5 h-5" /></button>
-                <div className="w-px h-6 bg-white/10 mx-1" />
-                <button onClick={undo} disabled={activeProject.historyIndex <= 0} className="w-10 h-10 rounded-full disabled:opacity-10 hover:bg-white/5 transition-all active:scale-90" style={{ color: settings.accentColor }}><UndoIcon className="w-5 h-5" /></button>
-                <button onClick={redo} disabled={activeProject.historyIndex >= activeProject.history.length - 1} className="w-10 h-10 rounded-full disabled:opacity-10 hover:bg-white/5 transition-all active:scale-90" style={{ color: settings.accentColor }}><RedoIcon className="w-5 h-5" /></button>
-              </div>
-            )}
-            <button onClick={() => setView('home')} className="bg-white text-black px-5 py-2 rounded-full text-[13px] font-bold active:scale-95 transition-all hover:bg-white/90">Studio</button>
-          </div>
-        )}
+        <div className="flex items-center gap-6 spring-in">
+          {view === 'editor' && activeProject && (
+            <div className="flex items-center bg-white/[0.03] rounded-full p-2 border border-white/10 shadow-inner">
+               <button onClick={() => setView('home')} className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-white/10 text-white/30 transition-all active:scale-90"><XIcon className="w-6 h-6" /></button>
+               <div className="w-px h-8 bg-white/10 mx-3" />
+               <button onClick={() => setView('home')} className="text-[12px] font-black uppercase tracking-[0.4em] px-6 text-white/50">Studio v5.2</button>
+            </div>
+          )}
+          <button onClick={() => setView('settings')} className="p-4 bg-white/5 rounded-full hover:bg-white/10 border border-white/5 transition-all active:scale-90 shadow-xl"><SettingsIcon className="w-6 h-6 text-white/30" /></button>
+        </div>
       </header>
 
-      <main className="flex-1 w-full max-w-[1440px] mx-auto p-4 md:p-8 transition-all duration-700 overflow-hidden">
+      <main className="relative z-10 flex-1 w-full max-w-[1600px] mx-auto p-6 md:p-12 transition-all duration-1000 overflow-hidden">
         
-        {view === 'settings' && (
-          <div className="py-12 max-w-4xl mx-auto animate-in slide-in-from-bottom-12 duration-700">
-             {!isAuthorized ? (
-               <div id="passcode-container" className="flex flex-col items-center gap-12 pt-20 transition-transform">
-                  <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center ios-blur border border-white/10"><SettingsIcon className="w-10 h-10 text-white/40" /></div>
-                  <div className="text-center space-y-2">
-                    <h2 className="text-3xl font-black tracking-tight">System Auth</h2>
-                    <p className="text-white/40 font-medium">Developer credentials required to access Control Center.</p>
+        {view === 'home' && (
+          <div className="py-12 flex flex-col items-center animate-in fade-in slide-in-from-bottom-12 duration-1000">
+            <HeroVisual accentColor={settings.accentColor} />
+            
+            <div className="text-center space-y-10 mb-40 px-6 relative">
+              <div className="absolute top-[-120px] left-1/2 -translate-x-1/2 w-px h-32 bg-gradient-to-b from-transparent to-white/10"></div>
+              <h2 className="text-7xl md:text-[10rem] font-black tracking-tighter leading-[0.8] max-w-6xl mx-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+                {settings.heroHeadline} <br/>
+                <span className="bg-gradient-to-r from-white via-white/80 to-white/30 bg-clip-text text-transparent" style={{ backgroundImage: `linear-gradient(to right, ${settings.accentColor}, #af52de, #ff375f)` }}>{settings.heroSubheadline}</span>
+              </h2>
+              <p className="text-white/40 text-2xl md:text-3xl font-medium max-w-3xl mx-auto leading-relaxed px-10">
+                {settings.heroDescription}
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-12">
+                 <button onClick={() => setView('editor')} className="px-16 py-7 rounded-full text-black font-black uppercase text-xs tracking-[0.4em] shadow-[0_30px_70px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all bg-white">Start Mastering</button>
+                 <button onClick={() => setView('format')} className="px-12 py-7 rounded-full text-white font-black uppercase text-xs tracking-[0.4em] border border-white/15 hover:bg-white/5 transition-all shadow-xl">Format Logic</button>
+              </div>
+            </div>
+
+            {/* DESIGN-LED BENTO GRID */}
+            <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-12 gap-10 px-6 mb-48">
+              <div 
+                className="col-span-1 md:col-span-8 group relative p-16 bg-[#0e0e10] rounded-[5rem] border border-white/5 shadow-3xl cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-all duration-1000 flex flex-col justify-end overflow-hidden min-h-[580px]"
+                onClick={() => setView('editor')}
+              >
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" style={{ backgroundImage: `radial-gradient(circle at 100% 0%, ${settings.accentColor}15, transparent)` }}></div>
+                <div className="absolute top-20 left-20 w-28 h-28 rounded-[2.5rem] flex items-center justify-center shadow-4xl group-hover:rotate-6 transition-transform duration-1000" style={{ backgroundColor: settings.accentColor }}>
+                  <AdjustmentsIcon className="w-14 h-14 text-white" />
+                </div>
+                <div className="z-10">
+                  <div className="text-[11px] font-black uppercase tracking-[0.6em] text-white/20 mb-5 px-1">Engine vCore 5.2 • 32-Bit F32</div>
+                  <h3 className="text-6xl font-black tracking-tighter mb-8 leading-[0.9]">Studio Master</h3>
+                  <p className="text-white/30 font-bold mb-14 leading-relaxed max-w-lg text-2xl">Non-destructive canvas for orchestrating pixels with absolute tonal precision.</p>
+                  <div className="inline-flex bg-white text-black px-14 py-6 rounded-full text-[12px] font-black uppercase tracking-[0.4em] shadow-2xl group-hover:text-white transition-all" onMouseEnter={(e) => e.currentTarget.style.backgroundColor = settings.accentColor} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}>Launch Studio</div>
+                </div>
+              </div>
+
+              <div 
+                className="col-span-1 md:col-span-4 group relative p-14 bg-gradient-to-br from-[#af52de]/10 to-[#ff2d55]/10 rounded-[5rem] border border-white/10 shadow-3xl cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-1000 flex flex-col items-center text-center overflow-hidden min-h-[580px]"
+                onClick={() => setView('crop')}
+              >
+                <div className="absolute inset-0 bg-white/[0.04] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="w-24 h-24 bg-white/10 ios-blur rounded-3xl flex items-center justify-center mb-auto shadow-4xl group-hover:scale-110 transition-transform border border-white/5">
+                  <CropIcon className="w-12 h-12 text-[#af52de]" />
+                </div>
+                <div className="mt-auto z-10">
+                  <h3 className="text-5xl font-black tracking-tighter mb-5">Smart Crop</h3>
+                  <p className="text-white/30 font-bold mb-14 leading-relaxed text-xl px-4">AI-assisted framing engine for social-standard proportions.</p>
+                  <div className="bg-[#af52de] text-white px-12 py-6 rounded-full text-[11px] font-black uppercase tracking-[0.4em] shadow-2xl group-hover:bg-white group-hover:text-[#af52de] transition-all">Refit Assets</div>
+                </div>
+              </div>
+
+              <div 
+                className="col-span-1 md:col-span-12 group relative p-16 bg-[#0a0a0c] rounded-[5rem] border border-white/5 shadow-3xl cursor-pointer hover:scale-[1.005] active:scale-[0.99] transition-all duration-1000 flex flex-col md:flex-row items-center justify-between overflow-hidden min-h-[380px]"
+                onClick={() => setView('format')}
+              >
+                <div className="flex flex-col md:flex-row items-center gap-16">
+                  <div className="w-28 h-28 bg-white/5 ios-blur rounded-[3rem] flex items-center justify-center shadow-4xl group-hover:rotate-6 transition-transform border border-white/5">
+                    <ConvertIcon className="w-14 h-14" style={{ color: settings.accentColor }} />
                   </div>
-                  <div className="flex gap-4">
+                  <div className="text-center md:text-left z-10">
+                    <div className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20 mb-3 px-1">Batch Transcoding</div>
+                    <h3 className="text-5xl font-black tracking-tighter mb-4 leading-none">Universal Converter</h3>
+                    <p className="text-white/30 font-bold leading-relaxed text-xl max-w-md">Seamless switching between industry-standard and web formats.</p>
+                  </div>
+                </div>
+                <div className="mt-12 md:mt-0 text-white px-16 py-7 rounded-full text-[12px] font-black uppercase tracking-[0.4em] shadow-2xl group-hover:bg-white transition-all" style={{ backgroundColor: settings.accentColor }} onMouseEnter={(e) => e.currentTarget.style.color = settings.accentColor} onMouseLeave={(e) => e.currentTarget.style.color = 'white'}>Open Logic Lab</div>
+              </div>
+            </div>
+
+            {/* SYSTEM ANALYTICS SECTION */}
+            <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-12 px-6 mb-48">
+               <ActivityMap logs={logs} accentColor={settings.accentColor} />
+               <div className="bg-[#0e0e10]/80 ios-blur rounded-[4rem] p-12 border border-white/5 flex flex-col justify-center gap-12 shadow-3xl">
+                  <div className="space-y-3">
+                     <h4 className="text-[10px] font-black uppercase tracking-[0.6em] text-white/20 px-1">Silicon Architecture</h4>
+                     <p className="text-4xl font-black tracking-tighter">Engine Performance</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-10">
+                     {[
+                       { t: 'CHROMA ACCURACY', v: '99.9%', d: 'Lab Delta-E Standard' },
+                       { t: 'LATENCY BASELINE', v: '12ms', d: 'Real-time Buffer' },
+                       { t: 'BIT DEPTH', v: '32-Bit', d: 'Floating Point' },
+                       { t: 'IO VELOCITY', v: '4.2GB/s', d: 'Parallel Processing' }
+                     ].map(s => (
+                       <div key={s.t} className="space-y-2 group">
+                          <p className="text-[10px] font-black uppercase text-white/10 tracking-[0.3em] group-hover:text-white/30 transition-colors">{s.t}</p>
+                          <p className="text-3xl font-black tabular-nums transition-transform group-hover:scale-105" style={{ color: settings.accentColor }}>{s.v}</p>
+                          <p className="text-[12px] font-bold text-white/30">{s.d}</p>
+                       </div>
+                     ))}
+                  </div>
+               </div>
+            </div>
+          </div>
+        )}
+
+        {view === 'settings' && (
+          <div className="py-16 max-w-5xl mx-auto animate-in slide-in-from-bottom-16 duration-1000">
+             {!isAuthorized ? (
+               <div id="passcode-container" className="flex flex-col items-center gap-16 pt-24 transition-transform">
+                  <div className="w-28 h-28 bg-white/5 rounded-[2.5rem] flex items-center justify-center ios-blur border border-white/10 shadow-4xl"><SettingsIcon className="w-12 h-12 text-white/40" /></div>
+                  <div className="text-center space-y-4">
+                    <h2 className="text-5xl font-black tracking-tight">System Auth</h2>
+                    <p className="text-white/30 text-xl font-medium px-20 leading-relaxed">Verified credentials required to access Studio Control Center.</p>
+                  </div>
+                  <div className="flex gap-6">
                     {[0, 1, 2, 3].map(i => (
-                      <div key={i} className={`w-4 h-4 rounded-full border border-white/20 transition-all duration-300 ${passcodeAttempt.length > i ? 'bg-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'bg-transparent scale-100'}`}></div>
+                      <div key={i} className={`w-5 h-5 rounded-full border border-white/20 transition-all duration-500 ${passcodeAttempt.length > i ? 'bg-white scale-150 shadow-[0_0_25px_rgba(255,255,255,0.7)]' : 'bg-transparent scale-100'}`}></div>
                     ))}
                   </div>
-                  <div className="grid grid-cols-3 gap-6">
+                  <div className="grid grid-cols-3 gap-10">
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0, 'DEL'].map((n, i) => (
                       <button 
                         key={i} 
                         disabled={n === ''}
                         onClick={() => n === 'DEL' ? setPasscodeAttempt(p => p.slice(0, -1)) : handlePasscodeChange(n.toString())}
-                        className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl font-medium transition-all active:scale-90 ${n === '' ? 'opacity-0 pointer-events-none' : 'bg-white/5 hover:bg-white/10'}`}
+                        className={`w-28 h-28 rounded-full flex items-center justify-center text-4xl font-medium transition-all active:scale-90 ${n === '' ? 'opacity-0 pointer-events-none' : 'bg-white/5 hover:bg-white/10 border border-white/5 shadow-2xl'}`}
                       >
                         {n}
                       </button>
@@ -820,637 +539,368 @@ export default function App() {
                   </div>
                </div>
              ) : (
-               <div className="space-y-12 pb-32">
-                  <div className="flex items-center justify-between px-4">
+               <div className="space-y-20 pb-40 px-6">
+                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
                     <div>
-                        <h2 className="text-4xl font-black tracking-tighter">Control Center</h2>
-                        <p className="text-white/30 text-sm font-bold uppercase tracking-widest mt-1">v5.2-STABLE • LOGGED AS ROOT</p>
+                        <h2 className="text-6xl font-black tracking-tighter">Control Center</h2>
+                        <p className="text-white/30 text-sm font-black uppercase tracking-[0.5em] mt-3">Root Access • Logic Core 5.2.0</p>
                     </div>
-                    <button onClick={() => {setIsAuthorized(false); setView('home');}} className="px-8 py-3 bg-white/5 rounded-full text-xs font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-colors border border-white/10">Lock Terminal</button>
+                    <button onClick={() => {setIsAuthorized(false); setView('home');}} className="px-12 py-5 bg-white/5 rounded-full text-xs font-black uppercase tracking-[0.3em] hover:bg-white/10 transition-colors border border-white/10 shadow-3xl">Relock Console</button>
                   </div>
 
-                  {/* STUDIO TELEMETRY GRID */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* TELEMETRY CARDS */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                      {[
-                        { l: 'Total Studio Imports', v: analyticsStats.totalUploads, c: '#ff9500' },
-                        { l: 'Logic Interactions', v: analyticsStats.totalInteractions, c: settings.accentColor },
-                        { l: 'Secure Sessions', v: analyticsStats.secureVisits, c: '#34c759' }
+                        { l: 'Imports', v: analyticsStats.totalUploads, c: '#ff9500' },
+                        { l: 'Orchestrations', v: analyticsStats.totalInteractions, c: settings.accentColor },
+                        { l: 'Network Nodes', v: analyticsStats.secureVisits, c: '#32d74b' }
                      ].map(s => (
-                        <div key={s.l} className="bg-[#1c1c1e] p-8 rounded-[2.5rem] border border-white/5 shadow-2xl space-y-4">
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">{s.l}</p>
-                            <p className="text-5xl font-black tabular-nums" style={{ color: s.c }}>{s.v}</p>
+                        <div key={s.l} className="bg-[#0e0e10] p-12 rounded-[3.5rem] border border-white/5 shadow-3xl space-y-8 group hover:border-white/10 transition-colors">
+                            <p className="text-[11px] font-black uppercase tracking-[0.6em] text-white/20">{s.l}</p>
+                            <p className="text-7xl font-black tabular-nums transition-transform group-hover:scale-105" style={{ color: s.c }}>{s.v}</p>
                         </div>
                      ))}
                   </div>
 
-                  {/* VISUAL PULSE & LOGS */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                     <div className="space-y-4">
-                        <div className="flex items-center justify-between px-6">
-                           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Live Global Pulse</p>
-                           <span className="text-[9px] font-black text-white/20 uppercase">Lat: 23.81 | Lon: 90.41</span>
-                        </div>
-                        <ActivityMap logs={logs} accentColor={settings.accentColor} />
-                        
-                        <div className="bg-[#1c1c1e] p-8 rounded-[2.5rem] border border-white/5 shadow-2xl space-y-6">
-                           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 px-2">Hardware Telemetry</p>
-                           <div className="grid grid-cols-2 gap-6">
-                              <div>
-                                 <p className="text-[9px] font-bold text-white/20 uppercase mb-1">Architecture</p>
-                                 <p className="text-sm font-black">{logs[0]?.deviceType || 'ARM64'} Processor</p>
-                              </div>
-                              <div>
-                                 <p className="text-[9px] font-bold text-white/20 uppercase mb-1">Display</p>
-                                 <p className="text-sm font-black">{logs[0]?.screenSize || 'Retina'} @2x</p>
-                              </div>
-                              <div>
-                                 <p className="text-[9px] font-bold text-white/20 uppercase mb-1">Platform</p>
-                                 <p className="text-sm font-black">{logs[0]?.os || 'iOS Core'}</p>
-                              </div>
-                              <div>
-                                 <p className="text-[9px] font-bold text-white/20 uppercase mb-1">Engine</p>
-                                 <p className="text-sm font-black">WebKit 605.1.15</p>
-                              </div>
-                           </div>
-                        </div>
+                  {/* LOGS INTERFACE */}
+                  <div className="space-y-8">
+                     <div className="flex items-center justify-between px-10">
+                        <p className="text-[11px] font-black uppercase tracking-[0.6em] text-white/30">System Telemetry</p>
+                        <button onClick={clearLogs} className="text-[11px] font-black uppercase tracking-widest text-[#ff453a] hover:opacity-70 transition-opacity">Purge Activity</button>
                      </div>
-
-                     <div className="space-y-4 flex flex-col">
-                        <div className="flex items-center justify-between px-6">
-                           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">System Events</p>
-                           <button onClick={clearLogs} className="text-[9px] font-black uppercase tracking-widest text-[#ff3b30] hover:opacity-70 transition-opacity">Purge DB</button>
-                        </div>
-                        <div className="flex-1 bg-[#1c1c1e] rounded-[3rem] border border-white/5 shadow-2xl overflow-hidden flex flex-col max-h-[640px]">
-                           <div className="overflow-y-auto no-scrollbar flex-1">
-                              {logs.length === 0 ? (
-                                 <div className="p-20 text-center text-white/10 font-black uppercase text-xs tracking-widest">No Telemetry Recorded</div>
-                              ) : (
-                                 <div className="flex flex-col">
-                                    {logs.map((log, idx) => (
-                                       <div key={log.id} className={`p-5 flex items-center gap-5 hover:bg-white/[0.02] transition-colors ${idx !== logs.length-1 ? 'border-b border-white/5' : ''}`}>
-                                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${
-                                             log.type === 'visit' ? 'bg-[#34c759]/10 text-[#34c759]' :
-                                             log.type === 'click' ? 'bg-[#007aff]/10 text-[#007aff]' :
-                                             log.type === 'security' ? 'bg-[#ff3b30]/10 text-[#ff3b30]' :
-                                             'bg-[#ff9500]/10 text-[#ff9500]'
-                                          }`}>
-                                             {log.type === 'visit' ? <InfoIcon className="w-6 h-6" /> :
-                                              log.type === 'click' ? <SparklesIcon className="w-6 h-6" /> :
-                                              log.type === 'security' ? <SettingsIcon className="w-6 h-6" /> :
-                                              <UploadIcon className="w-6 h-6" />}
-                                          </div>
-                                          <div className="flex-1 min-w-0">
-                                             <div className="flex items-center justify-between gap-4 mb-1">
-                                                <p className="text-[13px] font-black uppercase tracking-widest truncate">{log.details}</p>
-                                                <span className="text-[9px] font-black text-white/20 tabular-nums whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}</span>
-                                             </div>
-                                             <div className="flex items-center gap-3">
-                                                <span className="text-[10px] text-white/40 font-bold">{log.location || 'Encrypted Node'}</span>
-                                                <div className="w-1 h-1 bg-white/10 rounded-full"></div>
-                                                <span className="text-[9px] font-black uppercase tracking-tighter text-white/20">{log.browser} • {log.os}</span>
-                                             </div>
-                                          </div>
-                                          {log.thumbnail && (
-                                             <div className="w-14 h-14 rounded-xl overflow-hidden border border-white/10 shadow-xl group/thumb relative">
-                                                <img src={log.thumbnail} className="w-full h-full object-cover" />
-                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center">
-                                                   <EyeIcon className="w-4 h-4" />
-                                                </div>
-                                             </div>
-                                          )}
+                     <div className="bg-[#0e0e10] rounded-[4rem] border border-white/5 shadow-4xl overflow-hidden flex flex-col max-h-[700px]">
+                        <div className="overflow-y-auto no-scrollbar flex-1">
+                           {logs.length === 0 ? (
+                              <div className="p-40 text-center text-white/10 font-black uppercase text-xs tracking-[0.8em]">No Telemetry Detected</div>
+                           ) : (
+                              <div className="flex flex-col">
+                                 {logs.map((log, idx) => (
+                                    <div key={log.id} className={`p-10 flex items-center gap-10 hover:bg-white/[0.02] transition-colors ${idx !== logs.length-1 ? 'border-b border-white/5' : ''}`}>
+                                       <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center flex-shrink-0 shadow-3xl ${
+                                          log.type === 'visit' ? 'bg-[#32d74b]/10 text-[#32d74b]' :
+                                          log.type === 'click' ? 'bg-[#007aff]/10 text-[#007aff]' :
+                                          log.type === 'security' ? 'bg-[#ff453a]/10 text-[#ff453a]' :
+                                          'bg-[#ff9500]/10 text-[#ff9500]'
+                                       }`}>
+                                          {log.type === 'visit' ? <InfoIcon className="w-8 h-8" /> :
+                                           log.type === 'click' ? <SparklesIcon className="w-8 h-8" /> :
+                                           log.type === 'security' ? <SettingsIcon className="w-8 h-8" /> :
+                                           <UploadIcon className="w-8 h-8" />}
                                        </div>
-                                    ))}
-                                 </div>
-                              )}
-                           </div>
+                                       <div className="flex-1 min-w-0">
+                                          <div className="flex items-center justify-between gap-8 mb-3">
+                                             <p className="text-[16px] font-black uppercase tracking-[0.2em] truncate">{log.details}</p>
+                                             <span className="text-[11px] font-black text-white/20 tabular-nums whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                                          </div>
+                                          <div className="flex items-center gap-5">
+                                             <span className="text-[12px] text-white/40 font-bold">{log.location || 'Encrypted Entry'}</span>
+                                             <div className="w-2 h-2 bg-white/10 rounded-full"></div>
+                                             <span className="text-[11px] font-black uppercase tracking-[0.1em] text-white/20">{log.browser} • {log.os} • {log.screenSize}</span>
+                                          </div>
+                                       </div>
+                                       {log.thumbnail && (
+                                          <div className="w-20 h-20 rounded-2xl overflow-hidden border border-white/10 shadow-3xl relative group/item">
+                                             <img src={log.thumbnail} className="w-full h-full object-cover transition-transform duration-1000 group-hover/item:scale-125" />
+                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/item:opacity-100 transition-opacity flex items-center justify-center">
+                                                <EyeIcon className="w-6 h-6" />
+                                             </div>
+                                          </div>
+                                       )}
+                                    </div>
+                                 ))}
+                              </div>
+                           )}
                         </div>
                      </div>
                   </div>
 
-                  {/* STANDARD SETTINGS BELOW */}
-                  <div className="pt-20 space-y-12">
-                     <h3 className="text-3xl font-black tracking-tighter px-4">Branding & Logic</h3>
-                     
-                     <div className="space-y-6">
-                        <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
-                           <div className="p-8 border-b border-white/5 flex flex-col gap-3">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Studio Identity</label>
-                              <input value={settings.title} onChange={e => setSettings({...settings, title: e.target.value})} className="w-full bg-transparent text-2xl font-black px-2 py-1 outline-none text-white focus:text-[#007aff]" />
+                  {/* STUDIO IDENTITY SETTINGS */}
+                  <div className="space-y-12">
+                     <h3 className="text-4xl font-black tracking-tighter px-10">Identity Orchestration</h3>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div className="bg-[#0e0e10] rounded-[4rem] p-12 border border-white/5 shadow-3xl flex flex-col gap-12">
+                           <div className="space-y-5">
+                              <label className="text-[11px] font-black uppercase tracking-[0.6em] text-white/20 px-3">Studio Name</label>
+                              <input value={settings.title} onChange={e => setSettings({...settings, title: e.target.value})} className="w-full bg-black/40 border border-white/5 rounded-[2rem] px-10 py-7 text-2xl font-black outline-none text-white focus:border-[#007aff] transition-all" />
                            </div>
-                           <div className="p-8 flex flex-col gap-3">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Accent Signature</label>
-                              <div className="flex items-center gap-6">
-                                 <input type="color" value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="w-14 h-14 bg-transparent rounded-2xl cursor-pointer overflow-hidden border-0" />
-                                 <input value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="flex-1 bg-transparent text-2xl font-black py-1 outline-none text-white font-mono" />
+                           <div className="space-y-5">
+                              <label className="text-[11px] font-black uppercase tracking-[0.6em] text-white/20 px-3">Accent Signature</label>
+                              <div className="flex items-center gap-8">
+                                 <input type="color" value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="w-20 h-20 bg-transparent rounded-3xl cursor-pointer overflow-hidden border-0 shadow-2xl" />
+                                 <input value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="flex-1 bg-black/40 border border-white/5 rounded-[2rem] px-10 py-7 text-2xl font-black outline-none text-white font-mono" />
                               </div>
                            </div>
                         </div>
 
-                        <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
-                           <div className="p-8 border-b border-white/5 flex flex-col gap-3">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Hero Headline</label>
-                              <input value={settings.heroHeadline} onChange={e => setSettings({...settings, heroHeadline: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
+                        <div className="bg-[#0e0e10] rounded-[4rem] p-12 border border-white/5 shadow-3xl flex flex-col gap-12">
+                           <div className="space-y-5">
+                              <label className="text-[11px] font-black uppercase tracking-[0.6em] text-white/20 px-3">Headline Control</label>
+                              <input value={settings.heroHeadline} onChange={e => setSettings({...settings, heroHeadline: e.target.value})} className="w-full bg-black/40 border border-white/5 rounded-[2rem] px-10 py-7 text-2xl font-black outline-none text-white" />
                            </div>
-                           <div className="p-8 border-b border-white/5 flex flex-col gap-3">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Hero Subtitle</label>
-                              <input value={settings.heroSubheadline} onChange={e => setSettings({...settings, heroSubheadline: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
-                           </div>
-                           <div className="p-8 flex flex-col gap-3">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Global Description</label>
-                              <textarea rows={3} value={settings.heroDescription} onChange={e => setSettings({...settings, heroDescription: e.target.value})} className="w-full bg-transparent text-lg font-medium px-2 py-1 outline-none text-white/60 resize-none focus:text-white" />
+                           <div className="space-y-5">
+                              <label className="text-[11px] font-black uppercase tracking-[0.6em] text-white/20 px-3">Subtitle String</label>
+                              <input value={settings.heroSubheadline} onChange={e => setSettings({...settings, heroSubheadline: e.target.value})} className="w-full bg-black/40 border border-white/5 rounded-[2rem] px-10 py-7 text-2xl font-black outline-none text-white" />
                            </div>
                         </div>
                      </div>
 
-                     <div className="flex gap-4">
-                        <button onClick={() => {if(confirm("Reset entire Control Center?")) setSettings(DEFAULT_SETTINGS);}} className="flex-1 py-6 bg-white/5 border border-white/5 rounded-3xl font-black uppercase text-xs tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Emergency Reset</button>
-                        <button onClick={() => setView('home')} className="flex-[2] py-6 rounded-3xl text-white font-black uppercase text-xs tracking-[0.3em] shadow-2xl transition-all active:scale-95" style={{ backgroundColor: settings.accentColor }}>Sync Control Changes</button>
+                     <div className="flex gap-8">
+                        <button onClick={() => {if(confirm("Factory reset entire Studio?")) setSettings(DEFAULT_SETTINGS);}} className="flex-1 py-8 bg-white/5 border border-white/5 rounded-[2.5rem] font-black uppercase text-[11px] tracking-[0.4em] hover:bg-[#ff453a]/10 hover:text-[#ff453a] transition-all shadow-3xl">Factory Reset</button>
+                        <button onClick={() => setView('home')} className="flex-[2] py-8 rounded-[2.5rem] text-white font-black uppercase text-[11px] tracking-[0.4em] shadow-4xl transition-all hover:scale-[1.02] active:scale-98" style={{ backgroundColor: settings.accentColor }}>Synchronize Changes</button>
                      </div>
                   </div>
                </div>
              )}
           </div>
-        )}
-
-        {view === 'home' && (
-          <div className="py-4 flex flex-col items-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <HeroVisual accentColor={settings.accentColor} />
-            
-            <div className="text-center space-y-6 mb-24 px-4">
-              <h2 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] max-w-5xl mx-auto">
-                {settings.heroHeadline} <br/>
-                <span className="bg-gradient-to-r from-white via-white/80 to-white/40 bg-clip-text text-transparent" style={{ backgroundImage: `linear-gradient(to right, ${settings.accentColor}, #af52de, #ff2d55)` }}>{settings.heroSubheadline}</span>
-              </h2>
-              <p className="text-[#8e8e93] text-xl md:text-2xl font-medium max-w-2xl mx-auto leading-relaxed">
-                {settings.heroDescription}
-              </p>
-            </div>
-
-            <ShowcaseSection accentColor={settings.accentColor} />
-
-            {/* BENTO GRID */}
-            <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-12 gap-8 px-6 mb-32">
-              <div 
-                className="col-span-1 md:col-span-8 group relative p-12 bg-[#1c1c1e] rounded-[4rem] border border-white/5 shadow-[0_40px_80px_rgba(0,0,0,0.5)] cursor-pointer hover:scale-[1.01] active:scale-[0.98] transition-all duration-700 flex flex-col justify-end overflow-hidden min-h-[500px]"
-                onClick={() => setView('editor')}
-              >
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" style={{ backgroundImage: `linear-gradient(to bottom right, ${settings.accentColor}26, transparent)` }}></div>
-                <div className="absolute top-14 left-14 w-20 h-20 rounded-3xl flex items-center justify-center shadow-2xl group-hover:rotate-3 transition-transform duration-500" style={{ backgroundColor: settings.accentColor }}>
-                  <AdjustmentsIcon className="w-10 h-10 text-white" />
-                </div>
-                <div className="z-10">
-                  <h3 className="text-5xl font-black tracking-tighter mb-4">Studio Master</h3>
-                  <p className="text-white/40 font-bold mb-10 leading-snug max-w-md text-xl">Full non-destructive manual workflow for precision pixel manipulation.</p>
-                  <div className="inline-flex bg-white text-black px-10 py-5 rounded-full text-[12px] font-black uppercase tracking-[0.2em] shadow-2xl group-hover:text-white transition-all font-bold" onMouseEnter={(e) => e.currentTarget.style.backgroundColor = settings.accentColor} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}>Open Canvas</div>
-                </div>
-              </div>
-
-              <div 
-                className="col-span-1 md:col-span-4 group relative p-10 bg-gradient-to-br from-[#af52de]/30 to-[#ff2d55]/30 rounded-[4rem] border border-white/10 shadow-[0_40px_80px_rgba(0,0,0,0.5)] cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-700 flex flex-col items-center text-center overflow-hidden min-h-[500px]"
-                onClick={() => setView('crop')}
-              >
-                <div className="absolute inset-0 bg-white/[0.05] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-auto shadow-2xl group-hover:scale-110 transition-transform">
-                  <CropIcon className="w-8 h-8 text-[#af52de]" />
-                </div>
-                <div className="mt-auto z-10">
-                  <h3 className="text-4xl font-black tracking-tighter mb-4">Smart Crop</h3>
-                  <p className="text-white/40 font-bold mb-10 leading-snug text-lg px-4">Reframing engine with intelligent social-media presets.</p>
-                  <div className="bg-[#af52de] text-white px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl group-hover:bg-white group-hover:text-[#af52de] transition-all font-bold">Start Refit</div>
-                </div>
-              </div>
-
-              {settings.showNeuralTools && (
-                <div 
-                    className="col-span-1 md:col-span-5 group relative p-12 bg-[#1c1c1e] rounded-[4rem] border border-white/5 shadow-[0_40px_80px_rgba(0,0,0,0.5)] cursor-pointer hover:scale-[1.005] active:scale-[0.99] transition-all duration-700 flex flex-col items-center justify-between overflow-hidden"
-                    onClick={() => setView('enhance')}
-                >
-                    <div className="w-16 h-16 bg-[#34c759] rounded-2xl flex items-center justify-center shadow-2xl mb-10 group-hover:rotate-12 transition-transform">
-                    <MagicWandIcon className="w-8 h-8 text-white" />
-                    </div>
-                    <div className="text-center z-10">
-                    <h3 className="text-4xl font-black mb-2">Neural Grade</h3>
-                    <p className="text-white/40 font-bold leading-snug text-lg max-w-[240px]">AI-driven optimization for lighting, tone, and texture.</p>
-                    </div>
-                    <div className="mt-10 bg-[#34c759] text-white px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-xl group-hover:scale-105 transition-all font-bold">Auto Polish</div>
-                </div>
-              )}
-
-              <div 
-                className={`${settings.showNeuralTools ? 'md:col-span-7' : 'md:col-span-12'} group relative p-12 bg-gradient-to-br from-[#007aff]/25 to-[#5856d6]/25 rounded-[4rem] border border-white/10 shadow-[0_40px_80px_rgba(0,0,0,0.5)] cursor-pointer hover:scale-[1.005] active:scale-[0.99] transition-all duration-700 flex flex-col md:flex-row items-center justify-between overflow-hidden min-h-[300px]`}
-                onClick={() => setView('format')}
-              >
-                <div className="flex flex-col md:flex-row items-center gap-10">
-                  <div className="w-20 h-20 bg-white/10 ios-blur rounded-[2.5rem] flex items-center justify-center shadow-3xl group-hover:-rotate-3 transition-transform border border-white/10">
-                    <ConvertIcon className="w-10 h-10" style={{ color: settings.accentColor }} />
-                  </div>
-                  <div className="text-center md:text-left z-10">
-                    <h3 className="text-4xl font-black tracking-tighter mb-2">Converter</h3>
-                    <p className="text-white/40 font-bold leading-snug text-lg max-w-[320px]">Batch transcode between studio formats.</p>
-                  </div>
-                </div>
-                <div className="mt-8 md:mt-0 text-white px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-xl group-hover:bg-white transition-all font-bold" style={{ backgroundColor: settings.accentColor }} onMouseEnter={(e) => e.currentTarget.style.color = settings.accentColor} onMouseLeave={(e) => e.currentTarget.style.color = 'white'}>Format Lab</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {view === 'format' && (
-           <div className="py-20 flex flex-col items-center gap-12 animate-in fade-in slide-in-from-bottom-12 duration-700 max-w-4xl mx-auto">
-             <div className="text-center space-y-4">
-                <div className="w-24 h-24 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-2xl transition-transform active:scale-95" style={{ backgroundColor: settings.accentColor }}>
-                  <ConvertIcon className="w-12 h-12 text-white" />
-                </div>
-                <h2 className="text-5xl font-black tracking-tight">Format Suite</h2>
-                <p className="text-white/40 text-xl font-medium">Batch convert and optimize your studio assets for web or print.</p>
-             </div>
-
-             {projects.length === 0 ? (
-               <div className="w-full bg-[#1c1c1e] p-12 rounded-[4rem] border border-white/10 shadow-3xl text-center group cursor-pointer relative overflow-hidden transition-all active:scale-[0.99]" style={{ borderColor: `${settings.accentColor}20` }}>
-                  <input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={(e) => handleFormatUpload(Array.from(e.target.files || []))} accept="image/*" />
-                  <div className="flex flex-col items-center gap-8 py-10">
-                      <div className="w-20 h-20 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-all">
-                        <UploadIcon className="w-8 h-8 opacity-40 group-hover:opacity-100" style={{ color: settings.accentColor }} />
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-2xl font-black transition-colors" style={{ color: settings.accentColor }}>Select assets to transcode</p>
-                        <p className="text-white/20 font-bold uppercase tracking-widest text-sm">PNG • JPG • WEBP</p>
-                      </div>
-                      <button className="bg-white/5 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-white/10 group-hover:text-white transition-all font-bold" onMouseEnter={(e) => e.currentTarget.style.backgroundColor = settings.accentColor} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Import Photos</button>
-                  </div>
-               </div>
-             ) : (
-               <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="lg:col-span-2 flex flex-col gap-6">
-                    <div className="bg-[#1c1c1e] p-8 rounded-[3rem] border border-white/5 shadow-2xl">
-                       <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 mb-6 px-2">Selected Assets</h4>
-                       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                          {projects.map((p, idx) => (
-                            <div key={p.id} className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 group">
-                               <img src={p.url} className="w-full h-full object-cover" />
-                               <button 
-                                 onClick={() => setProjects(prev => prev.filter(item => item.id !== p.id))}
-                                 className="absolute top-1 right-1 w-6 h-6 bg-black/60 ios-blur rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                               >
-                                 <XIcon className="w-3 h-3 text-white" />
-                               </button>
-                            </div>
-                          ))}
-                          <label className="aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex items-center justify-center cursor-pointer hover:bg-white/10 transition-all">
-                             <input type="file" multiple className="hidden" onChange={(e) => handleFormatUpload(Array.from(e.target.files || []))} />
-                             <UploadIcon className="w-6 h-6 opacity-30" />
-                          </label>
-                       </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-6">
-                    <div className="bg-[#1c1c1e] p-10 rounded-[3rem] border border-white/5 shadow-2xl space-y-10">
-                       <div className="space-y-4">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Target Format</p>
-                          <div className="grid grid-cols-3 gap-3">
-                             {['image/jpeg', 'image/png', 'image/webp'].map(fmt => (
-                               <button 
-                                 key={fmt}
-                                 onClick={() => setTargetFormat(fmt)}
-                                 className={`py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${targetFormat === fmt ? 'text-white shadow-lg' : 'bg-white/5 text-white/30 hover:text-white'}`}
-                                 style={{ backgroundColor: targetFormat === fmt ? settings.accentColor : '' }}
-                               >
-                                 {fmt.split('/')[1]}
-                               </button>
-                             ))}
-                          </div>
-                       </div>
-
-                       {(targetFormat === 'image/jpeg' || targetFormat === 'image/webp') && (
-                         <div className="space-y-4">
-                            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-white/40 px-2">
-                               <span>Output Quality</span>
-                               <span className="text-white tabular-nums">{Math.round(formatQuality * 100)}%</span>
-                            </div>
-                            <input type="range" min="0.1" max="1.0" step="0.05" value={formatQuality} onChange={e => setFormatQuality(parseFloat(e.target.value))} className="w-full" />
-                         </div>
-                       )}
-
-                       <div className="pt-4">
-                         <button 
-                           onClick={executeBulkConversion}
-                           className="w-full py-6 rounded-3xl text-white font-black uppercase text-[12px] tracking-[0.2em] shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all font-bold"
-                           style={{ backgroundColor: settings.accentColor }}
-                         >
-                           Export Assets ({projects.length})
-                         </button>
-                       </div>
-                    </div>
-                  </div>
-               </div>
-             )}
-           </div>
         )}
 
         {view === 'editor' && activeProject && (
-            <div className="h-full flex flex-col lg:flex-row gap-8 animate-in fade-in duration-700">
-                <div className={`flex-1 flex flex-col gap-6 transition-all duration-500 ${activeTool ? 'lg:scale-[0.98]' : 'scale-100'}`}>
-                    <div className="flex items-center gap-4 overflow-x-auto pb-4 no-scrollbar px-2">
-                        <button onClick={() => {setView('home'); setActiveTool(null);}} className="w-20 h-20 bg-white/5 border border-white/10 rounded-[2rem] flex-shrink-0 flex items-center justify-center hover:bg-white/10 transition-all active:scale-90"><XIcon className="w-7 h-7 opacity-40"/></button>
+            <div className="h-full flex flex-col lg:flex-row gap-10 animate-in fade-in duration-1000 relative z-10">
+                <div className={`flex-1 flex flex-col gap-8 transition-all duration-700 ${activeTool ? 'lg:scale-[0.98]' : 'scale-100'}`}>
+                    <div className="flex items-center gap-6 overflow-x-auto pb-8 no-scrollbar px-2">
+                        <button onClick={() => {setView('home'); setActiveTool(null);}} className="w-24 h-24 bg-white/5 border border-white/10 rounded-[2.5rem] flex-shrink-0 flex items-center justify-center hover:bg-white/10 transition-all active:scale-90 shadow-3xl"><XIcon className="w-8 h-8 opacity-40"/></button>
                         {projects.map((proj, idx) => (
                             <div 
-                            key={proj.id} 
-                            draggable={true}
-                            onDragStart={(e) => handleThumbnailDragStart(e, idx)}
-                            onDragOver={(e) => handleThumbnailDragOver(e, idx)}
-                            onDrop={(e) => handleThumbnailDrop(e, idx)}
-                            onDragEnd={() => { setDraggedThumbnailIndex(null); setDragOverIndex(null); }}
-                            onClick={() => { setActiveIndex(idx); setActiveTool(null); }}
-                            className={`group relative w-20 h-20 rounded-[2.2rem] flex-shrink-0 border-4 transition-all duration-500 cursor-pointer overflow-visible ${
-                                activeIndex === idx ? 'scale-110 shadow-2xl z-20' : 'border-transparent opacity-40 hover:opacity-100 z-10'
-                            } ${dragOverIndex === idx ? 'scale-125 border-white !opacity-100 ring-8 ring-white/10' : ''} ${draggedThumbnailIndex === idx ? 'opacity-0 scale-50 pointer-events-none' : ''}`}
-                            style={{ borderColor: activeIndex === idx ? settings.accentColor : 'transparent' }}
+                              key={proj.id} 
+                              onClick={() => { setActiveIndex(idx); setActiveTool(null); }}
+                              className={`group relative w-24 h-24 rounded-[3rem] flex-shrink-0 border-[5px] transition-all duration-700 cursor-pointer overflow-visible ${
+                                  activeIndex === idx ? 'scale-110 shadow-[0_30px_70px_rgba(0,0,0,0.6)] z-20' : 'border-transparent opacity-40 hover:opacity-100 z-10'
+                              }`}
+                              style={{ borderColor: activeIndex === idx ? settings.accentColor : 'transparent' }}
                             >
-                            <div className="w-full h-full rounded-[1.8rem] overflow-hidden">
-                                <img src={proj.url} className="w-full h-full object-cover transition-transform duration-700 pointer-events-none" />
+                            <div className="w-full h-full rounded-[2.5rem] overflow-hidden">
+                                <img src={proj.url} className="w-full h-full object-cover transition-transform duration-1000 pointer-events-none" />
                             </div>
-                            <div className="absolute -top-2 -right-2 w-7 h-7 bg-white text-black rounded-full flex items-center justify-center shadow-xl opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 cursor-grab active:cursor-grabbing border border-black/5">
-                                <GripVerticalIcon className="w-4 h-4" />
+                            <div className="absolute -top-3 -right-3 w-8 h-8 bg-white text-black rounded-full flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transition-all scale-50 group-hover:scale-100 border border-black/5">
+                                <GripVerticalIcon className="w-5 h-5" />
                             </div>
                             </div>
                         ))}
-                        <label className="w-20 h-20 bg-white/5 border-2 border-dashed border-white/10 rounded-[2rem] flex-shrink-0 flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer active:scale-95 group">
+                        <label className="w-24 h-24 bg-white/5 border-2 border-dashed border-white/10 rounded-[2.5rem] flex-shrink-0 flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer active:scale-95 group shadow-3xl">
                             <input type="file" multiple className="hidden" onChange={(e) => handleUpload(Array.from(e.target.files || []))} />
-                            <UploadIcon className="w-6 h-6 opacity-40 group-hover:opacity-100 transition-opacity" />
+                            <UploadIcon className="w-8 h-8 opacity-40 group-hover:opacity-100 transition-opacity" />
                         </label>
                     </div>
 
-                    <div className="relative flex-1 bg-[#1c1c1e] rounded-[4rem] border border-white/10 shadow-3xl overflow-hidden group transition-all duration-700">
+                    <div className="relative flex-1 bg-[#0c0c0e]/90 ios-blur rounded-[5rem] border border-white/5 shadow-[0_50px_120px_-30px_rgba(0,0,0,1)] overflow-hidden group transition-all duration-1000">
                         <div 
-                        ref={previewContainerRef} 
-                        className={`relative w-full h-full min-h-[500px] flex items-center justify-center overflow-hidden transition-all duration-500 ${isPanning ? 'bg-black/80 cursor-grabbing scale-[1.02]' : 'bg-black/40 cursor-grab scale-100'}`}
-                        onMouseDown={handleImageMouseDown}
+                          ref={previewContainerRef} 
+                          className={`relative w-full h-full min-h-[600px] flex items-center justify-center overflow-hidden transition-all duration-700 ${isPanning ? 'bg-black/50 cursor-grabbing scale-[1.03]' : 'bg-transparent cursor-grab scale-100'}`}
+                          onMouseDown={(e) => {
+                             if (activeTool === ToolType.CROP) return;
+                             e.preventDefault();
+                             setIsPanning(true);
+                             dragStartPos.current = { x: e.clientX, y: e.clientY };
+                             panStartOffset.current = { x: panOffset.x, y: panOffset.y };
+                          }}
                         >
-                        <div 
-                            className={`relative will-change-transform ${(!isPanning && !activeCropHandle) ? 'transition-transform duration-500' : ''}`} 
-                            style={{ 
-                            transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
-                            transitionTimingFunction: 'var(--spring-easing)'
-                            }}
-                        >
-                            <img 
-                            ref={imageRef} 
-                            src={isComparing ? activeProject.history[0].url : activeProject.url} 
-                            style={{ 
-                                filter: activeTool === ToolType.ADJUST ? `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)` : 'none'
-                            }}
-                            className="max-w-[90vw] max-h-[70vh] object-contain shadow-2xl pointer-events-none rounded-lg transition-filter duration-300" 
-                            />
-                            
-                            {activeTool === ToolType.CROP && !isComparing && (
-                            <div 
-                                className="absolute border border-white/30 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] animate-in fade-in duration-300 group/crop"
-                                style={{
-                                left: `${cropBox.x}%`,
-                                top: `${cropBox.y}%`,
-                                width: `${cropBox.w}%`,
-                                height: `${cropBox.h}%`
-                                }}
-                            >
-                                <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-20 pointer-events-none">
-                                <div className="border-r border-b border-white"></div><div className="border-r border-b border-white"></div><div className="border-b border-white"></div>
-                                <div className="border-r border-b border-white"></div><div className="border-r border-b border-white"></div><div className="border-b border-white"></div>
-                                </div>
+                          <div 
+                              className={`relative will-change-transform ${(!isPanning) ? 'transition-transform duration-700' : ''}`} 
+                              style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})` }}
+                          >
+                              <img 
+                                ref={imageRef} 
+                                src={isComparing ? activeProject.history[0].url : activeProject.url} 
+                                style={{ filter: activeTool === ToolType.ADJUST ? `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)` : 'none' }}
+                                className="max-w-[85vw] max-h-[75vh] object-contain shadow-[0_40px_100px_-25px_rgba(0,0,0,0.95)] pointer-events-none rounded-[2rem]" 
+                              />
+                              
+                              {activeTool === ToolType.CROP && (
                                 <div 
-                                className="absolute inset-4 cursor-move active:cursor-grabbing"
-                                onMouseDown={(e) => handleCropHandleMouseDown(e, 'move')}
-                                ></div>
-                                {[
-                                    { id: 'top-left', style: 'top-[-2px] left-[-2px] border-t-4 border-l-4' },
-                                    { id: 'top-right', style: 'top-[-2px] right-[-2px] border-t-4 border-r-4' },
-                                    { id: 'bottom-left', style: 'bottom-[-2px] left-[-2px] border-b-4 border-l-4' },
-                                    { id: 'bottom-right', style: 'bottom-[-2px] right-[-2px] border-b-4 border-r-4' }
-                                ].map(h => (
-                                    <div 
-                                        key={h.id}
-                                        className={`absolute w-6 h-6 border-white rounded-[2px] cursor-nwse-resize z-10 ${h.style}`}
-                                        onMouseDown={(e) => handleCropHandleMouseDown(e, h.id)}
-                                    ></div>
-                                ))}
-                            </div>
-                            )}
-                        </div>
-                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6 bg-black/60 ios-blur border border-white/10 rounded-full p-2 px-6 shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
-                            <button onClick={() => adjustZoom(-0.2)} className="p-3 hover:bg-white/10 rounded-full transition-all active:scale-90"><ZoomOutIcon className="w-6 h-6 text-white/60" /></button>
-                            <span className="text-[14px] font-black w-14 text-center tabular-nums">{Math.round(zoom*100)}%</span>
-                            <button onClick={() => adjustZoom(0.2)} className="p-3 hover:bg-white/10 rounded-full transition-all active:scale-90"><ZoomInIcon className="w-6 h-6 text-white/60" /></button>
-                        </div>
+                                    className="absolute border border-white/60 shadow-[0_0_0_9999px_rgba(0,0,0,0.75)] animate-in fade-in duration-700"
+                                    style={{ left: `${cropBox.x}%`, top: `${cropBox.y}%`, width: `${cropBox.w}%`, height: `${cropBox.h}%` }}
+                                >
+                                    <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-30 pointer-events-none">
+                                       {[...Array(9)].map((_,i) => <div key={i} className="border border-white/20"></div>)}
+                                    </div>
+                                    {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(h => (
+                                       <div key={h} className={`absolute w-10 h-10 border-white border-[3px] rounded-[3px] cursor-nwse-resize z-10 ${h.replace('-', ' ')}`}></div>
+                                    ))}
+                                </div>
+                              )}
+                          </div>
+                          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-10 bg-black/90 ios-blur border border-white/10 rounded-full p-3 px-10 shadow-4xl opacity-0 group-hover:opacity-100 transition-all duration-700 translate-y-6 group-hover:translate-y-0">
+                              <button onClick={() => setZoom(z => Math.max(0.2, z - 0.2))} className="p-5 hover:bg-white/10 rounded-full transition-all active:scale-90"><ZoomOutIcon className="w-7 h-7 text-white/60" /></button>
+                              <span className="text-[17px] font-black w-20 text-center tabular-nums tracking-tighter">{Math.round(zoom*100)}%</span>
+                              <button onClick={() => setZoom(z => Math.min(6, z + 0.2))} className="p-5 hover:bg-white/10 rounded-full transition-all active:scale-90"><ZoomInIcon className="w-7 h-7 text-white/60" /></button>
+                          </div>
                         </div>
                     </div>
                 </div>
 
-                <div className={`w-full lg:w-[400px] flex flex-col gap-6 transition-all duration-500 ${activeTool ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10 pointer-events-none hidden lg:flex'}`}>
-                    <div className="bg-[#1c1c1e] p-8 rounded-[4rem] border border-white/10 shadow-2xl space-y-8 max-h-[85vh] overflow-y-auto no-scrollbar spring-in">
+                <div className={`w-full lg:w-[460px] flex flex-col gap-8 transition-all duration-700 ${activeTool ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12 pointer-events-none hidden lg:flex'}`}>
+                    <div className="bg-[#111113] p-12 rounded-[5rem] border border-white/5 shadow-4xl space-y-12 max-h-[85vh] overflow-y-auto no-scrollbar spring-in">
                         {activeTool ? (
-                        <div className="animate-in slide-in-from-right-8 duration-500 flex flex-col gap-8">
+                        <div className="animate-in slide-in-from-right-12 duration-1000 flex flex-col gap-12">
                             <div className="flex items-center justify-between">
-                            <h3 className="text-2xl font-black uppercase tracking-widest transition-all" style={{ color: settings.accentColor }}>{activeTool}</h3>
-                            <button onClick={() => setActiveTool(null)} className="p-3 hover:bg-white/5 rounded-full transition-all active:rotate-90"><XIcon className="w-5 h-5 text-white/40" /></button>
+                               <h3 className="text-4xl font-black uppercase tracking-tighter transition-all" style={{ color: settings.accentColor }}>{activeTool}</h3>
+                               <button onClick={() => setActiveTool(null)} className="p-5 hover:bg-white/5 rounded-full transition-all active:rotate-90"><XIcon className="w-7 h-7 text-white/30" /></button>
                             </div>
                             
                             {activeTool === ToolType.ADJUST && (
-                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="space-y-14 animate-in fade-in slide-in-from-bottom-8 duration-700">
                                 {[{l:'Exposure', v:brightness, s:setBrightness}, {l:'Contrast', v:contrast, s:setContrast}, {l:'Saturate', v:saturate, s:setSaturate}].map(a => (
-                                <div key={a.l} className="space-y-4">
-                                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
-                                    <span>{a.l}</span>
-                                    <span className="text-white tabular-nums">{a.v}%</span>
+                                <div key={a.l} className="space-y-7">
+                                    <div className="flex justify-between text-[12px] font-black uppercase tracking-[0.4em] text-white/30">
+                                       <span>{a.l}</span>
+                                       <span className="text-white tabular-nums">{a.v}%</span>
                                     </div>
                                     <input type="range" min="0" max="200" value={a.v} onChange={e => a.s(parseInt(e.target.value))} className="w-full" />
                                 </div>
                                 ))}
-                                <div className="flex gap-4 pt-4">
-                                <button onClick={() => {setBrightness(100); setContrast(100); setSaturate(100);}} className="flex-1 py-4 rounded-3xl bg-white/5 font-bold uppercase text-[11px] tracking-widest transition-all hover:bg-white/10 active:scale-95">Reset</button>
-                                <button onClick={() => applyTool((img) => imageService.applyFilter(img, `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)`), 'Studio Master')} className="flex-[2] py-4 rounded-3xl text-white font-bold uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Apply</button>
+                                <div className="flex gap-6 pt-8">
+                                   <button onClick={() => {setBrightness(100); setContrast(100); setSaturate(100);}} className="flex-1 py-6 rounded-[2.5rem] bg-white/5 font-black uppercase text-[11px] tracking-[0.4em] transition-all hover:bg-white/10 active:scale-95 border border-white/5 shadow-xl">Reset</button>
+                                   <button onClick={() => applyTool((img) => imageService.applyFilter(img, `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)`), 'Precision Master')} className="flex-[2] py-6 rounded-[2.5rem] text-white font-black uppercase text-[11px] tracking-[0.4em] shadow-4xl active:scale-95 transition-all" style={{ backgroundColor: settings.accentColor }}>Apply Master</button>
                                 </div>
                             </div>
                             )}
 
                             {activeTool === ToolType.FILTER && (
-                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="flex overflow-x-auto no-scrollbar gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner">
-                                {(['Modern', 'Studio', 'Vintage', 'Cinematic', 'Artistic', 'Glitch', 'Cartoon'] as const).map(cat => (
-                                    <button key={cat} onClick={() => setLookCategory(cat)} className={`flex-1 min-w-[80px] py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${lookCategory === cat ? 'text-white shadow-lg' : 'text-white/30 hover:text-white'}`} style={{ backgroundColor: lookCategory === cat ? settings.accentColor : '' }}>{cat}</button>
-                                ))}
+                            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                                <div className="flex overflow-x-auto no-scrollbar gap-4 bg-black/40 p-3 rounded-[2.5rem] border border-white/5">
+                                   {(['Modern', 'Studio', 'Vintage', 'Cinematic', 'Artistic', 'Glitch', 'Cartoon'] as const).map(cat => (
+                                       <button key={cat} onClick={() => setLookCategory(cat)} className={`flex-1 min-w-[100px] py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 ${lookCategory === cat ? 'text-white shadow-3xl' : 'text-white/20 hover:text-white'}`} style={{ backgroundColor: lookCategory === cat ? settings.accentColor : '' }}>{cat}</button>
+                                   ))}
                                 </div>
-                                <div className="grid grid-cols-2 gap-4 max-h-[50vh] overflow-y-auto no-scrollbar pb-10">
-                                {lookPresets[lookCategory as keyof typeof lookPresets].map((p) => (
-                                    <button key={p.name} onClick={() => applyTool((img) => imageService.applyFilter(img, p.f), p.name)} className="flex flex-col items-center gap-3 group bg-black/20 p-3 rounded-[2rem] border border-white/5 transition-all active:scale-95" onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
-                                    <div className="w-full aspect-square rounded-2xl border-2 border-white/5 overflow-hidden transition-all duration-500 group-hover:scale-105">
-                                        <img src={activeProject.url} className="w-full h-full object-cover" style={{filter: p.f}} />
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase tracking-tighter text-white/40 group-hover:text-white transition-colors">{p.name}</span>
-                                    </button>
-                                ))}
+                                <div className="grid grid-cols-2 gap-6 max-h-[50vh] overflow-y-auto no-scrollbar pb-16">
+                                   {lookPresets[lookCategory as keyof typeof lookPresets].map((p) => (
+                                       <button key={p.name} onClick={() => applyTool((img) => imageService.applyFilter(img, p.f), p.name)} className="flex flex-col items-center gap-5 group bg-black/20 p-5 rounded-[3rem] border border-white/5 transition-all active:scale-95 hover:border-white/20 shadow-xl">
+                                          <div className="w-full aspect-square rounded-[2rem] border border-white/5 overflow-hidden transition-all duration-1000 group-hover:scale-105 shadow-2xl">
+                                             <img src={activeProject.url} className="w-full h-full object-cover" style={{filter: p.f}} />
+                                          </div>
+                                          <span className="text-[11px] font-black uppercase tracking-[0.3em] text-white/30 group-hover:text-white transition-colors">{p.name}</span>
+                                       </button>
+                                   ))}
                                 </div>
-                            </div>
-                            )}
-
-                            {activeTool === ToolType.CROP && (
-                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="space-y-6">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 px-2">Numerical Inputs (px)</p>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        {[
-                                            { label: 'X', key: 'x' as const },
-                                            { label: 'Y', key: 'y' as const },
-                                            { label: 'Width', key: 'w' as const },
-                                            { label: 'Height', key: 'h' as const }
-                                        ].map(field => (
-                                            <div key={field.key} className="space-y-1">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-white/20 pl-2">{field.label}</label>
-                                                <input 
-                                                    type="number" 
-                                                    value={getCropDisplayValue(field.key)} 
-                                                    onChange={(e) => handleManualCropChange(field.key, parseInt(e.target.value) || 0)}
-                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl py-3 px-4 text-sm font-bold focus:border-[#af52de] outline-none transition-colors tabular-nums text-white"
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <button onClick={() => applyTool((img) => imageService.cropImage(img, (cropBox.x/100)*img.width, (cropBox.y/100)*img.height, (cropBox.w/100)*img.width, (cropBox.h/100)*img.height), 'Studio Reframe')} className="w-full py-6 rounded-3xl bg-[#af52de] font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#af52de]/90">Apply Reframe</button>
-                            </div>
-                            )}
-
-                            {activeTool === ToolType.RESIZE && (
-                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="grid grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Width</label>
-                                    <input type="number" value={width} onChange={e => setWidth(e.target.value)} placeholder={activeProject.metadata.width.toString()} className="w-full bg-black/40 border border-white/10 rounded-3xl p-6 text-2xl font-black outline-none focus:border-[#007aff] transition-all tabular-nums text-white" style={{ borderColor: `${settings.accentColor}20` }} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Height</label>
-                                    <input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder={activeProject.metadata.height.toString()} className="w-full bg-black/40 border border-white/10 rounded-3xl p-6 text-2xl font-black outline-none focus:border-[#007aff] transition-all tabular-nums text-white" style={{ borderColor: `${settings.accentColor}20` }} />
-                                </div>
-                                </div>
-                                <button onClick={() => applyTool((img) => imageService.resizeImage(img, parseInt(width) || img.width, parseInt(height) || img.height), 'Resampling')} className="w-full py-6 rounded-3xl text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Confirm Rescale</button>
-                            </div>
-                            )}
-
-                            {activeTool === ToolType.ROTATE && (
-                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="space-y-6">
-                                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
-                                        <span>Precision Rotation</span>
-                                        <span className="text-white tabular-nums">{rotation}°</span>
-                                    </div>
-                                    <input type="range" min="-45" max="45" value={rotation} onChange={e => setRotation(parseInt(e.target.value))} className="w-full" />
-                                    <div className="flex gap-4">
-                                        <button onClick={() => applyTool(img => imageService.rotateImage(img, -90), 'Rotate Left')} className="flex-1 py-4 bg-white/5 rounded-2xl flex flex-col items-center gap-2 hover:bg-white/10 transition-all active:scale-90"><RotateIcon className="w-5 h-5 -scale-x-100" /><span className="text-[9px] font-black uppercase">-90°</span></button>
-                                        <button onClick={() => applyTool(img => imageService.rotateImage(img, 90), 'Rotate Right')} className="flex-1 py-4 bg-white/5 rounded-2xl flex flex-col items-center gap-2 hover:bg-white/10 transition-all active:scale-90"><RotateIcon className="w-5 h-5" /><span className="text-[9px] font-black uppercase">+90°</span></button>
-                                    </div>
-                                </div>
-                                <button onClick={() => applyTool(img => imageService.rotateImage(img, rotation), 'Fine Rotate')} className="w-full py-6 rounded-3xl text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Apply Rotation</button>
-                            </div>
-                            )}
-
-                            {activeTool === ToolType.MIRROR && (
-                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <button onClick={() => applyTool(img => imageService.flipImage(img, 'horizontal'), 'Horizontal Flip')} className="py-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center gap-4 group transition-all active:scale-95" onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
-                                        <MirrorIcon className="w-8 h-8 group-hover:scale-110 transition-transform" style={{ color: settings.accentColor }} />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Horizontal</span>
-                                    </button>
-                                    <button onClick={() => applyTool(img => imageService.flipImage(img, 'vertical'), 'Vertical Flip')} className="py-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center gap-4 group transition-all active:scale-95" onMouseEnter={e => e.currentTarget.style.borderColor = '#af52de'} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
-                                        <MirrorIcon className="w-8 h-8 text-[#af52de] rotate-90 group-hover:scale-110 transition-transform" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Vertical</span>
-                                    </button>
-                                </div>
-                            </div>
-                            )}
-
-                            {activeTool === ToolType.COMPRESS && (
-                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="space-y-4">
-                                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
-                                        <span>Quality Profile</span>
-                                        <span className="text-white tabular-nums">{Math.round(compressQuality*100)}%</span>
-                                    </div>
-                                    <input type="range" min="0.1" max="1.0" step="0.05" value={compressQuality} onChange={e => setCompressQuality(parseFloat(e.target.value))} className="w-full" />
-                                </div>
-                                <button onClick={() => applyTool(img => imageService.compressImage(img, compressQuality), 'Shrinking')} className="w-full py-6 rounded-3xl bg-[#34c759] text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#34c759]/90">Execute Compression</button>
-                            </div>
-                            )}
-
-                            {activeTool === ToolType.PIXELATE && (
-                            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="space-y-4">
-                                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-white/40">
-                                        <span>Pixel Density</span>
-                                        <span className="text-white tabular-nums">{Math.round(pixelScale*100)}%</span>
-                                    </div>
-                                    <input type="range" min="0.01" max="0.5" step="0.01" value={pixelScale} onChange={e => setPixelScale(parseFloat(e.target.value))} className="w-full" />
-                                </div>
-                                <button onClick={() => applyTool(img => imageService.pixelateImage(img, pixelScale), 'Retro Engine')} className="w-full py-6 rounded-3xl bg-[#ff9500] text-white font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#ff9500]/90">Apply Pixelation</button>
                             </div>
                             )}
                         </div>
                         ) : (
-                        <div className="h-[400px] flex flex-col items-center justify-center text-center gap-6 animate-in fade-in duration-1000">
-                            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center border border-white/5 group transition-all duration-500 hover:rotate-6">
-                                <SparklesIcon className="w-8 h-8 text-white/10 transition-colors" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''} />
+                        <div className="h-[460px] flex flex-col items-center justify-center text-center gap-10 animate-in fade-in duration-1000">
+                            <div className="w-28 h-28 bg-white/5 rounded-[2.5rem] flex items-center justify-center border border-white/5 group transition-all duration-1000 hover:rotate-12 shadow-4xl">
+                                <SparklesIcon className="w-12 h-12 text-white/10 transition-colors group-hover:text-white" />
                             </div>
-                            <div className="space-y-2">
-                            <h4 className="font-black uppercase tracking-[0.3em] text-[12px] text-white/40">Studio Session</h4>
-                            <p className="text-white/20 text-sm font-medium px-12">Select an engine from the toolbar below to start editing.</p>
+                            <div className="space-y-4">
+                               <h4 className="font-black uppercase tracking-[0.5em] text-[13px] text-white/40">Canvas Selection</h4>
+                               <p className="text-white/20 text-lg font-medium px-20 leading-relaxed">Orchestrate your assets by selecting an engine from the toolbar below.</p>
                             </div>
                         </div>
                         )}
                     </div>
 
-                    <div className={`bg-[#1c1c1e] p-8 rounded-[4rem] border border-white/10 shadow-2xl flex items-center justify-between transition-all duration-500 ${activeTool ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none hidden lg:flex'}`}>
-                        <div>
-                        <h3 className="text-2xl font-black truncate max-w-[200px] mb-1">{activeProject.metadata.name}</h3>
-                        <div className="flex gap-2">
-                            <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 bg-white/5 rounded-full text-white/40 tabular-nums">{activeProject.metadata.width}×{activeProject.metadata.height}</span>
-                            <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full tabular-nums" style={{ color: settings.accentColor, backgroundColor: `${settings.accentColor}15` }}>{(activeProject.metadata.size / 1024 / 1024).toFixed(2)} MB</span>
+                    <div className={`bg-[#111113] p-12 rounded-[5rem] border border-white/5 shadow-4xl flex items-center justify-between transition-all duration-1000 ${activeTool ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12 pointer-events-none hidden lg:flex'}`}>
+                        <div className="min-w-0">
+                           <h3 className="text-3xl font-black truncate mb-3">{activeProject.metadata.name}</h3>
+                           <div className="flex gap-4">
+                              <span className="text-[11px] font-black uppercase tracking-[0.2em] px-4 py-2 bg-white/5 rounded-full text-white/30 tabular-nums">{activeProject.metadata.width}×{activeProject.metadata.height}</span>
+                              <span className="text-[11px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full tabular-nums shadow-2xl" style={{ color: settings.accentColor, backgroundColor: `${settings.accentColor}10` }}>{(activeProject.metadata.size / 1024 / 1024).toFixed(2)} MB</span>
+                           </div>
                         </div>
-                        </div>
-                        <a href={activeProject.url} download={`imagerize_${activeProject.metadata.name}`} className="bg-white text-black px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl transition-all font-bold" onMouseEnter={e => {e.currentTarget.style.backgroundColor = settings.accentColor; e.currentTarget.style.color = 'white'}} onMouseLeave={e => {e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = 'black'}}>Export</a>
+                        <a href={activeProject.url} download={`studio_${activeProject.metadata.name}`} className="bg-white text-black px-14 py-7 rounded-full text-[12px] font-black uppercase tracking-[0.4em] shadow-4xl transition-all hover:scale-105 active:scale-95" onMouseEnter={e => {e.currentTarget.style.backgroundColor = settings.accentColor; e.currentTarget.style.color = 'white'}} onMouseLeave={e => {e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.color = 'black'}}>Export</a>
                     </div>
                 </div>
             </div>
         )}
+
+        {view === 'format' && (
+           <div className="py-28 flex flex-col items-center gap-20 animate-in fade-in slide-in-from-bottom-16 duration-1000 max-w-6xl mx-auto relative z-10">
+              <div className="text-center space-y-8">
+                 <div className="w-28 h-28 rounded-[3rem] flex items-center justify-center mx-auto mb-12 shadow-[0_40px_80px_-15px_rgba(0,122,255,0.4)] transition-transform hover:scale-110 active:scale-95 border border-white/10 bg-white/5 ios-blur" style={{ color: settings.accentColor }}>
+                    <ConvertIcon className="w-14 h-14" />
+                 </div>
+                 <h2 className="text-7xl font-black tracking-tighter">Universal Lab</h2>
+                 <p className="text-white/30 text-2xl font-medium max-w-3xl mx-auto leading-relaxed px-12">Batch conversion and transcoding suite for professional-grade imaging workflows.</p>
+              </div>
+
+              {projects.length === 0 ? (
+                <div className="w-full bg-[#111113]/80 ios-blur p-24 rounded-[5rem] border border-white/5 shadow-4xl text-center group cursor-pointer relative overflow-hidden transition-all active:scale-[0.99] hover:border-white/10" style={{ borderColor: `${settings.accentColor}25` }}>
+                   <input type="file" multiple className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={(e) => handleUpload(Array.from(e.target.files || []))} accept="image/*" />
+                   <div className="flex flex-col items-center gap-12 py-16">
+                       <div className="w-28 h-28 border-[3px] border-dashed border-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-all group-hover:border-white/40 shadow-inner">
+                         <UploadIcon className="w-12 h-12 opacity-40 group-hover:opacity-100" style={{ color: settings.accentColor }} />
+                       </div>
+                       <div className="space-y-4">
+                         <p className="text-4xl font-black tracking-tight transition-colors" style={{ color: settings.accentColor }}>Staging Area</p>
+                         <p className="text-white/20 font-black uppercase tracking-[0.6em] text-[11px]">IMPORT STUDIO ASSETS</p>
+                       </div>
+                       <button className="bg-white/5 px-16 py-6 rounded-full text-[12px] font-black uppercase tracking-[0.4em] border border-white/10 group-hover:text-white transition-all shadow-2xl" onMouseEnter={(e) => e.currentTarget.style.backgroundColor = settings.accentColor} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Browse Local Storage</button>
+                   </div>
+                </div>
+              ) : (
+                <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-12">
+                   <div className="lg:col-span-8 space-y-10">
+                      <div className="bg-[#111113] p-14 rounded-[4rem] border border-white/5 shadow-3xl">
+                         <h4 className="text-[11px] font-black uppercase tracking-[0.6em] text-white/20 mb-10 px-4">Active Staging</h4>
+                         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-8">
+                            {projects.map((p, idx) => (
+                              <div key={p.id} className="relative aspect-square rounded-[2.5rem] overflow-hidden border border-white/10 group shadow-2xl">
+                                 <img src={p.url} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-125" />
+                                 <button onClick={() => setProjects(prev => prev.filter(item => item.id !== p.id))} className="absolute top-3 right-3 w-8 h-8 bg-black/80 ios-blur rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border border-white/10 shadow-2xl"><XIcon className="w-4 h-4 text-white" /></button>
+                              </div>
+                            ))}
+                            <label className="aspect-square bg-white/5 border border-dashed border-white/10 rounded-[2.5rem] flex items-center justify-center cursor-pointer hover:bg-white/10 transition-all hover:border-white/20 shadow-inner">
+                               <input type="file" multiple className="hidden" onChange={(e) => handleUpload(Array.from(e.target.files || []))} />
+                               <UploadIcon className="w-8 h-8 opacity-20" />
+                            </label>
+                         </div>
+                      </div>
+                   </div>
+                   <div className="lg:col-span-4">
+                      <div className="bg-[#111113] p-12 rounded-[4rem] border border-white/5 shadow-3xl space-y-14 sticky top-40">
+                         <div className="space-y-8">
+                            <p className="text-[11px] font-black uppercase tracking-[0.5em] text-white/20 px-4">Encoding Profile</p>
+                            <div className="grid grid-cols-1 gap-5">
+                               {['image/jpeg', 'image/png', 'image/webp'].map(fmt => (
+                                 <button 
+                                   key={fmt}
+                                   className={`py-8 px-10 rounded-[2.5rem] text-[13px] font-black uppercase tracking-[0.4em] transition-all flex items-center justify-between border ${fmt === 'image/jpeg' ? 'bg-white text-black border-white shadow-4xl' : 'bg-white/5 text-white/20 border-white/5 hover:text-white'}`}
+                                 >
+                                   <span>{fmt.split('/')[1]}</span>
+                                   <div className={`w-5 h-5 rounded-full border-[3px] ${fmt === 'image/jpeg' ? 'bg-black border-black shadow-[0_0_15px_white]' : 'border-white/10'}`}></div>
+                                 </button>
+                               ))}
+                            </div>
+                         </div>
+                         <button className="w-full py-8 rounded-[2.5rem] text-white font-black uppercase text-[13px] tracking-[0.4em] shadow-[0_30px_70px_rgba(0,122,255,0.35)] hover:scale-[1.02] active:scale-98 transition-all" style={{ backgroundColor: settings.accentColor }}>Finalize Batch Export</button>
+                      </div>
+                   </div>
+                </div>
+              )}
+           </div>
+        )}
+
       </main>
 
-      <footer className="w-full py-24 px-10 border-t border-white/5 bg-[#050505] ios-blur mt-auto">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start justify-between gap-16">
-          <div className="flex flex-col items-start gap-6 max-w-sm">
-             <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-2xl" style={{ backgroundColor: settings.accentColor }}><SparklesIcon className="text-white w-5 h-5" /></div>
-                <h4 className="text-2xl font-black tracking-tighter uppercase">{settings.title}</h4>
+      <footer className="w-full py-40 px-12 border-t border-white/5 bg-black relative z-10 mt-auto">
+        <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row items-start justify-between gap-32">
+          <div className="flex flex-col items-start gap-10 max-w-md">
+             <div className="flex items-center gap-5">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-4xl" style={{ backgroundColor: settings.accentColor }}><SparklesIcon className="text-white w-7 h-7" /></div>
+                <h4 className="text-4xl font-black tracking-tighter uppercase">{settings.title}</h4>
              </div>
-             <p className="text-white/20 font-medium leading-relaxed text-sm">Crafted with absolute pixel fidelity and legendary iOS aesthetics.</p>
-             <p className="text-[11px] font-black uppercase tracking-[0.4em] text-white/10 pt-4">{settings.footerCopyright}</p>
+             <p className="text-white/20 font-medium leading-relaxed text-xl">High-fidelity asset orchestration for the modern digital studio. Engineered for precision, designed for inspiration.</p>
+             <p className="text-[11px] font-black uppercase tracking-[0.7em] text-white/10 pt-8">{settings.footerCopyright}</p>
           </div>
           
-          <div className="flex flex-col items-center md:items-end gap-6 text-center md:text-right">
-             <div className="flex items-center gap-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Studio Head</p>
-                <button onClick={() => setView('settings')} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><SettingsIcon className="w-4 h-4 text-white/40" /></button>
+          <div className="flex flex-col items-center md:items-end gap-10 text-center md:text-right">
+             <div className="flex items-center gap-8">
+                <p className="text-[12px] font-black uppercase tracking-[0.6em] text-white/10">Studio Principal</p>
+                <button onClick={() => setView('settings')} className="p-4 bg-white/5 rounded-full hover:bg-white/10 border border-white/5 transition-all active:scale-90 shadow-2xl"><SettingsIcon className="w-6 h-6 text-white/20" /></button>
              </div>
-             <a href={settings.programmerUrl} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 hover:scale-105 transition-all bg-white/5 p-4 rounded-3xl border border-white/10" onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
+             <a href={settings.programmerUrl} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-8 hover:scale-105 transition-all bg-white/[0.03] p-8 rounded-[3rem] border border-white/5 shadow-3xl" onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
                 <div className="text-right">
-                   <span className="block text-2xl font-black tracking-tighter text-white">{settings.programmerName}</span>
-                   <span className="block text-[10px] font-black uppercase tracking-[0.1em] text-white/30">{settings.programmerRole}</span>
+                   <span className="block text-4xl font-black tracking-tighter text-white transition-colors group-hover:text-white/90">{settings.programmerName}</span>
+                   <span className="block text-[12px] font-black uppercase tracking-[0.3em] text-white/20 mt-2">{settings.programmerRole}</span>
                 </div>
-                <div className="w-14 h-14 rounded-2xl border border-white/20 overflow-hidden shadow-2xl transition-transform group-hover:rotate-6"><img src={settings.programmerImage} className="w-full h-full object-cover" alt={settings.programmerName} /></div>
+                <div className="w-20 h-20 rounded-[2.2rem] border border-white/10 overflow-hidden shadow-4xl transition-transform group-hover:rotate-6"><img src={settings.programmerImage} className="w-full h-full object-cover" alt={settings.programmerName} /></div>
              </a>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-12 gap-y-6 text-[11px] font-black uppercase tracking-[0.4em] text-white/20">
-            <span className="cursor-pointer transition-all hover:text-white" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''}>Privacy</span>
-            <span className="cursor-pointer transition-all hover:text-white" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''}>Security</span>
-            <span className="cursor-pointer transition-all hover:text-white" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''}>Cookies</span>
-            <a href={`mailto:${settings.contactEmail}`} className="cursor-pointer transition-all hover:text-white" onMouseEnter={e => e.currentTarget.style.color = settings.accentColor} onMouseLeave={e => e.currentTarget.style.color = ''}>Contact</a>
+          <div className="grid grid-cols-2 gap-x-24 gap-y-10 text-[12px] font-black uppercase tracking-[0.6em] text-white/10">
+            <span className="cursor-pointer transition-all hover:text-white">Privacy</span>
+            <span className="cursor-pointer transition-all hover:text-white">Security</span>
+            <span className="cursor-pointer transition-all hover:text-white">Framework</span>
+            <a href={`mailto:${settings.contactEmail}`} className="cursor-pointer transition-all hover:text-white">Contact</a>
           </div>
         </div>
       </footer>
