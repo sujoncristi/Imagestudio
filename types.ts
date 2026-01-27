@@ -66,4 +66,4 @@ export interface SiteSettings {
   showNeuralTools: boolean;
 }
 
-export type ViewType = 'home' | 'editor' | 'enhance' | 'crop' | 'format' | 'settings';
+export type ViewType = 'home' | 'editor' | 'enhance' | 'crop' | 'format' | 'settings' | 'qr';
