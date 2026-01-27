@@ -20,7 +20,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   programmerName: "Sujon Roy",
   programmerRole: "Founder & Creative Lead",
   programmerUrl: "https://facebook.com/sujonworld0",
-  programmerImage: "https://graph.facebook.com/sujonworld0/picture?type=large",
+  programmerImage: "https://cliply.co/wp-content/uploads/2021/07/452105030_HEART_DOODLES_400.gif",
   footerCopyright: "© 2024 IMAGERIZE STUDIO • CORE v6.5",
   accentColor: "#007aff",
   passcode: "0000",
