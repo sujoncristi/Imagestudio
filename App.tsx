@@ -125,6 +125,10 @@ export default function App() {
   const [borderSize, setBorderSize] = useState(2);
   const [borderColor, setBorderColor] = useState('#ffffff');
 
+  // Lab (Format) states
+  const [labFormat, setLabFormat] = useState('image/jpeg');
+  const [labQuality, setLabQuality] = useState(0.9);
+
   // QR State
   const [qrText, setQrText] = useState('');
   const [qrImage, setQrImage] = useState('');
@@ -154,7 +158,12 @@ export default function App() {
     }));
     setProjects(prev => [...prev, ...newProjects]);
     setActiveIndex(projects.length);
-    setView('editor');
+    // If we are in home or format view, stay where we are if appropriate, 
+    // but usually users expect to go to editor.
+    // Except in Format view, where we want to keep them in the Lab.
+    if (view !== 'format') {
+        setView('editor');
+    }
     endTask();
   };
 
@@ -178,6 +187,24 @@ export default function App() {
       setActiveTool(null);
     } catch (e) {
       alert("Action failed.");
+    } finally { endTask(); }
+  };
+
+  const handleBatchConvert = async () => {
+    if (projects.length === 0) return;
+    startTask('Orchestrating Batch Transcode...');
+    try {
+      for (const proj of projects) {
+        const img = await imageService.loadImage(proj.url);
+        const url = await imageService.compressImage(img, labQuality, labFormat);
+        const link = document.createElement('a');
+        link.href = url;
+        const ext = labFormat.split('/')[1];
+        link.download = `converted_${proj.metadata.name.split('.')[0]}.${ext}`;
+        link.click();
+      }
+    } catch (e) {
+      alert("Conversion failed.");
     } finally { endTask(); }
   };
 
@@ -283,11 +310,11 @@ export default function App() {
                 className="md:col-span-8 group relative p-16 bg-[#1c1c1e] rounded-[4rem] border border-white/5 shadow-3xl cursor-pointer hover:scale-[1.01] transition-all flex flex-col justify-end min-h-[500px] overflow-hidden"
                 onClick={() => setView('editor')}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                 <div className="absolute top-16 left-16 w-24 h-24 rounded-3xl flex items-center justify-center shadow-4xl" style={{ backgroundColor: settings.accentColor }}>
                   <AdjustmentsIcon className="w-12 h-12 text-white" />
                 </div>
-                <h3 className="text-6xl font-black tracking-tighter mb-4">Studio Master</h3>
+                <h3 className="text-6xl font-black tracking-tighter mb-4 transition-transform group-hover:translate-x-2">Studio Master</h3>
                 <p className="text-white/30 text-2xl font-bold max-w-md">The professional-grade non-destructive editor for visual assets.</p>
                 <div className="mt-10 bg-white text-black px-10 py-5 rounded-full text-xs font-black uppercase tracking-widest inline-block w-fit group-hover:bg-[#007aff] group-hover:text-white transition-colors shadow-2xl">Enter Workspace</div>
               </div>
@@ -300,7 +327,7 @@ export default function App() {
                   <CropIcon className="w-10 h-10 text-white" />
                 </div>
                 <div className="mt-auto">
-                  <h3 className="text-4xl font-black tracking-tighter mb-4">Smart Crop</h3>
+                  <h3 className="text-4xl font-black tracking-tighter mb-4 transition-transform group-hover:-translate-y-1">Smart Crop</h3>
                   <p className="text-white/80 text-xl font-bold">Intelligent reframing for standard compositions.</p>
                 </div>
               </div>
@@ -309,7 +336,7 @@ export default function App() {
                 className="md:col-span-4 group relative p-12 bg-white/5 rounded-[4rem] border border-white/5 shadow-3xl cursor-pointer hover:scale-[1.01] transition-all flex flex-col items-center text-center min-h-[400px]"
                 onClick={() => { setView('editor'); handleAutoEnhance(); }}
               >
-                 <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mb-8 border border-white/5">
+                 <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mb-8 border border-white/5 group-hover:bg-[#007aff]/20 transition-colors">
                     <MagicWandIcon className="w-10 h-10 text-white" style={{ color: settings.accentColor }} />
                  </div>
                  <h3 className="text-4xl font-black tracking-tighter mb-4">Neural Grade</h3>
@@ -365,6 +392,95 @@ export default function App() {
            </div>
         )}
 
+        {view === 'format' && (
+           <div className="py-12 flex flex-col items-center gap-12 animate-in fade-in duration-700 max-w-6xl mx-auto">
+              <div className="text-center space-y-4">
+                 <ConvertIcon className="w-16 h-16 mx-auto mb-6" style={{ color: settings.accentColor }} />
+                 <h2 className="text-5xl font-black tracking-tighter">Universal Lab</h2>
+                 <p className="text-white/30 text-xl font-medium">High-fidelity batch transcoding suite.</p>
+              </div>
+              
+              <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-10">
+                {/* Uploader Column */}
+                <div className="lg:col-span-2 space-y-8">
+                  <Uploader onUpload={handleUpload} onUrlUpload={async (url) => {
+                     const img = await imageService.loadImage(url);
+                     const meta: ImageMetadata = { width: img.width, height: img.height, format: 'image/png', size: 0, originalSize: 0, name: 'Remote Asset' };
+                     setProjects(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), url, metadata: meta, history: [{ url, metadata: meta }], historyIndex: 0 }]);
+                  }} />
+                  
+                  {/* File List */}
+                  <div className="bg-[#1c1c1e] p-8 rounded-[3rem] border border-white/5 space-y-6 max-h-[500px] overflow-y-auto no-scrollbar">
+                    <div className="flex justify-between items-center mb-2">
+                       <h3 className="text-sm font-black uppercase tracking-widest text-white/40">Queue ({projects.length})</h3>
+                       {projects.length > 0 && <button onClick={() => setProjects([])} className="text-[10px] font-black uppercase text-[#ff375f] tracking-widest">Clear All</button>}
+                    </div>
+                    {projects.length === 0 ? (
+                        <div className="py-20 text-center text-white/10 font-black uppercase tracking-widest italic">Wait-state: Empty</div>
+                    ) : (
+                      <div className="space-y-4">
+                         {projects.map((p, i) => (
+                           <div key={p.id} className="flex items-center gap-6 p-4 bg-white/5 rounded-2xl border border-white/5 group">
+                             <img src={p.url} className="w-14 h-14 rounded-lg object-cover" />
+                             <div className="flex-1 min-w-0">
+                               <p className="text-sm font-bold truncate">{p.metadata.name}</p>
+                               <p className="text-[10px] text-white/20 font-black uppercase tracking-tighter">{(p.metadata.size / 1024).toFixed(1)} KB • {p.metadata.width}x{p.metadata.height}</p>
+                             </div>
+                             <button onClick={() => setProjects(prev => prev.filter((_, idx) => idx !== i))} className="p-2 opacity-0 group-hover:opacity-100 text-[#ff375f] transition-all"><XIcon className="w-5 h-5" /></button>
+                           </div>
+                         ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Settings Column */}
+                <div className="space-y-8">
+                   <div className="bg-[#1c1c1e] p-10 rounded-[4rem] border border-white/5 shadow-4xl space-y-10">
+                      <div className="space-y-4">
+                         <label className="text-[11px] font-black uppercase tracking-[0.4em] text-white/20 px-3">Target Matrix</label>
+                         <div className="grid grid-cols-3 gap-3">
+                            {['image/jpeg', 'image/png', 'image/webp'].map(fmt => (
+                              <button 
+                                key={fmt}
+                                onClick={() => setLabFormat(fmt)}
+                                className={`py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${labFormat === fmt ? 'bg-white text-black border-white' : 'bg-white/5 text-white/40 border-white/5'}`}
+                              >
+                                {fmt.split('/')[1]}
+                              </button>
+                            ))}
+                         </div>
+                      </div>
+
+                      {labFormat !== 'image/png' && (
+                        <div className="space-y-4">
+                           <div className="flex justify-between px-3">
+                              <label className="text-[11px] font-black uppercase tracking-[0.4em] text-white/20">Compression</label>
+                              <span className="text-[11px] font-black tabular-nums">{Math.round(labQuality * 100)}%</span>
+                           </div>
+                           <input type="range" min="0.1" max="1" step="0.05" value={labQuality} onChange={e => setLabQuality(parseFloat(e.target.value))} className="w-full" />
+                        </div>
+                      )}
+
+                      <button 
+                        onClick={handleBatchConvert}
+                        disabled={projects.length === 0}
+                        className="w-full py-8 rounded-[2.5rem] font-black uppercase text-xs tracking-[0.3em] shadow-4xl transition-all disabled:opacity-20 hover:scale-[1.02] active:scale-95 text-white" 
+                        style={{ backgroundColor: settings.accentColor }}
+                      >
+                         Process Batch
+                      </button>
+                   </div>
+
+                   <div className="bg-[#1c1c1e] p-8 rounded-[3rem] border border-white/5 text-center space-y-4">
+                      <InfoIcon className="w-8 h-8 mx-auto text-white/10" />
+                      <p className="text-white/20 text-xs font-bold leading-relaxed px-4">Direct hardware-accelerated transcoding. Metadata is preserved where applicable.</p>
+                   </div>
+                </div>
+              </div>
+           </div>
+        )}
+
         {view === 'editor' && (
            <div className="h-full flex flex-col animate-in fade-in duration-700">
              {!activeProject ? (
@@ -382,26 +498,40 @@ export default function App() {
              ) : (
                 <div className="flex-1 flex flex-col lg:flex-row gap-10">
                    <div className="flex-1 flex flex-col gap-8">
+                      {/* PREVIEW CONTAINER */}
                       <div className="relative flex-1 bg-[#0c0c0e] rounded-[5rem] border border-white/5 shadow-4xl flex items-center justify-center overflow-hidden group">
+                         
+                         {/* AUTO ENHANCE OVERLAY BUTTON */}
                          <div className="absolute top-10 right-10 z-30">
-                            <button onClick={handleAutoEnhance} className="px-12 py-6 bg-white/10 hover:bg-white/20 ios-blur border border-white/10 rounded-full flex items-center gap-5 transition-all shadow-4xl active:scale-95 group/btn">
+                            <button 
+                               onClick={handleAutoEnhance}
+                               className="px-12 py-6 bg-white/10 hover:bg-white/20 ios-blur border border-white/10 rounded-full flex items-center gap-5 transition-all shadow-4xl active:scale-95 group/btn"
+                            >
                                <MagicWandIcon className="w-8 h-8 group-hover/btn:rotate-12 transition-transform" style={{ color: settings.accentColor }} />
                                <span className="text-[14px] font-black uppercase tracking-[0.4em] text-white">Neural Grade</span>
                             </button>
                          </div>
+
                          <div className="relative transition-all duration-700" style={{ transform: `scale(${zoom})` }}>
                             <img src={activeProject.url} className="max-w-[80vw] max-h-[70vh] object-contain shadow-4xl rounded-[2rem]" alt="Canvas Asset" />
                          </div>
+                         
                          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-10 bg-black/90 ios-blur border border-white/10 rounded-full p-4 px-10 shadow-4xl translate-y-6 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all">
                             <button onClick={() => setZoom(z => Math.max(0.2, z - 0.2))} className="p-4 hover:bg-white/10 rounded-full"><ZoomOutIcon className="w-7 h-7 text-white/50" /></button>
                             <span className="text-xl font-black w-20 text-center tabular-nums">{Math.round(zoom*100)}%</span>
                             <button onClick={() => setZoom(z => Math.min(6, z + 0.2))} className="p-4 hover:bg-white/10 rounded-full"><ZoomInIcon className="w-7 h-7 text-white/50" /></button>
                          </div>
                       </div>
+
+                      {/* THUMBNAILS BAR */}
                       <div className="flex items-center gap-6 overflow-x-auto pb-6 no-scrollbar">
                          <button onClick={() => {setView('home'); setActiveTool(null);}} className="w-24 h-24 bg-white/5 border border-white/10 rounded-[2.5rem] flex-shrink-0 flex items-center justify-center hover:bg-white/10 transition-all"><XIcon className="w-8 h-8 opacity-40"/></button>
                          {projects.map((proj, idx) => (
-                             <div key={proj.id} onClick={() => setActiveIndex(idx)} className={`w-24 h-24 rounded-[3rem] flex-shrink-0 border-[4px] transition-all cursor-pointer overflow-hidden ${activeIndex === idx ? 'scale-110 shadow-4xl border-white' : 'border-transparent opacity-40'}`}>
+                             <div 
+                               key={proj.id} 
+                               onClick={() => setActiveIndex(idx)}
+                               className={`w-24 h-24 rounded-[3rem] flex-shrink-0 border-[4px] transition-all cursor-pointer overflow-hidden ${activeIndex === idx ? 'scale-110 shadow-4xl border-white' : 'border-transparent opacity-40 hover:opacity-100'}`}
+                             >
                                 <img src={proj.url} className="w-full h-full object-cover" />
                              </div>
                          ))}
@@ -412,11 +542,12 @@ export default function App() {
                       </div>
                    </div>
 
+                   {/* CONTROL PANEL */}
                    <div className="w-full lg:w-[450px] flex flex-col gap-8">
                       <div className="bg-[#1c1c1e] p-12 rounded-[5rem] border border-white/5 shadow-4xl space-y-12 h-full flex flex-col overflow-y-auto no-scrollbar">
                          {activeTool ? (
                             <div className="animate-in slide-in-from-right-8 duration-700 space-y-10 flex-1">
-                               <div className="flex items-center justify-between sticky top-0 bg-[#1c1c1e] z-10 py-2">
+                               <div className="flex items-center justify-between sticky top-0 bg-[#1c1c1e] z-10 py-2 border-b border-white/5">
                                   <h3 className="text-4xl font-black uppercase tracking-tighter" style={{ color: settings.accentColor }}>{activeTool}</h3>
                                   <button onClick={() => setActiveTool(null)} className="p-4 bg-white/5 rounded-full"><XIcon className="w-6 h-6 opacity-40" /></button>
                                </div>
