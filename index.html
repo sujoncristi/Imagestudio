@@ -10,7 +10,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
-      // Shim process for browser environment to avoid "process is not defined" errors during static deployment
       window.process = window.process || { env: {} };
     </script>
     <style>
@@ -29,11 +28,11 @@
         overflow-x: hidden;
       }
       .ios-blur {
-        backdrop-filter: saturate(180%) blur(30px);
-        -webkit-backdrop-filter: saturate(180%) blur(30px);
+        backdrop-filter: saturate(180%) blur(40px);
+        -webkit-backdrop-filter: saturate(180%) blur(40px);
       }
       .ios-shadow-lg {
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 12px 60px rgba(0, 0, 0, 0.6);
       }
       .no-scrollbar::-webkit-scrollbar {
         display: none;
@@ -48,87 +47,81 @@
       
       /* Spring Animations */
       .spring-in {
-        animation: springIn 0.6s var(--ios-spring) forwards;
+        animation: springIn 0.8s var(--ios-spring) forwards;
       }
       @keyframes springIn {
-        from { opacity: 0; transform: scale(0.95) translateY(10px); }
+        from { opacity: 0; transform: scale(0.9) translateY(20px); }
         to { opacity: 1; transform: scale(1) translateY(0); }
-      }
-
-      @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        20%, 60% { transform: translateX(-10px); }
-        40%, 80% { transform: translateX(10px); }
-      }
-      .animate-shake {
-        animation: shake 0.4s ease-in-out;
       }
 
       /* Modern Dark iOS Slider */
       input[type=range] {
         -webkit-appearance: none;
         background: transparent;
+        width: 100%;
       }
       input[type=range]::-webkit-slider-runnable-track {
         width: 100%;
         height: 6px;
-        background: #3a3a3c;
-        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
         transition: background 0.3s ease;
-      }
-      input[type=range]:active::-webkit-slider-runnable-track {
-        background: #4a4a4c;
       }
       input[type=range]::-webkit-slider-thumb {
         -webkit-appearance: none;
-        height: 28px;
-        width: 28px;
+        height: 24px;
+        width: 24px;
         border-radius: 50%;
         background: #ffffff;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         cursor: pointer;
-        margin-top: -11px;
-        border: 0.5px solid rgba(0,0,0,0.04);
+        margin-top: -9px;
+        border: 1px solid rgba(0,0,0,0.05);
         transition: transform 0.2s var(--ios-spring);
       }
       input[type=range]:active::-webkit-slider-thumb {
-        transform: scale(1.15);
+        transform: scale(1.2);
       }
 
       @keyframes float {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-        100% { transform: translateY(0px); }
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
       }
       .animate-float {
-        animation: float 6s ease-in-out infinite;
+        animation: float 5s ease-in-out infinite;
       }
 
-      /* Transitions */
-      .view-transition {
-        transition: all 0.5s var(--spring-easing);
+      .pulse-slow {
+        animation: pulseSlow 4s ease-in-out infinite;
+      }
+      @keyframes pulseSlow {
+        0%, 100% { opacity: 0.2; }
+        50% { opacity: 0.4; }
       }
 
-      /* Custom Checkbox/Switch vibes */
-      .ios-switch {
-        transition: background-color 0.3s;
+      /* Glass Panel Styles */
+      .glass-panel {
+        background: rgba(28, 28, 30, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
       }
     </style>
   <script type="importmap">
 {
   "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
     "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react-dom": "https://esm.sh/react-dom@^19.2.3",
     "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client",
     "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "react/": "https://esm.sh/react@^19.2.4/",
     "vite": "https://esm.sh/vite@^7.3.1",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
   }
 }
 </script>
 </head>
-  <body class="antialiased selection:bg-[#007aff]/40">
+  <body class="antialiased selection:bg-[#007aff]/30">
     <div id="root"></div>
     <script type="module" src="index.tsx"></script>
   </body>

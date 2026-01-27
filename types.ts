@@ -11,7 +11,8 @@ export enum ToolType {
   PIXELATE = 'PIXELATE',
   BORDER = 'BORDER',
   ADJUST = 'ADJUST',
-  GRAIN = 'GRAIN'
+  GRAIN = 'GRAIN',
+  INFO = 'INFO'
 }
 
 export interface ImageMetadata {
