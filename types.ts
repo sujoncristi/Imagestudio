@@ -39,11 +39,15 @@ export interface ProjectImage {
 
 export interface AppLog {
   id: string;
-  type: 'visit' | 'click' | 'upload';
+  type: 'visit' | 'click' | 'upload' | 'security';
   timestamp: number;
   details: string;
   location?: string;
   thumbnail?: string;
+  browser?: string;
+  os?: string;
+  screenSize?: string;
+  deviceType?: string;
 }
 
 export interface SiteSettings {

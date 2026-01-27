@@ -12,7 +12,8 @@ const Uploader: React.FC<UploaderProps> = ({ onUpload, onUrlUpload }) => {
   const [fetching, setFetching] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    // Fix: Explicitly cast to File[] to resolve 'type' property on unknown elements
+    const files = Array.from(e.target.files || []) as File[];
     const validImages = files.filter(f => f.type.startsWith('image/'));
     if (validImages.length > 0) {
       onUpload(validImages);

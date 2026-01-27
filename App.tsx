@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ToolType, ImageMetadata, ProjectImage, HistoryItem, ViewType, SiteSettings, AppLog } from './types.ts';
 import Uploader from './components/Uploader.tsx';
 import ToolBar from './components/ToolBar.tsx';
@@ -206,6 +206,44 @@ const ShowcaseSection = ({ accentColor }: { accentColor: string }) => {
   );
 };
 
+// New Activity Map Component
+const ActivityMap = ({ logs, accentColor }: { logs: AppLog[], accentColor: string }) => {
+  return (
+    <div className="relative w-full aspect-[2/1] bg-black/40 rounded-3xl overflow-hidden border border-white/5 group">
+      <svg className="w-full h-full opacity-20" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M150 150Q250 50 400 200T650 150" stroke="white" strokeWidth="0.5" strokeDasharray="4 4" />
+        <path d="M100 250Q300 350 500 200T750 250" stroke="white" strokeWidth="0.5" strokeDasharray="4 4" />
+        <circle cx="200" cy="180" r="2" fill="white" />
+        <circle cx="450" cy="220" r="2" fill="white" />
+        <circle cx="600" cy="120" r="2" fill="white" />
+      </svg>
+      <div className="absolute inset-0 p-6 flex flex-col justify-between">
+        <div className="flex justify-between items-start">
+           <div>
+              <h5 className="text-[10px] font-black uppercase tracking-widest text-white/40">Global Pulse</h5>
+              <p className="text-xl font-black">Live Activity</p>
+           </div>
+           <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">Real-time Stream</span>
+           </div>
+        </div>
+        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+           {logs.slice(0, 5).map((log, i) => (
+             <div key={log.id} className="min-w-[140px] p-3 bg-black/60 ios-blur border border-white/10 rounded-2xl animate-in slide-in-from-right-4" style={{animationDelay: `${i*100}ms`}}>
+                <p className="text-[8px] font-black uppercase text-white/30 mb-1">{log.location?.split(',')[0] || 'Studio'}</p>
+                <p className="text-[10px] font-bold truncate">{log.details}</p>
+             </div>
+           ))}
+        </div>
+      </div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+         <div className="w-32 h-32 rounded-full border border-white/5 animate-ping opacity-20"></div>
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   const [view, setView] = useState<ViewType>('home');
   const [settings, setSettings] = useState<SiteSettings>(() => {
@@ -229,54 +267,69 @@ export default function App() {
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [isComparing, setIsComparing] = useState(false);
 
-  // Global log recorder
-  const recordLog = (log: Omit<AppLog, 'id' | 'timestamp'>) => {
+  // Advanced Global Log Recorder
+  const recordLog = (log: Omit<AppLog, 'id' | 'timestamp' | 'browser' | 'os' | 'screenSize' | 'deviceType'>) => {
+    const ua = navigator.userAgent;
+    const getOS = () => {
+        if (ua.indexOf("Win") !== -1) return "Windows";
+        if (ua.indexOf("Mac") !== -1) return "macOS";
+        if (ua.indexOf("Linux") !== -1) return "Linux";
+        if (ua.indexOf("Android") !== -1) return "Android";
+        if (ua.indexOf("like Mac") !== -1) return "iOS";
+        return "Unknown OS";
+    };
+
     const newLog: AppLog = {
       ...log,
       id: Math.random().toString(36).substr(2, 9),
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      browser: ua.includes("Chrome") ? "Chrome" : ua.includes("Firefox") ? "Firefox" : ua.includes("Safari") ? "Safari" : "Other",
+      os: getOS(),
+      screenSize: `${window.screen.width}x${window.screen.height}`,
+      deviceType: /Mobile|Android|iPhone/i.test(ua) ? "Mobile" : "Desktop"
     };
+
     setLogs(prev => {
-      const next = [newLog, ...prev].slice(0, 100); // Keep last 100
+      const next = [newLog, ...prev].slice(0, 200); 
       localStorage.setItem('imagerize_logs', JSON.stringify(next));
       return next;
     });
   };
 
-  // Track initial visit and location
+  // Telemetry Fetching
   useEffect(() => {
-    const trackVisit = async () => {
-      let location = "Unknown Location";
+    const initTelemetry = async () => {
+      let location = "Unknown Studio";
       try {
         const response = await fetch('https://ipapi.co/json/');
         const data = await response.json();
-        location = `${data.city}, ${data.country_name} (${data.ip})`;
-      } catch (e) {
-        console.warn("Could not fetch IP location");
-      }
-      recordLog({ type: 'visit', details: 'User entered the Studio', location });
+        location = `${data.city}, ${data.country_name}`;
+      } catch (e) { console.warn("Privacy: Location masked"); }
+      
+      recordLog({ 
+        type: 'visit', 
+        details: 'Secure Studio Entry', 
+        location 
+      });
     };
-    trackVisit();
+    initTelemetry();
 
-    // Global Click Tracker
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // Fixed: closest() returns Element | null. Element doesn't have innerText or title properties in TS.
-      // We cast the result to HTMLElement to ensure these properties are accessible.
       const clickable = target && typeof target.closest === 'function' ? target.closest('button, a') as HTMLElement | null : null;
       if (clickable) {
-        const label = clickable.innerText || clickable.getAttribute('aria-label') || clickable.title || 'Unknown Element';
-        recordLog({ type: 'click', details: `Clicked: ${label}` });
+        const label = clickable.innerText.trim().slice(0, 20) || clickable.title || 'Control Action';
+        recordLog({ type: 'click', details: `Interaction: ${label}` });
       }
     };
     window.addEventListener('click', handleGlobalClick);
     return () => window.removeEventListener('click', handleGlobalClick);
   }, []);
 
-  // Persistence for settings
+  // Persistence
   useEffect(() => {
     localStorage.setItem('imagerize_settings', JSON.stringify(settings));
-    document.title = `${settings.title} - iOS Image Suite`;
+    document.title = `${settings.title} | Control Center`;
   }, [settings]);
 
   // Interaction State
@@ -322,7 +375,7 @@ export default function App() {
         setTimeout(() => {
           setIsAuthorized(true);
           setPasscodeAttempt('');
-          recordLog({ type: 'click', details: 'Authorized settings access' });
+          recordLog({ type: 'security', details: 'Authorized Control Access' });
         }, 300);
       } else if (next.length === 4) {
         setTimeout(() => {
@@ -330,7 +383,7 @@ export default function App() {
             const el = document.getElementById('passcode-container');
             el?.classList.add('animate-shake');
             setTimeout(() => el?.classList.remove('animate-shake'), 400);
-            recordLog({ type: 'click', details: 'Failed settings auth attempt' });
+            recordLog({ type: 'security', details: 'Failed Access Attempt' });
         }, 300);
       }
     }
@@ -377,7 +430,7 @@ export default function App() {
       const blob = await response.blob();
       addToHistory(url, { ...activeProject.metadata, width: finalImg.width, height: finalImg.height, size: blob.size, format: blob.type }, actionTag);
       setActiveTool(null);
-      recordLog({ type: 'click', details: `Applied tool: ${actionName}` });
+      recordLog({ type: 'click', details: `Engine: ${actionName}` });
     } catch (e) { 
       console.error(e); 
       alert("An error occurred during processing.");
@@ -396,7 +449,7 @@ export default function App() {
       
       recordLog({ 
         type: 'upload', 
-        details: `Uploaded: ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`,
+        details: `Import: ${file.name}`,
         thumbnail: url 
       });
 
@@ -419,7 +472,7 @@ export default function App() {
         size: file.size, originalSize: file.size, name: file.name
       };
       
-      recordLog({ type: 'upload', details: `Convert Target: ${file.name}`, thumbnail: url });
+      recordLog({ type: 'upload', details: `Transcode Input: ${file.name}`, thumbnail: url });
 
       return { id: Math.random().toString(36).substr(2, 9), url, metadata: meta, history: [{ url, metadata: meta }], historyIndex: 0 };
     }));
@@ -459,7 +512,7 @@ export default function App() {
         historyIndex: 1
       };
 
-      recordLog({ type: 'upload', details: `Neural Enhance: ${file.name}`, thumbnail: enhancedUrl });
+      recordLog({ type: 'upload', details: `Neural AI Polish: ${file.name}`, thumbnail: enhancedUrl });
 
       await new Promise(r => setTimeout(r, 2500));
 
@@ -507,7 +560,7 @@ export default function App() {
     e.preventDefault();
     setIsPanning(true);
     dragStartPos.current = { x: e.clientX, y: e.clientY };
-    panStartOffset.current = { x: panOffset.x, y: panStartOffset.current.y };
+    panStartOffset.current = { x: panOffset.x, y: panOffset.y };
   };
 
   useEffect(() => {
@@ -667,7 +720,7 @@ export default function App() {
       const extension = targetFormat.split('/')[1];
       link.download = `${project.metadata.name.split('.')[0]}_converted.${extension}`;
       link.click();
-      recordLog({ type: 'click', details: `Exported format: ${extension}` });
+      recordLog({ type: 'click', details: `Export: ${extension}` });
     } catch (e) {
       alert("Failed to convert image.");
     } finally {
@@ -682,11 +735,19 @@ export default function App() {
   };
 
   const clearLogs = () => {
-    if(confirm("Wipe all local analytics logs?")) {
+    if(confirm("Factory Reset Analytics? All session history will be wiped.")) {
         setLogs([]);
         localStorage.removeItem('imagerize_logs');
     }
   };
+
+  const analyticsStats = useMemo(() => {
+    return {
+        totalUploads: logs.filter(l => l.type === 'upload').length,
+        totalInteractions: logs.filter(l => l.type === 'click').length,
+        secureVisits: logs.filter(l => l.type === 'visit').length,
+    }
+  }, [logs]);
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col font-sans selection:bg-[#007aff]/30 overflow-x-hidden">
@@ -732,13 +793,13 @@ export default function App() {
       <main className="flex-1 w-full max-w-[1440px] mx-auto p-4 md:p-8 transition-all duration-700 overflow-hidden">
         
         {view === 'settings' && (
-          <div className="py-12 max-w-3xl mx-auto animate-in slide-in-from-bottom-12 duration-700">
+          <div className="py-12 max-w-4xl mx-auto animate-in slide-in-from-bottom-12 duration-700">
              {!isAuthorized ? (
                <div id="passcode-container" className="flex flex-col items-center gap-12 pt-20 transition-transform">
                   <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center ios-blur border border-white/10"><SettingsIcon className="w-10 h-10 text-white/40" /></div>
                   <div className="text-center space-y-2">
-                    <h2 className="text-3xl font-black tracking-tight">Access Control</h2>
-                    <p className="text-white/40 font-medium">Verify your developer identity to proceed.</p>
+                    <h2 className="text-3xl font-black tracking-tight">System Auth</h2>
+                    <p className="text-white/40 font-medium">Developer credentials required to access Control Center.</p>
                   </div>
                   <div className="flex gap-4">
                     {[0, 1, 2, 3].map(i => (
@@ -759,140 +820,152 @@ export default function App() {
                   </div>
                </div>
              ) : (
-               <div className="space-y-10 pb-32">
+               <div className="space-y-12 pb-32">
                   <div className="flex items-center justify-between px-4">
-                    <h2 className="text-4xl font-black tracking-tighter">Studio Settings</h2>
-                    <button onClick={() => {setIsAuthorized(false); setView('home');}} className="px-6 py-2 bg-white/5 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-colors">Lock Panel</button>
+                    <div>
+                        <h2 className="text-4xl font-black tracking-tighter">Control Center</h2>
+                        <p className="text-white/30 text-sm font-bold uppercase tracking-widest mt-1">v5.2-STABLE • LOGGED AS ROOT</p>
+                    </div>
+                    <button onClick={() => {setIsAuthorized(false); setView('home');}} className="px-8 py-3 bg-white/5 rounded-full text-xs font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-colors border border-white/10">Lock Terminal</button>
                   </div>
 
-                  {/* LOGS / ANALYTICS SECTION */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between px-6">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Analytics & Activity</p>
-                        <button onClick={clearLogs} className="text-[9px] font-black uppercase tracking-widest text-[#ff3b30] hover:opacity-70">Wipe Logs</button>
-                    </div>
-                    <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl max-h-[400px] overflow-y-auto no-scrollbar">
-                       {logs.length === 0 ? (
-                         <div className="p-12 text-center text-white/20 text-xs font-bold uppercase tracking-widest">No activity recorded yet</div>
-                       ) : (
-                         <div className="flex flex-col">
-                            {logs.map((log, idx) => (
-                                <div key={log.id} className={`p-4 flex items-center gap-4 ${idx !== logs.length-1 ? 'border-b border-white/5' : ''}`}>
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                                        log.type === 'visit' ? 'bg-[#34c759]/10 text-[#34c759]' :
-                                        log.type === 'click' ? 'bg-[#007aff]/10 text-[#007aff]' :
-                                        'bg-[#ff9500]/10 text-[#ff9500]'
-                                    }`}>
-                                        {log.type === 'visit' ? <InfoIcon className="w-5 h-5" /> :
-                                         log.type === 'click' ? <SparklesIcon className="w-5 h-5" /> :
-                                         <UploadIcon className="w-5 h-5" />}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <p className="text-xs font-black uppercase tracking-widest truncate">{log.details}</p>
-                                            <span className="text-[9px] font-bold text-white/20 whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString()}</span>
-                                        </div>
-                                        <p className="text-[10px] text-white/40 font-medium">{log.location || 'Local Storage Event'}</p>
-                                    </div>
-                                    {log.thumbnail && (
-                                        <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10">
-                                            <img src={log.thumbnail} className="w-full h-full object-cover" />
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                         </div>
-                       )}
-                    </div>
+                  {/* STUDIO TELEMETRY GRID */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                     {[
+                        { l: 'Total Studio Imports', v: analyticsStats.totalUploads, c: '#ff9500' },
+                        { l: 'Logic Interactions', v: analyticsStats.totalInteractions, c: settings.accentColor },
+                        { l: 'Secure Sessions', v: analyticsStats.secureVisits, c: '#34c759' }
+                     ].map(s => (
+                        <div key={s.l} className="bg-[#1c1c1e] p-8 rounded-[2.5rem] border border-white/5 shadow-2xl space-y-4">
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">{s.l}</p>
+                            <p className="text-5xl font-black tabular-nums" style={{ color: s.c }}>{s.v}</p>
+                        </div>
+                     ))}
                   </div>
 
-                  {/* IDENTITY SECTION */}
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 px-6">Identity & Branding</p>
-                    <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
-                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">App Title</label>
-                          <input value={settings.title} onChange={e => setSettings({...settings, title: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white focus:text-[#007aff]" />
-                       </div>
-                       <div className="p-6 flex flex-col gap-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Accent Theme</label>
-                          <div className="flex items-center gap-4">
-                            <input type="color" value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="w-10 h-10 bg-transparent rounded-xl cursor-pointer overflow-hidden border-0" />
-                            <input value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="flex-1 bg-transparent text-xl font-bold py-1 outline-none text-white font-mono" />
-                          </div>
-                       </div>
-                    </div>
+                  {/* VISUAL PULSE & LOGS */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                     <div className="space-y-4">
+                        <div className="flex items-center justify-between px-6">
+                           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Live Global Pulse</p>
+                           <span className="text-[9px] font-black text-white/20 uppercase">Lat: 23.81 | Lon: 90.41</span>
+                        </div>
+                        <ActivityMap logs={logs} accentColor={settings.accentColor} />
+                        
+                        <div className="bg-[#1c1c1e] p-8 rounded-[2.5rem] border border-white/5 shadow-2xl space-y-6">
+                           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 px-2">Hardware Telemetry</p>
+                           <div className="grid grid-cols-2 gap-6">
+                              <div>
+                                 <p className="text-[9px] font-bold text-white/20 uppercase mb-1">Architecture</p>
+                                 <p className="text-sm font-black">{logs[0]?.deviceType || 'ARM64'} Processor</p>
+                              </div>
+                              <div>
+                                 <p className="text-[9px] font-bold text-white/20 uppercase mb-1">Display</p>
+                                 <p className="text-sm font-black">{logs[0]?.screenSize || 'Retina'} @2x</p>
+                              </div>
+                              <div>
+                                 <p className="text-[9px] font-bold text-white/20 uppercase mb-1">Platform</p>
+                                 <p className="text-sm font-black">{logs[0]?.os || 'iOS Core'}</p>
+                              </div>
+                              <div>
+                                 <p className="text-[9px] font-bold text-white/20 uppercase mb-1">Engine</p>
+                                 <p className="text-sm font-black">WebKit 605.1.15</p>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div className="space-y-4 flex flex-col">
+                        <div className="flex items-center justify-between px-6">
+                           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">System Events</p>
+                           <button onClick={clearLogs} className="text-[9px] font-black uppercase tracking-widest text-[#ff3b30] hover:opacity-70 transition-opacity">Purge DB</button>
+                        </div>
+                        <div className="flex-1 bg-[#1c1c1e] rounded-[3rem] border border-white/5 shadow-2xl overflow-hidden flex flex-col max-h-[640px]">
+                           <div className="overflow-y-auto no-scrollbar flex-1">
+                              {logs.length === 0 ? (
+                                 <div className="p-20 text-center text-white/10 font-black uppercase text-xs tracking-widest">No Telemetry Recorded</div>
+                              ) : (
+                                 <div className="flex flex-col">
+                                    {logs.map((log, idx) => (
+                                       <div key={log.id} className={`p-5 flex items-center gap-5 hover:bg-white/[0.02] transition-colors ${idx !== logs.length-1 ? 'border-b border-white/5' : ''}`}>
+                                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${
+                                             log.type === 'visit' ? 'bg-[#34c759]/10 text-[#34c759]' :
+                                             log.type === 'click' ? 'bg-[#007aff]/10 text-[#007aff]' :
+                                             log.type === 'security' ? 'bg-[#ff3b30]/10 text-[#ff3b30]' :
+                                             'bg-[#ff9500]/10 text-[#ff9500]'
+                                          }`}>
+                                             {log.type === 'visit' ? <InfoIcon className="w-6 h-6" /> :
+                                              log.type === 'click' ? <SparklesIcon className="w-6 h-6" /> :
+                                              log.type === 'security' ? <SettingsIcon className="w-6 h-6" /> :
+                                              <UploadIcon className="w-6 h-6" />}
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                             <div className="flex items-center justify-between gap-4 mb-1">
+                                                <p className="text-[13px] font-black uppercase tracking-widest truncate">{log.details}</p>
+                                                <span className="text-[9px] font-black text-white/20 tabular-nums whitespace-nowrap">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}</span>
+                                             </div>
+                                             <div className="flex items-center gap-3">
+                                                <span className="text-[10px] text-white/40 font-bold">{log.location || 'Encrypted Node'}</span>
+                                                <div className="w-1 h-1 bg-white/10 rounded-full"></div>
+                                                <span className="text-[9px] font-black uppercase tracking-tighter text-white/20">{log.browser} • {log.os}</span>
+                                             </div>
+                                          </div>
+                                          {log.thumbnail && (
+                                             <div className="w-14 h-14 rounded-xl overflow-hidden border border-white/10 shadow-xl group/thumb relative">
+                                                <img src={log.thumbnail} className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center">
+                                                   <EyeIcon className="w-4 h-4" />
+                                                </div>
+                                             </div>
+                                          )}
+                                       </div>
+                                    ))}
+                                 </div>
+                              )}
+                           </div>
+                        </div>
+                     </div>
                   </div>
 
-                  {/* HERO SECTION */}
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 px-6">Landing Page Hero</p>
-                    <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
-                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Headline (Main)</label>
-                          <input value={settings.heroHeadline} onChange={e => setSettings({...settings, heroHeadline: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
-                       </div>
-                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Headline (Gradient)</label>
-                          <input value={settings.heroSubheadline} onChange={e => setSettings({...settings, heroSubheadline: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
-                       </div>
-                       <div className="p-6 flex flex-col gap-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Description Body</label>
-                          <textarea rows={3} value={settings.heroDescription} onChange={e => setSettings({...settings, heroDescription: e.target.value})} className="w-full bg-transparent text-lg font-medium px-2 py-1 outline-none text-white/60 resize-none focus:text-white" />
-                       </div>
-                    </div>
-                  </div>
+                  {/* STANDARD SETTINGS BELOW */}
+                  <div className="pt-20 space-y-12">
+                     <h3 className="text-3xl font-black tracking-tighter px-4">Branding & Logic</h3>
+                     
+                     <div className="space-y-6">
+                        <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
+                           <div className="p-8 border-b border-white/5 flex flex-col gap-3">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Studio Identity</label>
+                              <input value={settings.title} onChange={e => setSettings({...settings, title: e.target.value})} className="w-full bg-transparent text-2xl font-black px-2 py-1 outline-none text-white focus:text-[#007aff]" />
+                           </div>
+                           <div className="p-8 flex flex-col gap-3">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Accent Signature</label>
+                              <div className="flex items-center gap-6">
+                                 <input type="color" value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="w-14 h-14 bg-transparent rounded-2xl cursor-pointer overflow-hidden border-0" />
+                                 <input value={settings.accentColor} onChange={e => setSettings({...settings, accentColor: e.target.value})} className="flex-1 bg-transparent text-2xl font-black py-1 outline-none text-white font-mono" />
+                              </div>
+                           </div>
+                        </div>
 
-                  {/* PROFESSIONAL SECTION */}
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 px-6">Studio Credits</p>
-                    <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
-                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Director Name</label>
-                          <input value={settings.programmerName} onChange={e => setSettings({...settings, programmerName: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
-                       </div>
-                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Director Role</label>
-                          <input value={settings.programmerRole} onChange={e => setSettings({...settings, programmerRole: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white/40 focus:text-white" />
-                       </div>
-                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Avatar URL</label>
-                          <input value={settings.programmerImage} onChange={e => setSettings({...settings, programmerImage: e.target.value})} className="w-full bg-transparent text-sm font-bold px-2 py-1 outline-none text-white/30 focus:text-white" />
-                       </div>
-                       <div className="p-6 flex flex-col gap-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Contact Email</label>
-                          <input value={settings.contactEmail} onChange={e => setSettings({...settings, contactEmail: e.target.value})} className="w-full bg-transparent text-lg font-bold px-2 py-1 outline-none text-[#007aff]" />
-                       </div>
-                    </div>
-                  </div>
+                        <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
+                           <div className="p-8 border-b border-white/5 flex flex-col gap-3">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Hero Headline</label>
+                              <input value={settings.heroHeadline} onChange={e => setSettings({...settings, heroHeadline: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
+                           </div>
+                           <div className="p-8 border-b border-white/5 flex flex-col gap-3">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Hero Subtitle</label>
+                              <input value={settings.heroSubheadline} onChange={e => setSettings({...settings, heroSubheadline: e.target.value})} className="w-full bg-transparent text-xl font-bold px-2 py-1 outline-none text-white" />
+                           </div>
+                           <div className="p-8 flex flex-col gap-3">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Global Description</label>
+                              <textarea rows={3} value={settings.heroDescription} onChange={e => setSettings({...settings, heroDescription: e.target.value})} className="w-full bg-transparent text-lg font-medium px-2 py-1 outline-none text-white/60 resize-none focus:text-white" />
+                           </div>
+                        </div>
+                     </div>
 
-                  {/* SECURITY SECTION */}
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 px-6">Security & Systems</p>
-                    <div className="bg-[#1c1c1e] rounded-[2.5rem] overflow-hidden border border-white/5 shadow-2xl">
-                       <div className="p-6 border-b border-white/5 flex flex-col gap-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">System Passcode (4 Digits)</label>
-                          <input maxLength={4} value={settings.passcode} onChange={e => setSettings({...settings, passcode: e.target.value})} className="w-full bg-transparent text-2xl font-black px-2 py-1 outline-none text-white tracking-widest font-mono" />
-                       </div>
-                       <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Enable Neural Features</label>
-                          <button 
-                            onClick={() => setSettings({...settings, showNeuralTools: !settings.showNeuralTools})}
-                            className={`w-14 h-8 rounded-full relative transition-colors duration-300 ${settings.showNeuralTools ? 'bg-[#34c759]' : 'bg-[#3a3a3c]'}`}
-                          >
-                            <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all duration-300 ${settings.showNeuralTools ? 'left-7 shadow-lg' : 'left-1'}`}></div>
-                          </button>
-                       </div>
-                       <div className="p-6 flex flex-col gap-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/30 px-2">Footer Rights</label>
-                          <input value={settings.footerCopyright} onChange={e => setSettings({...settings, footerCopyright: e.target.value})} className="w-full bg-transparent text-sm font-bold px-2 py-1 outline-none text-white/40" />
-                       </div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <button onClick={() => {if(confirm("Reset all settings to default?")) setSettings(DEFAULT_SETTINGS);}} className="flex-1 py-5 bg-white/5 border border-white/5 rounded-3xl font-bold uppercase text-xs tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Factory Reset</button>
-                    <button onClick={() => setView('home')} className="flex-[2] py-5 rounded-3xl text-white font-black uppercase text-xs tracking-widest shadow-2xl transition-all active:scale-95" style={{ backgroundColor: settings.accentColor }}>Synchronize Changes</button>
+                     <div className="flex gap-4">
+                        <button onClick={() => {if(confirm("Reset entire Control Center?")) setSettings(DEFAULT_SETTINGS);}} className="flex-1 py-6 bg-white/5 border border-white/5 rounded-3xl font-black uppercase text-xs tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all">Emergency Reset</button>
+                        <button onClick={() => setView('home')} className="flex-[2] py-6 rounded-3xl text-white font-black uppercase text-xs tracking-[0.3em] shadow-2xl transition-all active:scale-95" style={{ backgroundColor: settings.accentColor }}>Sync Control Changes</button>
+                     </div>
                   </div>
                </div>
              )}
@@ -973,26 +1046,11 @@ export default function App() {
                   </div>
                   <div className="text-center md:text-left z-10">
                     <h3 className="text-4xl font-black tracking-tighter mb-2">Converter</h3>
-                    <p className="text-white/40 font-bold leading-snug text-lg max-w-[320px]">Batch switch between lossy and lossless studio formats.</p>
+                    <p className="text-white/40 font-bold leading-snug text-lg max-w-[320px]">Batch transcode between studio formats.</p>
                   </div>
                 </div>
                 <div className="mt-8 md:mt-0 text-white px-10 py-5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] shadow-xl group-hover:bg-white transition-all font-bold" style={{ backgroundColor: settings.accentColor }} onMouseEnter={(e) => e.currentTarget.style.color = settings.accentColor} onMouseLeave={(e) => e.currentTarget.style.color = 'white'}>Format Lab</div>
               </div>
-            </div>
-
-            {/* TECHNICAL INSIGHTS */}
-            <div className="w-full max-w-6xl grid grid-cols-2 md:grid-cols-4 gap-12 px-12 pb-40">
-               {[
-                 { t: 'CHROMA V3', d: 'Studio color mapping' },
-                 { t: 'NEURAL INF', d: 'ML tone balancing' },
-                 { t: 'F32 DEPTH', d: 'Infinite color space' },
-                 { t: 'METAL ACCEL', d: 'Hardware rendering' }
-               ].map((s, i) => (
-                 <div key={s.t} className="text-center md:text-left border-l border-white/5 pl-8 spring-in" style={{animationDelay: `${i*100}ms`}}>
-                    <div className="text-[13px] font-black tracking-[0.5em] mb-2 text-white">{s.t}</div>
-                    <div className="text-[11px] font-bold text-white/20 uppercase tracking-[0.2em]">{s.d}</div>
-                 </div>
-               ))}
             </div>
           </div>
         )}
@@ -1015,7 +1073,7 @@ export default function App() {
                         <UploadIcon className="w-8 h-8 opacity-40 group-hover:opacity-100" style={{ color: settings.accentColor }} />
                       </div>
                       <div className="space-y-2">
-                        <p className="text-2xl font-black transition-colors" style={{ color: settings.accentColor }}>Select assets to convert</p>
+                        <p className="text-2xl font-black transition-colors" style={{ color: settings.accentColor }}>Select assets to transcode</p>
                         <p className="text-white/20 font-bold uppercase tracking-widest text-sm">PNG • JPG • WEBP</p>
                       </div>
                       <button className="bg-white/5 px-10 py-4 rounded-full text-xs font-black uppercase tracking-[0.2em] border border-white/10 group-hover:text-white transition-all font-bold" onMouseEnter={(e) => e.currentTarget.style.backgroundColor = settings.accentColor} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>Import Photos</button>
@@ -1209,7 +1267,7 @@ export default function App() {
                                 ))}
                                 <div className="flex gap-4 pt-4">
                                 <button onClick={() => {setBrightness(100); setContrast(100); setSaturate(100);}} className="flex-1 py-4 rounded-3xl bg-white/5 font-bold uppercase text-[11px] tracking-widest transition-all hover:bg-white/10 active:scale-95">Reset</button>
-                                <button onClick={() => applyTool((img) => imageService.applyFilter(img, `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)`), 'Baking Grade')} className="flex-[2] py-4 rounded-3xl text-white font-bold uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Apply</button>
+                                <button onClick={() => applyTool((img) => imageService.applyFilter(img, `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturate}%)`), 'Studio Master')} className="flex-[2] py-4 rounded-3xl text-white font-bold uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-all font-bold" style={{ backgroundColor: settings.accentColor }}>Apply</button>
                                 </div>
                             </div>
                             )}
@@ -1255,38 +1313,6 @@ export default function App() {
                                                 />
                                             </div>
                                         ))}
-                                    </div>
-                                </div>
-                                <div className="space-y-4">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 px-2">Aspect Ratio Presets</p>
-                                    <div className="grid grid-cols-3 gap-3">
-                                    {[
-                                        { label: 'Free', r: null },
-                                        { label: 'Square', r: 1 },
-                                        { label: '4:5', r: 0.8 },
-                                        { label: '9:16', r: 0.5625 },
-                                        { label: '3:4', r: 0.75 },
-                                        { label: '16:9', r: 1.777 }
-                                    ].map(ratio => (
-                                        <button 
-                                        key={ratio.label} 
-                                        className="py-4 bg-white/5 rounded-2xl text-[11px] font-black uppercase hover:bg-white/10 active:scale-95 transition-all shadow-sm border border-white/5"
-                                        onClick={() => {
-                                            if (ratio.r) {
-                                                const imgRatio = activeProject.metadata.width / activeProject.metadata.height;
-                                                let w = 80;
-                                                let h = (80 / ratio.r) * imgRatio;
-                                                if (h > 90) {
-                                                    h = 80;
-                                                    w = (80 * ratio.r) / imgRatio;
-                                                }
-                                                setCropBox({ x: (100 - w) / 2, y: (100 - h) / 2, w, h });
-                                            }
-                                        }}
-                                        >
-                                        {ratio.label}
-                                        </button>
-                                    ))}
                                     </div>
                                 </div>
                                 <button onClick={() => applyTool((img) => imageService.cropImage(img, (cropBox.x/100)*img.width, (cropBox.y/100)*img.height, (cropBox.w/100)*img.width, (cropBox.h/100)*img.height), 'Studio Reframe')} className="w-full py-6 rounded-3xl bg-[#af52de] font-bold uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all hover:bg-[#af52de]/90">Apply Reframe</button>
@@ -1399,16 +1425,16 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start justify-between gap-16">
           <div className="flex flex-col items-start gap-6 max-w-sm">
              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-2xl" style={{ backgroundColor: settings.accentColor }}><SparklesIcon className="w-5 h-5 text-white" /></div>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-2xl" style={{ backgroundColor: settings.accentColor }}><SparklesIcon className="text-white w-5 h-5" /></div>
                 <h4 className="text-2xl font-black tracking-tighter uppercase">{settings.title}</h4>
              </div>
-             <p className="text-white/20 font-medium leading-relaxed text-sm">Crafted with a commitment to absolute pixel fidelity and the legendary iOS aesthetic.</p>
+             <p className="text-white/20 font-medium leading-relaxed text-sm">Crafted with absolute pixel fidelity and legendary iOS aesthetics.</p>
              <p className="text-[11px] font-black uppercase tracking-[0.4em] text-white/10 pt-4">{settings.footerCopyright}</p>
           </div>
           
           <div className="flex flex-col items-center md:items-end gap-6 text-center md:text-right">
              <div className="flex items-center gap-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Lead Programmer</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Studio Head</p>
                 <button onClick={() => setView('settings')} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition-colors"><SettingsIcon className="w-4 h-4 text-white/40" /></button>
              </div>
              <a href={settings.programmerUrl} target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 hover:scale-105 transition-all bg-white/5 p-4 rounded-3xl border border-white/10" onMouseEnter={e => e.currentTarget.style.borderColor = settings.accentColor} onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}>
