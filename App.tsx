@@ -35,22 +35,47 @@ const FILTER_SETS = {
     { name: 'Clean', f: 'brightness(1.1) saturate(1.1) contrast(1.05)' },
     { name: 'Deep', f: 'contrast(1.3) saturate(1.2) brightness(0.95)' },
     { name: 'Pure', f: 'brightness(1.15) saturate(0.85)' },
+    { name: 'Warm', f: 'sepia(0.2) saturate(1.2)' },
+    { name: 'Cool', f: 'hue-rotate(180deg) saturate(0.8) brightness(1.05)' },
   ],
   Cinematic: [
     { name: 'Blockbuster', f: 'hue-rotate(-10deg) saturate(1.6) contrast(1.2) sepia(0.1)' },
     { name: 'Noir', f: 'grayscale(100%) contrast(1.6) brightness(0.9)' },
-    { name: 'Teal', f: 'hue-rotate(140deg) saturate(1.2) contrast(1.1) brightness(0.9)' },
-    { name: 'Midnight', f: 'brightness(0.8) contrast(1.3) hue-rotate(180deg) saturate(1.4)' },
+    { name: 'Teal & Orange', f: 'hue-rotate(-20deg) saturate(1.4) contrast(1.1) brightness(0.9) sepia(0.1)' },
+    { name: 'Midnight', f: 'brightness(0.7) contrast(1.4) hue-rotate(190deg) saturate(1.5)' },
+    { name: 'Hollywood', f: 'contrast(1.2) saturate(1.3) hue-rotate(-5deg) brightness(1.1)' },
+    { name: 'Matrix', f: 'hue-rotate(90deg) saturate(0.8) contrast(1.3) brightness(0.9)' },
+  ],
+  Atmospheric: [
+    { name: 'Ethereal', f: 'brightness(1.2) contrast(0.8) saturate(0.5) blur(0.5px)' },
+    { name: 'Moody', f: 'brightness(0.8) contrast(1.5) saturate(0.7)' },
+    { name: 'Foggy', f: 'brightness(1.1) contrast(0.7) opacity(0.9) blur(1px)' },
+    { name: 'Sunset', f: 'sepia(0.4) saturate(2) brightness(1.1) hue-rotate(-10deg)' },
+    { name: 'Ghost', f: 'grayscale(0.8) brightness(1.5) contrast(0.8) blur(1px)' },
+    { name: 'Dreamy', f: 'brightness(1.1) saturate(1.2) contrast(0.9) blur(0.3px)' },
   ],
   Vintage: [
     { name: '1970s', f: 'sepia(0.6) saturate(1.4) contrast(0.9) brightness(1.1)' },
     { name: 'Retro', f: 'sepia(0.4) hue-rotate(-20deg) saturate(1.2) contrast(1.1)' },
     { name: 'Antique', f: 'sepia(1) contrast(0.8) brightness(1.1) hue-rotate(-10deg)' },
+    { name: 'Kodak', f: 'contrast(1.1) saturate(1.5) sepia(0.2)' },
+    { name: 'Fuji', f: 'hue-rotate(10deg) saturate(1.2) contrast(1.1) brightness(1.05)' },
+    { name: 'Pinhole', f: 'grayscale(100%) contrast(2) brightness(0.7) blur(1px)' },
   ],
   Artistic: [
     { name: 'Cyber', f: 'hue-rotate(280deg) saturate(2.5) contrast(1.3) brightness(0.9)' },
     { name: 'Industrial', f: 'grayscale(0.5) contrast(1.4) brightness(0.9) saturate(0.8)' },
     { name: 'Acid', f: 'invert(0.1) hue-rotate(90deg) saturate(3) contrast(1.5)' },
+    { name: 'Invert', f: 'invert(1)' },
+    { name: 'Posterize', f: 'contrast(5) saturate(2)' },
+    { name: 'Pop Art', f: 'saturate(4) contrast(1.5) hue-rotate(-45deg)' },
+  ],
+  Duotone: [
+    { name: 'Ocean', f: 'grayscale(1) sepia(1) hue-rotate(160deg) saturate(3) contrast(1.2)' },
+    { name: 'Ruby', f: 'grayscale(1) sepia(1) hue-rotate(-40deg) saturate(4) contrast(1.1)' },
+    { name: 'Forest', f: 'grayscale(1) sepia(1) hue-rotate(60deg) saturate(2.5) contrast(1.2)' },
+    { name: 'Gold', f: 'grayscale(1) sepia(1) saturate(4) contrast(1.1)' },
+    { name: 'Purple Rain', f: 'grayscale(1) sepia(1) hue-rotate(240deg) saturate(3) contrast(1.2)' },
   ]
 };
 
@@ -471,7 +496,7 @@ export default function App() {
                                         <button 
                                           onClick={() => applyAction((img) => imageService.rotateImage(img, straighten), 'Straighten')} 
                                           disabled={straighten === 0}
-                                          className="w-full py-6 rounded-full bg-white text-black font-black uppercase text-[10px] tracking-widest hover:bg-[#007aff] hover:text-white transition-all disabled:opacity-20"
+                                          className="w-full py-6 rounded-full bg-white text-black font-black uppercase text-[10px] tracking-widest hover:bg-[#007aff] hover:text-white transition-all disabled:opacity-20 shadow-md"
                                         >
                                           Apply Rotation
                                         </button>
